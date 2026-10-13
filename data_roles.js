@@ -100,8 +100,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: true,
     getsHint: false,
     maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -120,8 +120,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: false,
     getsHint: false,
     maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -140,8 +140,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: true,
     getsHint: false,
     maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -160,8 +160,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: true,
     getsHint: false,
     maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -180,8 +180,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: true,
     getsHint: false,
     maxCount: 2,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -200,8 +200,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: true,
     getsHint: false,
     maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -220,8 +220,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: true,
     getsHint: false,
     maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -240,8 +240,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: true,
     getsHint: false,
     maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -260,8 +260,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: false,
     getsHint: true,
     maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -280,8 +280,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: true,
     getsHint: false,
     maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -300,8 +300,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: false,
     getsHint: true,
     maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -320,8 +320,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: true,
     getsHint: false,
     maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -340,8 +340,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: true,
     getsHint: false,
     maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -360,8 +360,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: true,
     getsHint: false,
     maxCount: 2,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -380,8 +380,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: true,
     getsHint: false,
     maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   },
   {
@@ -400,8 +400,8 @@ const DEFAULT_ROLES = [
     knowsKeyword: true,
     getsHint: true,
     maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
+    defaultCount: 1,
+    enabled: true,
     isDefault: true
   }
 ];

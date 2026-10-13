@@ -29,15 +29,18 @@ vuive/
 | **Thời gian thảo luận & phát biểu mỗi người** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `[SEC 08.6]` hoặc `updateCurrentSpeakerHUD`, `startSpeakerTimer`, `nextSpeaker` |
 | **Thêm / Xóa từng người chơi & Sửa tên** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `[SEC 05]` hoặc `generatePlayerInputs`, `deletePlayer`, `addPlayer` |
 | **Giao diện danh sách người chơi** | [`index.html`](file:///c:/Users/Windows/Documents/APP%20code/vuive/index.html) | Tìm: `#screen-players` & `#player-inputs-container` |
-| **Đổi tên / Xóa người chơi trên BXH giải đấu** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `renderCumulativeLeaderboard`, `btn-edit-lb-player` |
+| **Đổi tên người chơi trên BXH (Khóa điểm tuyệt đối)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `openRenamePlayerModal`, `saveRenamedPlayer`, `#modal-rename-player` (Không cho phép can thiệp/sửa điểm) |
+| **Chọn người chơi từ BXH giải đấu (Roster Picker)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `openRosterPicker`, `applySelectedRoster`, `#btn-pick-roster`, `#modal-roster-picker` |
+| **Gợi ý tự động & Liên kết điểm thời gian thực** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `#datalist-party-roster`, `.player-score-link-badge` (`🏆 X pts`) |
 | **Tính điểm ván & Điểm tích lũy giải đấu** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `[SEC 12]` hoặc `showResultsScreen`, `partyScores` |
 | **Đặt lại tất cả điểm (Reset Scores)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `resetAllScores` |
 | **Phạt phe Dân bầu sai (-5 điểm)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `[SEC 10]` hoặc `p.penalty`, `confirmEliminationVote` |
+| **Phạt Imposter bị bắt ngay Vòng 1 (-15 điểm)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `p.eliminatedInRound === 1` (Bị bắt ngay vòng 1 trừ 15đ; Dân thường bị loại sớm không bị trừ điểm) |
 | **Cơ hội lật kèo của Imposter (Screen 6.5)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `[SEC 11]` hoặc `showComebackStage`, `checkImposterComebackGuess` |
 | **Vai trò cố định kèm số lượng (Fixed Roles & Stepper)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `[SEC 04.4]` hoặc `syncFixedRolesWithDeck`, `setFixedRoleCount`, `renderFixedRolesChips` |
 | **Giao diện Vai trò cố định & Modal 2.2** | [`index.html`](file:///c:/Users/Windows/Documents/APP%20code/vuive/index.html) | Tìm: `#card-fixed-roles`, `#modal-fixed-roles`, `#btn-open-fixed-roles-modal` |
 | **Quản lý cặp từ vựng tự tạo (Word Pairs)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `[SEC 04.5]` hoặc `openWordPairsModal`, `addCustomWordPair`, `deleteCustomWordPair` |
-| **Modal Cặp Từ Tự Tạo (Bottom Sheet)** | [`index.html`](file:///c:/Users/Windows/Documents/APP%20code/vuive/index.html) | Tìm: `#modal-word-pairs`, `#form-add-word-pair`, `#custom-word-pairs-list` |
+| **Cài đặt hệ thống (Theme & Âm thanh)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) & [`index.html`](file:///c:/Users/Windows/Documents/APP%20code/vuive/index.html) | Tìm: `#btn-open-settings` (Góc trên bên phải), `#modal-settings`, `openSettingsModal` |
 | **Bản địa hóa 100% Tiếng Việt** | Toàn bộ ứng dụng | Không sử dụng song ngữ Anh-Việt, khóa cứng ngôn ngữ tiếng Việt thuần túy |
 | **Thêm / Sửa từ vựng mặc định (Word Pairs)** | [`data_categories.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/data_categories.js) | Tìm: `CATEGORIES` (Cặp từ: `{ civilian, imposter }`) |
 
@@ -58,8 +61,9 @@ Mỗi màn hình được bọc trong thẻ `<section id="screen-..." class="vie
    - **Vai trò cố định tích hợp**: Banner vai trò cố định thời gian thực, filter chip `📌 Cố định (X)`, và trên từng thẻ vai trò đặc biệt có nút **`+ Ghim cố định`** kèm bộ điều khiển số lượng `- [count] +`.
 3. **`#screen-players` (Screen 3 - Tên người chơi & Roster)**:
    - Danh sách thẻ người chơi động (`#player-inputs-container`).
+   - Nút **`👥 Chọn từ BXH`** (`#btn-pick-roster`) mở Modal Roster Picker chọn thành viên từ giải đấu.
    - Nút **➕ Thêm người chơi** (`#btn-add-player`).
-   - Từng dòng có: Avatar đổi được, ô sửa tên lưu tự động, nút xúc xắc 🎲 đổi tên đơn lẻ, nút thùng rác 🗑️ xóa người chơi.
+   - Từng dòng có: Avatar đồng bộ theo hồ sơ giải đấu, ô nhập tên liên kết Datalist gợi ý, huy hiệu phát sáng `🏆 X pts` khi kết nối hồ sơ có sẵn, nút xúc xắc 🎲 đổi tên đơn lẻ, nút thùng rác 🗑️ xóa người chơi.
 4. **`#screen-reveal` (Screen 4 - Chuyền điện thoại & Xem vai trò)**:
    - Màn che bảo mật và thẻ bài 3D chạm để lật.
 5. **`#screen-roulette` (Screen 4.5 - Vòng quay may mắn ai nói trước)**:
@@ -76,3 +80,7 @@ Mỗi màn hình được bọc trong thẻ `<section id="screen-..." class="vie
 9. **`#screen-results` (Screen 7 - Kết quả ván & Bảng điểm)**:
    - Bảng điểm 2 tab: `⚡ Điểm ván này` & `👑 Tổng tích lũy giải đấu`.
    - Nút `🔄 Đặt lại tất cả điểm`.
+   - **Thanh thao tác cố định ở dưới (`.results-actions-bar`)**:
+     - Bên trái: `🏠` (`#btn-back-to-home` - Về trang chủ).
+     - Ở giữa: `🔄` (`#btn-play-again` - Chơi lại ván mới).
+     - Bên phải: `🗑️` (`#btn-discard-round-score` - **Button Thùng Rác: Không tính điểm số ván này**; hoàn tác điểm cộng/trừ của ván đấu khỏi BXH giải đấu).

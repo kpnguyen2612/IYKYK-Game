@@ -130,7 +130,6 @@ class ImposterGame {
   constructor() {
     this.lang = 'vi';
     this.theme = localStorage.getItem('gti_theme') || 'dark';
-    this.frameMode = localStorage.getItem('gti_frame') !== 'false';
 
     // Match Configuration
     this.playerCount = 6;
@@ -143,6 +142,12 @@ class ImposterGame {
     this.rouletteEnabled = localStorage.getItem('gti_roulette') !== 'false';
     this.difficulty = 'Normal';
     this.gameMode = 'pass';
+
+    // Special Roles Roll Rate (Tỉ lệ Roll vai trò khác: 25%, 50%, 70%, 85%, 100%)
+    this.specialRoleRate = parseInt(localStorage.getItem('gti_special_role_rate') || '85', 10);
+    this.doctorShieldedPlayerId = null;
+    this.bodyguardProtectedPlayerId = null;
+    this.detectivesExposedImposter = new Set();
 
     // Custom Word Pairs (Cặp từ tự tạo)
     this.customWordPairs = JSON.parse(localStorage.getItem('gti_custom_word_pairs') || '[]');
@@ -210,14 +215,34 @@ class ImposterGame {
     return Object.values(this.fixedRoles || {}).reduce((sum, count) => sum + (count || 0), 0);
   }
 
-  getMaxSpecialAllowed() {
-    return Math.max(0, this.playerCount - this.imposterCount - 1);
+  getMaxSpecialAllowed(players = this.playerCount) {
+    if (players <= 4) return 1;
+    if (players <= 6) return 2;
+    if (players <= 8) return 2;
+    if (players <= 12) return 3;
+    return Math.min(4, Math.floor(players * 0.25));
+  }
+
+  getRecommendedSpecialCount(players = this.playerCount) {
+    if (players <= 4) return 1;
+    if (players <= 6) return 1;
+    if (players <= 8) return 2;
+    if (players <= 12) return 3;
+    return Math.min(4, Math.floor(players * 0.25));
   }
 
   buildInitialRoles() {
-    const cloned = DEFAULT_ROLES.map(r => ({ ...r, count: r.defaultCount }));
+    const cloned = DEFAULT_ROLES.map(r => ({
+      ...r,
+      count: r.defaultCount || 1,
+      enabled: r.enabled !== false
+    }));
     this.customRoles.forEach(cr => {
-      cloned.push({ ...cr, count: cr.defaultCount || 0 });
+      cloned.push({
+        ...cr,
+        count: cr.defaultCount || 1,
+        enabled: cr.enabled !== false
+      });
     });
     return cloned;
   }
@@ -225,10 +250,9 @@ class ImposterGame {
   init() {
     this.applyTheme();
     this.applyLanguage();
-    this.applyFrameMode();
+    this.setupDeviceAdaptation();
     this.bindEvents();
-    this.updateClock();
-    setInterval(() => this.updateClock(), 10000);
+    this.updateSoundSettingsUI();
 
     this.autoBalanceRoles(this.playerCount);
     this.renderFixedRolesChips();
@@ -241,12 +265,63 @@ class ImposterGame {
     const icon = document.getElementById('theme-icon');
     if (icon) icon.textContent = this.theme === 'dark' ? '🌙' : '☀️';
     localStorage.setItem('gti_theme', this.theme);
+
+    // Sync Settings Modal Theme UI
+    const isDark = this.theme === 'dark';
+    const badge = document.getElementById('label-current-theme-badge');
+    if (badge) badge.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+
+    const btnDark = document.getElementById('btn-theme-dark');
+    const btnLight = document.getElementById('btn-theme-light');
+    if (btnDark) btnDark.classList.toggle('active', isDark);
+    if (btnLight) btnLight.classList.toggle('active', !isDark);
+  }
+
+  setTheme(themeName) {
+    this.theme = themeName;
+    if (typeof sound !== 'undefined') sound.playToggle();
+    this.applyTheme();
   }
 
   toggleTheme() {
-    this.theme = this.theme === 'dark' ? 'light' : 'dark';
-    sound.playToggle();
+    this.setTheme(this.theme === 'dark' ? 'light' : 'dark');
+  }
+
+  openSettingsModal() {
+    const modal = document.getElementById('modal-settings');
+    if (!modal) return;
+    if (typeof sound !== 'undefined') sound.playClick();
+
     this.applyTheme();
+    this.updateSoundSettingsUI();
+
+    modal.classList.add('open');
+  }
+
+  updateSoundSettingsUI() {
+    const soundBtn = document.getElementById('btn-toggle-sound-switch');
+    const soundIcon = document.getElementById('settings-sound-icon');
+    const soundText = document.getElementById('settings-sound-text');
+    const isMuted = typeof sound !== 'undefined' && sound.muted;
+
+    if (soundBtn) {
+      soundBtn.className = `switch-toggle-btn ${isMuted ? 'muted' : 'active'}`;
+    }
+    if (soundIcon) soundIcon.textContent = isMuted ? '🔇' : '🔊';
+    if (soundText) soundText.textContent = isMuted ? 'Đã tắt' : 'Đang bật';
+
+    // Volume Slider
+    const slider = document.getElementById('slider-sound-volume');
+    const volVal = document.getElementById('val-sound-volume');
+    const vol = typeof sound !== 'undefined' ? Math.round((sound.volume ?? 1) * 100) : 100;
+    if (slider) slider.value = vol;
+    if (volVal) volVal.textContent = `${vol}%`;
+
+    // Haptic Switch
+    const hapticSwitch = document.getElementById('switch-haptic');
+    if (hapticSwitch && typeof sound !== 'undefined') {
+      hapticSwitch.checked = sound.hapticEnabled !== false;
+    }
   }
 
   applyLanguage() {
@@ -263,34 +338,22 @@ class ImposterGame {
     this.renderRolesList();
   }
 
-  applyFrameMode() {
-    if (this.frameMode) {
-      document.body.classList.add('frame-mode');
-      document.body.classList.remove('fullscreen-mode');
-      const icon = document.getElementById('frame-icon');
-      if (icon) icon.textContent = '📱';
-    } else {
-      document.body.classList.remove('frame-mode');
-      document.body.classList.add('fullscreen-mode');
-      const icon = document.getElementById('frame-icon');
-      if (icon) icon.textContent = '🖥️';
-    }
-    localStorage.setItem('gti_frame', this.frameMode);
-  }
+  setupDeviceAdaptation() {
+    const handleAdaptation = () => {
+      const isDesktop = window.innerWidth > 768;
+      if (isDesktop) {
+        document.body.classList.add('device-desktop');
+        document.body.classList.remove('device-mobile', 'frame-mode', 'fullscreen-mode');
+      } else {
+        document.body.classList.add('device-mobile');
+        document.body.classList.remove('device-desktop', 'frame-mode', 'fullscreen-mode');
+      }
+    };
 
-  toggleFrameMode() {
-    this.frameMode = !this.frameMode;
-    sound.playToggle();
-    this.applyFrameMode();
-  }
-
-  updateClock() {
-    const el = document.getElementById('phone-clock');
-    if (el) {
-      const d = new Date();
-      const h = String(d.getHours()).padStart(2, '0');
-      const m = String(d.getMinutes()).padStart(2, '0');
-      el.textContent = `${h}:${m}`;
+    handleAdaptation();
+    window.addEventListener('resize', handleAdaptation);
+    if (window.matchMedia) {
+      window.matchMedia('(min-width: 769px)').addEventListener('change', handleAdaptation);
     }
   }
 
@@ -311,88 +374,78 @@ class ImposterGame {
     if (screenId === 'screen-roulette') {
       this.drawRouletteWheel();
     }
+    if (screenId === 'screen-results') {
+      this.renderResultsScoreboard();
+    }
   }
 
-  autoBalanceRoles(players) {
-    if (this.getTotalFixedCount() > 0) {
-      this.syncFixedRolesWithDeck();
-      this.renderSettingsValues();
-      return;
-    }
-
-    this.roles.forEach(r => {
-      r.count = 0;
-      r.enabled = false;
-    });
-
-    const imposterRole = this.roles.find(r => r.id === 'imposter');
-    const civilianRole = this.roles.find(r => r.id === 'civilian');
-    const detectiveRole = this.roles.find(r => r.id === 'detective');
-    const doctorRole = this.roles.find(r => r.id === 'doctor');
-    const spyRole = this.roles.find(r => r.id === 'spy');
-    const jesterRole = this.roles.find(r => r.id === 'jester');
-    const mayorRole = this.roles.find(r => r.id === 'mayor');
-    const hackerRole = this.roles.find(r => r.id === 'hacker');
-    const bodyguardRole = this.roles.find(r => r.id === 'bodyguard');
-    const shapeshifterRole = this.roles.find(r => r.id === 'shapeshifter');
-    const saboteurRole = this.roles.find(r => r.id === 'saboteur');
-
+  autoBalanceRoles(players = this.playerCount) {
     let impCount = 1;
     if (players >= 8 && players <= 12) impCount = 2;
     else if (players >= 13 && players <= 16) impCount = 3;
     else if (players >= 17) impCount = 4;
-
     this.imposterCount = impCount;
 
-    if (players <= 5) {
-      imposterRole.count = 1; imposterRole.enabled = true;
-      if (players >= 4 && detectiveRole) {
-        detectiveRole.count = 1; detectiveRole.enabled = true;
-      }
-      const remain = players - imposterRole.count - (detectiveRole?.count || 0);
-      civilianRole.count = Math.max(1, remain); civilianRole.enabled = true;
-    } else if (players <= 9) {
-      imposterRole.count = impCount; imposterRole.enabled = true;
-      if (detectiveRole) { detectiveRole.count = 1; detectiveRole.enabled = true; }
-      if (doctorRole) { doctorRole.count = 1; doctorRole.enabled = true; }
-      if (players >= 7 && spyRole) { spyRole.count = 1; spyRole.enabled = true; }
-      if (players >= 9 && jesterRole) { jesterRole.count = 1; jesterRole.enabled = true; }
-      
-      const assigned = this.getAssignedCount();
-      civilianRole.count = Math.max(1, players - assigned);
-      civilianRole.enabled = true;
-    } else if (players <= 15) {
-      imposterRole.count = impCount; imposterRole.enabled = true;
-      if (detectiveRole) { detectiveRole.count = 1; detectiveRole.enabled = true; }
-      if (doctorRole) { doctorRole.count = 1; doctorRole.enabled = true; }
-      if (spyRole) { spyRole.count = 1; spyRole.enabled = true; }
-      if (jesterRole) { jesterRole.count = 1; jesterRole.enabled = true; }
-      if (mayorRole) { mayorRole.count = 1; mayorRole.enabled = true; }
-      if (hackerRole) { hackerRole.count = 1; hackerRole.enabled = true; }
-      if (bodyguardRole) { bodyguardRole.count = 1; bodyguardRole.enabled = true; }
+    const maxSpecial = this.getMaxSpecialAllowed(players);
+    const fixedRolesList = Object.keys(this.fixedRoles || {});
+    let activeSpecialRoles = [];
 
-      const assigned = this.getAssignedCount();
-      civilianRole.count = Math.max(2, players - assigned);
-      civilianRole.enabled = true;
+    if (fixedRolesList.length > 0) {
+      activeSpecialRoles = fixedRolesList;
     } else {
-      imposterRole.count = impCount - 1; imposterRole.enabled = true;
-      if (shapeshifterRole) { shapeshifterRole.count = 1; shapeshifterRole.enabled = true; }
-      if (detectiveRole) { detectiveRole.count = 2; detectiveRole.enabled = true; }
-      if (doctorRole) { doctorRole.count = 1; doctorRole.enabled = true; }
-      if (spyRole) { spyRole.count = 1; spyRole.enabled = true; }
-      if (jesterRole) { jesterRole.count = 1; jesterRole.enabled = true; }
-      if (mayorRole) { mayorRole.count = 1; mayorRole.enabled = true; }
-      if (hackerRole) { hackerRole.count = 1; hackerRole.enabled = true; }
-      if (saboteurRole) { saboteurRole.count = 1; saboteurRole.enabled = true; }
-
-      const assigned = this.getAssignedCount();
-      civilianRole.count = Math.max(3, players - assigned);
-      civilianRole.enabled = true;
+      if (players <= 5) {
+        activeSpecialRoles = ['detective'];
+      } else if (players <= 6) {
+        activeSpecialRoles = ['detective'];
+      } else if (players <= 8) {
+        activeSpecialRoles = ['detective', 'doctor'];
+      } else if (players <= 12) {
+        activeSpecialRoles = ['detective', 'doctor', 'spy'];
+      } else {
+        activeSpecialRoles = ['detective', 'doctor', 'spy', 'jester'];
+      }
     }
+
+    const specialCountUsed = Math.min(activeSpecialRoles.length, maxSpecial, Math.max(0, players - impCount - 2));
+    const civCount = Math.max(1, players - impCount - specialCountUsed);
+    const chosenSpecials = activeSpecialRoles.slice(0, specialCountUsed);
+
+    this.roles.forEach(r => {
+      if (r.id === 'imposter') {
+        r.enabled = true;
+        r.count = impCount;
+      } else if (r.id === 'civilian') {
+        r.enabled = true;
+        r.count = civCount;
+      } else if (chosenSpecials.includes(r.id)) {
+        r.enabled = true;
+        r.count = (this.fixedRoles && this.fixedRoles[r.id]) ? this.fixedRoles[r.id] : 1;
+      } else {
+        r.enabled = false;
+        r.count = 0;
+      }
+    });
 
     this.updateBalanceMeter();
     this.renderSettingsValues();
+    if (this.currentRoleFilter) {
+      this.renderRolesList(this.currentRoleFilter);
+    }
   }
+
+  enableAllRolesInPool() {
+    this.roles.forEach(r => {
+      r.enabled = true;
+      if (!r.count || r.count === 0) r.count = 1;
+    });
+    this.updateBalanceMeter();
+    this.renderRolesList(this.currentRoleFilter || 'all');
+    if (typeof sound !== 'undefined') sound.playWinFanfare();
+    this.showToast(this.lang === 'vi' 
+      ? `🎲 Đã bật 20 vai trò vào vòng quay! Ván đấu vẫn tự động giới hạn tối đa ${this.getMaxSpecialAllowed()} vai trò đặc biệt để bảo toàn số Dân.` 
+      : `🎲 All roles enabled in pool! Match limits max ${this.getMaxSpecialAllowed()} special roles.`);
+  }
+
 
   getAssignedCount() {
     return this.roles.reduce((sum, r) => sum + (r.enabled ? (r.count || 0) : 0), 0);
@@ -574,10 +627,12 @@ class ImposterGame {
               ${role.icon}
             </div>
             <div class="role-title-team">
-              <div style="display: flex; align-items: center; gap: 6px;">
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                 <h4>${title}</h4>
                 <span class="team-tag ${role.team}">${teamLabel}</span>
                 ${isFixed ? '<span class="team-tag good" style="font-size: 9px; padding: 1px 5px; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">📌 Cố định</span>' : ''}
+                ${isSpecial && !isFixed && role.enabled ? '<span class="team-tag" style="font-size: 9px; padding: 1px 5px; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);">🎲 Trong vòng quay ngẫu nhiên</span>' : ''}
+                ${!role.enabled ? '<span class="team-tag" style="font-size: 9px; padding: 1px 5px; background: rgba(107, 114, 128, 0.15); color: #9ca3af;">⛔ Đã tắt</span>' : ''}
               </div>
               <span style="font-size: 11px; color: var(--text-muted);">${winCond}</span>
             </div>
@@ -750,25 +805,44 @@ class ImposterGame {
     }
     localStorage.setItem('gti_player_names', JSON.stringify(this.playerNames));
 
+    // Populate datalist with existing tournament players
+    const datalist = document.getElementById('datalist-party-roster');
+    if (datalist) {
+      datalist.innerHTML = '';
+      Object.entries(this.partyScores || {}).forEach(([pName, pData]) => {
+        const total = typeof pData === 'object' && pData !== null ? (pData.total ?? pData.score ?? pData.points ?? 0) : Number(pData) || 0;
+        const opt = document.createElement('option');
+        opt.value = pName;
+        opt.label = `${pName} (${total} pts)`;
+        datalist.appendChild(opt);
+      });
+    }
+
     for (let i = 0; i < this.playerCount; i++) {
       const palette = AVATAR_PALETTES[i % AVATAR_PALETTES.length];
       const currentName = this.playerNames[i] || `Player ${i + 1}`;
+      const rawRec = this.partyScores && this.partyScores[currentName];
+      const existingRecord = rawRec ? (typeof rawRec === 'object' ? rawRec : { total: Number(rawRec) || 0 }) : null;
+      const recTotal = existingRecord ? (existingRecord.total ?? existingRecord.score ?? existingRecord.points ?? 0) : 0;
 
       const row = document.createElement('div');
       row.className = 'player-item-row';
       row.innerHTML = `
         <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-          <button type="button" class="player-avatar-picker-btn" data-index="${i}" title="${this.lang === 'vi' ? 'Đổi avatar' : 'Change avatar'}" style="background: ${palette.bg}; color: ${palette.text};">
-            ${palette.emoji}
+          <button type="button" class="player-avatar-picker-btn" data-index="${i}" title="${this.lang === 'vi' ? 'Đổi avatar' : 'Change avatar'}" style="background: ${existingRecord?.avatarBg || palette.bg}; color: ${palette.text};">
+            ${existingRecord?.avatar || palette.emoji}
           </button>
           <div style="flex: 1;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 11px; color: var(--text-muted); font-weight: 700;">
                 ${this.lang === 'vi' ? 'Người chơi' : 'Player'} ${i + 1}
               </span>
+              <span class="player-score-link-badge" id="score-link-${i}" style="${existingRecord ? '' : 'display: none;'}" title="${this.lang === 'vi' ? 'Đã liên kết hồ sơ điểm giải đấu' : 'Linked tournament profile'}">
+                ${existingRecord ? `🏆 ${recTotal} pts` : ''}
+              </span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px; margin-top: 3px;">
-              <input type="text" class="player-name-input form-input" data-index="${i}" value="${currentName}" placeholder="${this.lang === 'vi' ? 'Nhập tên...' : 'Enter name...'}" style="padding: 6px 10px; font-weight: 700; font-size: 14px; flex: 1;" />
+              <input type="text" class="player-name-input form-input" data-index="${i}" value="${currentName}" list="datalist-party-roster" placeholder="${this.lang === 'vi' ? 'Nhập tên hoặc chọn người chơi cũ...' : 'Enter or pick existing player...'}" style="padding: 6px 10px; font-weight: 700; font-size: 14px; flex: 1;" />
               <button type="button" class="btn-random-single-name" data-index="${i}" title="${this.lang === 'vi' ? 'Đổi tên ngẫu nhiên cho người này' : 'Randomize name'}">
                 🎲
               </button>
@@ -782,14 +856,37 @@ class ImposterGame {
       container.appendChild(row);
     }
 
-    // Bind real-time input editing
+    // Bind real-time input editing & tournament profile linking
     container.querySelectorAll('.player-name-input').forEach(inp => {
-      inp.addEventListener('input', (e) => {
+      const syncInput = (e) => {
         const idx = parseInt(e.target.dataset.index, 10);
         const val = e.target.value.trim();
         this.playerNames[idx] = val || `Player ${idx + 1}`;
         localStorage.setItem('gti_player_names', JSON.stringify(this.playerNames));
-      });
+
+        const badgeEl = document.getElementById(`score-link-${idx}`);
+        if (this.partyScores && this.partyScores[val]) {
+          const raw = this.partyScores[val];
+          const rec = typeof raw === 'object' && raw !== null ? raw : { total: Number(raw) || 0 };
+          const recTotal = rec.total ?? rec.score ?? rec.points ?? 0;
+          if (badgeEl) {
+            badgeEl.textContent = `🏆 ${recTotal} pts`;
+            badgeEl.style.display = 'inline-flex';
+          }
+          if (rec.avatar) {
+            const avatarBtn = container.querySelector(`.player-avatar-picker-btn[data-index="${idx}"]`);
+            if (avatarBtn) {
+              avatarBtn.textContent = rec.avatar;
+              if (rec.avatarBg) avatarBtn.style.background = rec.avatarBg;
+            }
+          }
+        } else if (badgeEl) {
+          badgeEl.style.display = 'none';
+        }
+      };
+
+      inp.addEventListener('input', syncInput);
+      inp.addEventListener('change', syncInput);
     });
 
     // Bind delete player button
@@ -872,6 +969,83 @@ class ImposterGame {
   }
 
 
+  buildMatchDeck() {
+    const total = this.playerCount;
+    const deck = [];
+
+    // 1. Guaranteed Imposter(s)
+    const imposterRole = this.roles.find(r => r.id === 'imposter') || DEFAULT_ROLES[1];
+    
+    // Check if any evil special role is fixed
+    let evilFixedCount = 0;
+    Object.keys(this.fixedRoles || {}).forEach(rId => {
+      const r = this.roles.find(x => x.id === rId);
+      if (r && r.team === 'evil') evilFixedCount += (this.fixedRoles[rId] || 0);
+    });
+
+    const standardImpostersNeeded = Math.max(1, this.imposterCount - evilFixedCount);
+    for (let i = 0; i < standardImpostersNeeded; i++) {
+      deck.push({ ...imposterRole });
+    }
+
+    // 2. Guaranteed Fixed Roles (chắc chắn xuất hiện trong ván)
+    const maxSpecial = this.getMaxSpecialAllowed(total);
+    let specialCountInDeck = 0;
+
+    Object.entries(this.fixedRoles || {}).forEach(([roleId, count]) => {
+      const roleDef = this.roles.find(r => r.id === roleId);
+      if (roleDef && roleDef.id !== 'imposter' && roleDef.id !== 'civilian') {
+        for (let i = 0; i < count; i++) {
+          if (deck.length < total - 1 && specialCountInDeck < maxSpecial) {
+            deck.push({ ...roleDef, isGuaranteed: true });
+            specialCountInDeck++;
+          }
+        }
+      }
+    });
+
+    // 3. Roll for remaining special slots up to maxSpecial
+    const availableCandidates = this.roles.filter(r => 
+      r.id !== 'civilian' && 
+      r.id !== 'imposter' && 
+      r.enabled !== false &&
+      !(this.fixedRoles && this.fixedRoles[r.id])
+    );
+
+    const allowedExtraSpecials = Math.max(0, maxSpecial - specialCountInDeck);
+    const rate = this.specialRoleRate || 75;
+
+    if (allowedExtraSpecials > 0 && availableCandidates.length > 0) {
+      const shuffledCandidates = [...availableCandidates];
+      this.shuffle(shuffledCandidates);
+
+      for (let s = 0; s < allowedExtraSpecials; s++) {
+        const currentRemaining = total - deck.length;
+        if (currentRemaining <= 1) break;
+
+        const rollChance = Math.random() * 100;
+        if (rollChance < rate && shuffledCandidates.length > 0) {
+          const candidate = shuffledCandidates.shift();
+          deck.push({ ...candidate, isRolled: true });
+          specialCountInDeck++;
+        }
+      }
+    }
+
+    // 4. Fill ALL remaining slots with Civilian (guaranteeing Civilians are the majority)
+    const civ = this.roles.find(r => r.id === 'civilian') || DEFAULT_ROLES[0];
+    while (deck.length < total) {
+      deck.push({ ...civ });
+    }
+    if (deck.length > total) {
+      deck.length = total;
+    }
+
+    // Thorough shuffle so seat allocation is completely randomized
+    this.shuffle(deck);
+    return deck;
+  }
+
   startMatchSession() {
     const inputs = document.querySelectorAll('.player-name-input');
     const names = [];
@@ -881,21 +1055,24 @@ class ImposterGame {
     localStorage.setItem('gti_player_names', JSON.stringify(names));
 
     this.syncFixedRolesWithDeck();
-    const deck = [];
-    this.roles.forEach(r => {
-      if (r.enabled && r.count > 0) {
-        for (let i = 0; i < r.count; i++) {
-          deck.push({ ...r });
-        }
-      }
-    });
+    const deck = this.buildMatchDeck();
+    this.doctorShieldedPlayerId = null;
+    this.doctorShieldHistory = [];
+    this.bodyguardProtectedPlayerId = null;
+    this.detectivesExposedImposter = new Set();
+    this.wrongVoteCount = 0;
+    this.imposterGuessResult = null;
+    this.imposterGuessText = '';
+    this.pendingWrongVotePenaltyMode = 'team';
+    this.pendingCustomPenalizedPlayerIds = new Set();
 
-    while (deck.length < this.playerCount) {
-      const civ = this.roles.find(r => r.id === 'civilian');
-      deck.push({ ...civ });
-    }
-    deck.length = this.playerCount;
-    this.shuffle(deck);
+    // Reset match verdict & outcomes cleanly for new match
+    this.winningTeam = null;
+    this.caughtImposter = null;
+    this.imposterWonByComeback = false;
+    this.selectedSuspectId = null;
+    this.isCurrentRoundScoreDiscarded = false;
+    this.roundNumber = 1;
 
     let allCats = [...CATEGORIES];
     if (this.customWordPairs && this.customWordPairs.length > 0) {
@@ -998,7 +1175,48 @@ class ImposterGame {
     const keywordText = document.getElementById('keyword-text');
     const keywordCat = document.getElementById('keyword-category');
 
-    if (player.role.knowsKeyword) {
+    if (player.role.id === 'jester') {
+      keywordLabel.textContent = '🃏 BẠN LÀ KẺ HỀ (JESTER)!';
+      keywordText.className = 'secret-keyword-text jester';
+      keywordText.textContent = 'Mục tiêu: Bị bỏ phiếu loại!';
+      keywordCat.textContent = 'Bạn không biết từ khóa. Hãy nói ẩn ý để mọi người nghi ngờ bạn là Kẻ Giả Mạo! Nếu bị vote loại, bạn THẮNG ĐỘC LẬP!';
+    } else if (player.role.id === 'drunkard') {
+      const drunkWord = this.getDrunkardWord();
+      keywordLabel.textContent = 'Từ khóa bí mật (Hơi say xỉn 🍺):';
+      keywordText.className = 'secret-keyword-text';
+      keywordText.textContent = drunkWord;
+      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • Bạn tin chắc đây là từ đúng! Hãy miêu tả tự nhiên cùng phe Dân!`;
+    } else if (player.role.id === 'traitor') {
+      keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT (BẠN LÀ PHE ÁC 🗡️):';
+      keywordText.className = 'secret-keyword-text imposter';
+      keywordText.textContent = this.secretWord;
+      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • Bạn thuộc PHE ÁC nhưng BIẾT TỪ KHÓA! Hãy ngầm tung hỏa mù dẫn dắt Dân nghi ngờ lẫn nhau!`;
+    } else if (player.role.id === 'chameleon') {
+      keywordLabel.textContent = 'BẠN LÀ TẮC KÈ HOA (PHE ÁC 🦎)!';
+      keywordText.className = 'secret-keyword-text imposter';
+      const decoys = this.getChameleonDecoys();
+      keywordText.textContent = decoys.join(' • ');
+      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • Chọn 1 trong 3 từ gợi ý trên để miêu tả hòa nhập hoàn hảo!`;
+    } else if (player.role.id === 'double_agent') {
+      keywordLabel.textContent = 'Từ khóa bí mật:';
+      keywordText.className = 'secret-keyword-text';
+      keywordText.textContent = this.secretWord;
+      const imposterNames = this.players.filter(p => p.isImposter && p.id !== player.id).map(p => p.name).join(', ') || 'Đang ẩn nấp';
+      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 🎭 Mật vụ: Imposter là [${imposterNames}]! Thắng nếu Imposter sống sót!`;
+    } else if (player.role.id === 'spy') {
+      keywordLabel.textContent = 'Từ khóa bí mật:';
+      keywordText.className = 'secret-keyword-text';
+      keywordText.textContent = this.secretWord;
+      const firstLetter = this.secretWord ? this.secretWord.charAt(0).toUpperCase() : '?';
+      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 🕵️ Mật báo tình báo: Chữ cái đầu tiên là '${firstLetter}'`;
+    } else if (player.role.id === 'seer') {
+      keywordLabel.textContent = 'Từ khóa bí mật:';
+      keywordText.className = 'secret-keyword-text';
+      keywordText.textContent = this.secretWord;
+      const wordCount = this.secretWord.trim().split(/\s+/).length;
+      const charCount = this.secretWord.replace(/\s+/g, '').length;
+      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 🔮 Thấu thị: Cụm từ gồm ${wordCount} tiếng (${charCount} ký tự)`;
+    } else if (player.role.knowsKeyword) {
       keywordLabel.textContent = 'Từ khóa bí mật:';
       keywordText.className = 'secret-keyword-text';
       keywordText.textContent = this.secretWord;
@@ -1019,6 +1237,32 @@ class ImposterGame {
     }
 
     document.getElementById('revealed-ability').textContent = player.role.ability_vi;
+  }
+
+  getDrunkardWord() {
+    if (this.imposterWord) return this.imposterWord;
+    const catWords = (this.categoryData?.words || []).map(w => w.civilian || w.vi || w);
+    const otherWords = catWords.filter(w => w !== this.secretWord);
+    if (otherWords.length > 0) {
+      return otherWords[Math.floor(Math.random() * otherWords.length)];
+    }
+    return `${this.secretWord} (?)`;
+  }
+
+  getChameleonDecoys() {
+    const list = [];
+    if (this.imposterWord) list.push(this.imposterWord);
+    const catWords = (this.categoryData?.words || []).map(w => w.civilian || w.vi || w);
+    const shuffled = [...catWords.filter(w => w !== this.secretWord)];
+    this.shuffle(shuffled);
+    while (list.length < 3 && shuffled.length > 0) {
+      const nextWord = shuffled.pop();
+      if (!list.includes(nextWord)) list.push(nextWord);
+    }
+    while (list.length < 3) {
+      list.push(`Manh mối ${list.length + 1}`);
+    }
+    return list;
   }
 
   // ==========================================================
@@ -1114,7 +1358,7 @@ class ImposterGame {
       ctx.fillText(p.avatar || palette.emoji, radius * 0.72, 0);
 
       ctx.fillStyle = palette.text || '#ffffff';
-      ctx.font = 'bold 11px Outfit, sans-serif';
+      ctx.font = '600 11px Lexend, "Be Vietnam Pro", sans-serif';
       const shortName = p.name.length > 7 ? p.name.substring(0, 6) + '..' : p.name;
       ctx.fillText(shortName, radius * 0.44, 0);
       ctx.restore();
@@ -1442,7 +1686,19 @@ class ImposterGame {
     }
 
     const suspect = this.players.find(p => p.id === this.selectedSuspectId);
+
+    // Doctor Shield Protection Check
+    if (this.doctorShieldedPlayerId && this.doctorShieldedPlayerId === suspect.id) {
+      this.doctorShieldedPlayerId = null;
+      sound.playWinFanfare();
+      alert(`💉 BÁC SĨ ĐÃ BẢO VỆ THÀNH CÔNG!\n${suspect.name} đã được tiêm huyết thanh bảo hộ nên KHÔNG bị loại vòng này!\nVán chơi tiếp tục sang vòng sau.`);
+      this.roundNumber++;
+      this.startDiscussionStage();
+      return;
+    }
+
     suspect.isEliminated = true;
+    suspect.eliminatedInRound = this.roundNumber;
 
     sound.playDramaticReveal();
 
@@ -1469,25 +1725,26 @@ class ImposterGame {
     } 
     
     // Suspect is INNOCENT (Civilian or good team) -> WRONG VOTE PENALTY!
-    // Accumulate -5 points penalty for surviving good team players for this match
-    this.players.filter(p => p.role.team === 'good' && !p.isEliminated).forEach(p => {
-      p.penalty = (p.penalty || 0) + 5;
-    });
+    this.wrongVoteCount = (this.wrongVoteCount || 0) + 1;
 
     const livingInnocents = this.players.filter(p => !p.isImposter && !p.isEliminated);
     const livingImposters = this.players.filter(p => p.isImposter && !p.isEliminated);
 
     if (livingImposters.length >= livingInnocents.length) {
       // Imposters have equaled or outnumbered innocent players -> Imposters win!
+      this.players.filter(p => p.role.team === 'good' && !p.isEliminated).forEach(p => {
+        p.penalty = (p.penalty || 0) + 5;
+      });
       this.winningTeam = 'evil';
       this.showResultsScreen(suspect);
     } else {
-      // Game continues! Show Intermission Modal with penalty warning
+      // Game continues! Show Intermission Modal with penalty warning & configuration
       this.showRoundIntermission(suspect, false);
     }
   }
 
   showRoundIntermission(eliminatedPlayer, isImposterCaught) {
+    this.lastIntermissionWasImposter = isImposterCaught;
     const modal = document.getElementById('modal-round-intermission');
     const avatar = document.getElementById('intermission-avatar');
     const badge = document.getElementById('intermission-badge');
@@ -1503,7 +1760,14 @@ class ImposterGame {
 
     if (avatar) avatar.textContent = eliminatedPlayer.avatar;
 
+    const penaltyConfigEl = document.getElementById('intermission-penalty-config');
+    const penaltyGrid = document.getElementById('penalty-voters-selector-grid');
+    const btnPenaltyTeam = document.getElementById('btn-penalty-team');
+    const btnPenaltyVoters = document.getElementById('btn-penalty-voters');
+    const penaltyDesc = document.getElementById('penalty-explainer-text');
+
     if (isImposterCaught) {
+      if (penaltyConfigEl) penaltyConfigEl.style.display = 'none';
       if (badge) {
         badge.textContent = this.lang === 'vi' ? '🎯 BẮT TRÚNG IMPOSTER!' : '🎯 IMPOSTER CAUGHT!';
         badge.style.background = '#10b981';
@@ -1530,6 +1794,74 @@ class ImposterGame {
         desc.innerHTML = this.lang === 'vi'
           ? `Phe Dân đã biểu quyết sai và bị <strong style="color: #ef4444;">phạt trừ -5 điểm</strong>!<br />Kẻ Giả Mạo vẫn chưa bị lộ và đang lẩn trốn.`
           : `Civilians made a wrong vote and received a <strong style="color: #ef4444;">-5 points penalty</strong>!<br />The Imposter is still undercover.`;
+      }
+
+      // Configure interactive penalty target selector
+      if (penaltyConfigEl) {
+        penaltyConfigEl.style.display = 'block';
+        this.pendingWrongVotePenaltyMode = 'team';
+        this.pendingCustomPenalizedPlayerIds = new Set();
+
+        const livingGood = this.players.filter(p => p.role.team === 'good' && !p.isEliminated);
+        livingGood.forEach(p => this.pendingCustomPenalizedPlayerIds.add(p.id));
+
+        if (penaltyGrid) {
+          penaltyGrid.innerHTML = '';
+          livingGood.forEach(p => {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'penalty-voter-chip selected';
+            chip.innerHTML = `<span>${p.avatar}</span> <span>${p.name}</span> <span class="chip-check">✓</span>`;
+            chip.addEventListener('click', () => {
+              sound.playClick();
+              if (this.pendingCustomPenalizedPlayerIds.has(p.id)) {
+                this.pendingCustomPenalizedPlayerIds.delete(p.id);
+                chip.classList.remove('selected');
+                chip.innerHTML = `<span>${p.avatar}</span> <span>${p.name}</span>`;
+              } else {
+                this.pendingCustomPenalizedPlayerIds.add(p.id);
+                chip.classList.add('selected');
+                chip.innerHTML = `<span>${p.avatar}</span> <span>${p.name}</span> <span class="chip-check">✓</span>`;
+              }
+            });
+            penaltyGrid.appendChild(chip);
+          });
+        }
+
+        const updatePenaltyUI = (mode) => {
+          this.pendingWrongVotePenaltyMode = mode;
+          if (mode === 'team') {
+            if (btnPenaltyTeam) {
+              btnPenaltyTeam.style.background = 'rgba(239, 68, 68, 0.25)';
+              btnPenaltyTeam.style.borderColor = '#ef4444';
+              btnPenaltyTeam.style.color = '#fff';
+            }
+            if (btnPenaltyVoters) {
+              btnPenaltyVoters.style.background = 'rgba(255, 255, 255, 0.05)';
+              btnPenaltyVoters.style.borderColor = 'var(--border-subtle)';
+              btnPenaltyVoters.style.color = 'var(--text-muted)';
+            }
+            if (penaltyGrid) penaltyGrid.style.display = 'none';
+            if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Trách nhiệm tập thể:</strong> Cả nhóm đã thống nhất biểu quyết theo số đông, do đó toàn bộ phe Dân còn sống cùng chịu phạt -5 điểm.';
+          } else {
+            if (btnPenaltyTeam) {
+              btnPenaltyTeam.style.background = 'rgba(255, 255, 255, 0.05)';
+              btnPenaltyTeam.style.borderColor = 'var(--border-subtle)';
+              btnPenaltyTeam.style.color = 'var(--text-muted)';
+            }
+            if (btnPenaltyVoters) {
+              btnPenaltyVoters.style.background = 'rgba(239, 68, 68, 0.25)';
+              btnPenaltyVoters.style.borderColor = '#ef4444';
+              btnPenaltyVoters.style.color = '#fff';
+            }
+            if (penaltyGrid) penaltyGrid.style.display = 'flex';
+            if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Chỉ phạt người chỉ tay:</strong> Chỉ những người được tích chọn bên trên (đã chỉ tay vote oan) mới bị trừ -5 điểm.';
+          }
+        };
+
+        if (btnPenaltyTeam) btnPenaltyTeam.onclick = () => { sound.playClick(); updatePenaltyUI('team'); };
+        if (btnPenaltyVoters) btnPenaltyVoters.onclick = () => { sound.playClick(); updatePenaltyUI('custom'); };
+        updatePenaltyUI('team');
       }
     }
 
@@ -1566,17 +1898,40 @@ class ImposterGame {
   showResultsScreen(eliminatedPlayer) {
     if (!this.categoryData) this.categoryData = CATEGORIES[0];
     if (!this.secretWord) this.secretWord = this.lang === 'vi' ? 'Trà Sữa Trân Châu' : 'Boba Milk Tea';
+
+    // Verify / Determine legitimate winning team based on actual player states
+    const livingImposters = this.players.filter(p => p.isImposter && !p.isEliminated);
+    const livingInnocents = this.players.filter(p => !p.isImposter && !p.isEliminated);
+    const jesterEliminated = this.players.find(p => p.role.id === 'jester' && p.isEliminated);
+
+    if (jesterEliminated && this.winningTeam === 'jester') {
+      this.winningTeam = 'jester';
+    } else if (this.imposterWonByComeback) {
+      this.winningTeam = 'evil';
+    } else if (livingImposters.length === 0) {
+      // ALL imposters have been eliminated and comeback failed
+      this.winningTeam = 'good';
+    } else {
+      // Imposter(s) survived! Civilians failed to eliminate Imposters!
+      this.winningTeam = 'evil';
+    }
+
     if (!eliminatedPlayer) {
-      eliminatedPlayer = this.caughtImposter || this.players.find(p => p.isImposter) || {
-        name: 'Minh Anh',
-        role: DEFAULT_ROLES[1],
-        avatar: '🦊',
-        avatarBg: '#fee2e2',
-        isImposter: true
-      };
+      eliminatedPlayer = this.caughtImposter || 
+        this.players.filter(p => p.isEliminated).pop() || 
+        this.players.find(p => p.isImposter) || 
+        this.players[0];
     }
 
     this.switchScreen('screen-results');
+    this.isCurrentRoundScoreDiscarded = false;
+    const discardBtn = document.getElementById('btn-discard-round-score');
+    if (discardBtn) {
+      discardBtn.classList.remove('discarded');
+      discardBtn.title = this.lang === 'vi' ? 'Không tính điểm ván này (Hủy kết quả BXH)' : 'Discard match score';
+      const textEl = discardBtn.querySelector('.btn-text');
+      if (textEl) textEl.textContent = this.lang === 'vi' ? 'Không tính điểm' : 'Discard Score';
+    }
 
     if (typeof confetti === 'function') {
       confetti({
@@ -1598,7 +1953,7 @@ class ImposterGame {
       winnerBanner.style.background = 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)';
     } else {
       winnerBanner.textContent = this.lang === 'vi' ? '💀 KẺ GIẢ MẠO CHIẾN THẮNG!' : '💀 IMPOSTERS WIN!';
-      winnerBanner.style.background = 'var(--gradient-brand)';
+      winnerBanner.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
     }
 
     const imposters = this.players.filter(p => p.isImposter).map(p => p.name).join(', ');
@@ -1606,19 +1961,22 @@ class ImposterGame {
     document.getElementById('result-keyword').textContent = this.secretWord;
 
     const comebackBadge = document.getElementById('results-comeback-badge');
+    const civilianCount = this.players.filter(p => p.role.team === 'good').length;
     if (comebackBadge) {
       if (this.imposterWonByComeback) {
+        const comebackScore = Math.min(25, Math.max(12, Math.round(civilianCount * 2.5)));
         comebackBadge.style.display = 'block';
         comebackBadge.style.color = '#f59e0b';
         comebackBadge.textContent = this.lang === 'vi' 
-          ? '🔥 Lật kèo thành công! Imposter đã xuất sắc đoán trúng từ khóa (+20đ)'
-          : '🔥 Comeback Success! Imposter accurately guessed keyword (+20 pts)';
+          ? `🔥 Lật kèo thành công! Imposter đã xuất sắc đoán trúng từ khóa (+${comebackScore}đ: +2.5đ x ${civilianCount} Dân)`
+          : `🔥 Comeback Success! Imposter accurately guessed keyword (+${comebackScore} pts)`;
       } else if (this.caughtImposter) {
         comebackBadge.style.display = 'block';
         comebackBadge.style.color = 'var(--text-muted)';
+        const guessDisplay = this.imposterGuessText ? `"${this.imposterGuessText}"` : (this.lang === 'vi' ? 'Chịu thua' : 'Gave up');
         comebackBadge.textContent = this.lang === 'vi'
-          ? '❌ Lật kèo thất bại: Imposter không đoán trúng từ khóa bí mật'
-          : '❌ Comeback Failed: Imposter failed to guess secret keyword';
+          ? `❌ Lật kèo thất bại: Imposter không đoán đúng từ khóa (${guessDisplay} ≠ "${this.secretWord}")`
+          : `❌ Comeback Failed: Imposter failed to guess secret keyword (${guessDisplay})`;
       } else {
         comebackBadge.style.display = 'none';
       }
@@ -1662,11 +2020,17 @@ class ImposterGame {
     // SCORE CALCULATION & PARTY LEADERBOARD
     // ==========================================
     const roundScores = [];
+    const hasCaughtImposter = this.players.some(p => p.isImposter && p.isEliminated);
+
     this.players.forEach(p => {
       let delta = 0;
       let reasons = [];
 
+      // ========================================================
+      // 1. KẾT QUẢ THEO PHE THẮNG / THUA
+      // ========================================================
       if (this.winningTeam === 'good') {
+        // Phe Dân Thắng
         if (p.role.team === 'good') {
           if (!p.isEliminated) {
             delta += 10;
@@ -1675,50 +2039,107 @@ class ImposterGame {
             delta += 5;
             reasons.push(this.lang === 'vi' ? 'Phe thắng (+5)' : 'Team win (+5)');
           }
-        }
-        if (this.selectedSuspectId && this.players.find(x => x.id === this.selectedSuspectId)?.isImposter) {
-          delta += 5;
-          reasons.push(this.lang === 'vi' ? 'Bắt Imposter (+5)' : 'Exiled Imposter (+5)');
+          if (hasCaughtImposter) {
+            delta += 5;
+            reasons.push(this.lang === 'vi' ? 'Bắt Imposter (+5)' : 'Exiled Imposter (+5)');
+          }
+        } else if (p.isImposter) {
+          // Imposter Thua (bị bắt & đoán sai từ hoặc chịu thua)
+          if (p.eliminatedInRound === 1) {
+            delta -= 15;
+            reasons.push(this.lang === 'vi' ? 'Bị bắt ngay vòng 1 (-15)' : 'Caught in Round 1 (-15)');
+          } else {
+            delta -= 5;
+            reasons.push(this.lang === 'vi' ? 'Bị bắt & đoán sai từ (-5)' : 'Caught & wrong keyword (-5)');
+
+            const roundsSurvived = Math.max(0, (p.eliminatedInRound || this.roundNumber) - 1);
+            const stealthBonus = Math.min(6, roundsSurvived * 2);
+            const deceptionBonus = Math.min(6, (this.wrongVoteCount || 0) * 2);
+            const caughtConsolation = Math.min(6, stealthBonus + deceptionBonus);
+            if (caughtConsolation > 0) {
+              delta += caughtConsolation;
+              reasons.push(this.lang === 'vi' ? `Trụ ${roundsSurvived} vòng (+${caughtConsolation})` : `Survived ${roundsSurvived} rounds (+${caughtConsolation})`);
+            }
+          }
         }
       } else if (this.winningTeam === 'jester') {
+        // Kẻ Hề thắng độc lập
         if (p.role.id === 'jester') {
           delta += 30;
           reasons.push(this.lang === 'vi' ? 'Jackpot Kẻ Hề (+30)' : 'Jester Jackpot (+30)');
+        } else {
+          // Toàn bộ người chơi khác bị Kẻ Hề dắt mũi
+          delta -= 5;
+          reasons.push(this.lang === 'vi' ? 'Mắc bẫy Kẻ Hề (-5)' : 'Tricked by Jester (-5)');
         }
-      } else { // Evil won
+      } else { 
+        // ========================================================
+        // PHE ÁC THẮNG (IMPOSTER THẮNG / DÂN THƯỜNG THUA)
+        // Dân không ngăn chặn được Imposter -> BỊ XỬ THUA VÀ TRỪ ĐIỂM!
+        // ========================================================
         if (p.isImposter) {
           if (this.imposterWonByComeback) {
-            delta += 20;
-            reasons.push(this.lang === 'vi' ? 'Lật kèo đoán trúng từ (+20)' : 'Comeback word guess (+20)');
+            const comebackScore = Math.min(25, Math.max(12, Math.round(civilianCount * 2.5)));
+            delta += comebackScore;
+            reasons.push(this.lang === 'vi' 
+              ? `Lật kèo đoán trúng từ (+${comebackScore}đ: +2.5đ x ${civilianCount} Dân)` 
+              : `Comeback word guess (+${comebackScore} pts)`);
           } else if (!p.isEliminated) {
-            delta += 25;
-            reasons.push(this.lang === 'vi' ? 'Imposter sống sót (+25)' : 'Imposter survived (+25)');
+            const imposterWinScore = Math.min(30, Math.max(10, civilianCount * 3));
+            delta += imposterWinScore;
+            reasons.push(this.lang === 'vi' 
+              ? `Imposter sống sót (+${imposterWinScore}đ: +3đ x ${civilianCount} Dân)` 
+              : `Imposter survived (+${imposterWinScore} pts)`);
+
+            if (this.wrongVoteCount && this.wrongVoteCount > 0) {
+              const deceptionBonus = Math.min(6, this.wrongVoteCount * 2);
+              if (deceptionBonus > 0) {
+                delta += deceptionBonus;
+                reasons.push(this.lang === 'vi' ? `Lừa Dân bầu oan (+${deceptionBonus}đ)` : `Deceived civilians (+${deceptionBonus})`);
+              }
+            }
           } else {
-            delta += 15;
-            reasons.push(this.lang === 'vi' ? 'Imposter thắng (+15)' : 'Imposter win (+15)');
+            const imposterDeadWinScore = Math.min(20, Math.max(8, Math.round(civilianCount * 1.8)));
+            delta += imposterDeadWinScore;
+            reasons.push(this.lang === 'vi' 
+              ? `Phe Imposter thắng (+${imposterDeadWinScore}đ)` 
+              : `Imposter team win (+${imposterDeadWinScore} pts)`);
+          }
+        } else if (p.role.team === 'good') {
+          // DÂN THƯỜNG KHÔNG NGĂN CHẶN ĐƯỢC IMPOSTER: XỬ THUA & TRỪ ĐIỂM
+          delta -= 5;
+          reasons.push(this.lang === 'vi' ? 'Thua trận trước Imposter (-5)' : 'Defeated by Imposter (-5)');
+
+          // Nếu để Imposter lật kèo đoán trúng từ (gợi ý lộ liễu)
+          if (this.imposterWonByComeback) {
+            delta -= 3;
+            reasons.push(this.lang === 'vi' ? 'Làm lộ từ khóa (-3)' : 'Leaked secret keyword (-3)');
           }
         }
       }
 
-      if (p.role.id === 'survivor' && !p.isEliminated) {
-        delta += 15;
-        reasons.push(this.lang === 'vi' ? 'Sống sót (+15)' : 'Survivor bonus (+15)');
-      }
-      if (p.role.id === 'detective') {
-        delta += 5;
-        reasons.push(this.lang === 'vi' ? 'Điều tra (+5)' : 'Detective clue (+5)');
+      // ========================================================
+      // 2. CƠ CHẾ PHÂN HÓA ĐẶC BIỆT THEO HÀNH VI & VAI TRÒ
+      // ========================================================
+
+      // A. Kẻ Sống Sót (Survivor): mục tiêu sống sót đến cuối ván
+      if (p.role.id === 'survivor') {
+        if (!p.isEliminated) {
+          delta += 15;
+          reasons.push(this.lang === 'vi' ? 'Sống sót (+15)' : 'Survivor bonus (+15)');
+        }
       }
 
-      // Multi-round penalty deduction
+      // B. Phạt biểu quyết oan sai (Wrong vote penalty)
       if (p.penalty && p.penalty > 0) {
         delta -= p.penalty;
-        reasons.push(this.lang === 'vi' ? `Bầu oan (-${p.penalty})` : `Wrong vote (-${p.penalty})`);
+        reasons.push(this.lang === 'vi' ? `Chỉ tay bầu oan (-${p.penalty})` : `Wrongful vote (-${p.penalty})`);
       }
 
       if (!this.partyScores[p.name]) {
         this.partyScores[p.name] = { total: 0, wins: 0, games: 0, avatar: p.avatar, avatarBg: p.avatarBg };
       }
-      this.partyScores[p.name].total = Math.max(0, this.partyScores[p.name].total + delta);
+      this.partyScores[p.name].total = (this.partyScores[p.name].total || 0) + delta;
       this.partyScores[p.name].games += 1;
       if (delta >= 10) this.partyScores[p.name].wins += 1;
       this.partyScores[p.name].avatar = p.avatar;
@@ -1766,8 +2187,21 @@ class ImposterGame {
 
       const sortedRound = [...this.lastRoundScores].sort((a, b) => b.delta - a.delta || b.total - a.total);
       const mvpPlayer = sortedRound[0];
-      if (mvpTag && mvpPlayer && mvpPlayer.delta > 0) {
-        mvpTag.textContent = `MVP: ${mvpPlayer.name} (+${mvpPlayer.delta}đ)`;
+      if (mvpTag) {
+        if (mvpPlayer && mvpPlayer.delta > 0) {
+          mvpTag.textContent = `MVP: ${mvpPlayer.name} (+${mvpPlayer.delta}đ)`;
+        } else {
+          mvpTag.textContent = 'MVP: -';
+        }
+      }
+
+      if (!this.lastRoundScores || this.lastRoundScores.length === 0) {
+        lbContainer.innerHTML = `
+          <div style="text-align: center; color: var(--text-muted); padding: 24px 0; font-size: 13px;">
+            ${this.lang === 'vi' ? 'Chưa có dữ liệu ván đấu nào. Hãy bắt đầu ván mới!' : 'No round scores available yet. Start a new match!'}
+          </div>
+        `;
+        return;
       }
 
       sortedRound.forEach((item, idx) => {
@@ -1790,7 +2224,7 @@ class ImposterGame {
           </div>
           <div style="display: flex; align-items: center; gap: 6px;">
             <span class="score-tag-delta ${item.delta < 0 ? 'negative' : ''}">${deltaFormatted}</span>
-            <span class="score-tag-total" title="${this.lang === 'vi' ? 'Tổng điểm tích lũy' : 'Cumulative Score'}">${item.total}đ</span>
+            <span class="score-tag-total ${item.total < 0 ? 'negative' : ''}" title="${this.lang === 'vi' ? 'Tổng điểm tích lũy' : 'Cumulative Score'}">${item.total}đ</span>
           </div>
         `;
         lbContainer.appendChild(row);
@@ -1808,13 +2242,26 @@ class ImposterGame {
 
       entries.sort((a, b) => b.total - a.total || b.wins - a.wins);
 
-      if (mvpTag && entries[0]) {
-        mvpTag.textContent = `👑 TOP 1: ${entries[0].name} (${entries[0].total}đ)`;
+      if (mvpTag) {
+        if (entries[0] && entries[0].total > 0) {
+          mvpTag.textContent = `👑 TOP 1: ${entries[0].name} (${entries[0].total}đ)`;
+        } else {
+          mvpTag.textContent = '👑 TOP 1: -';
+        }
+      }
+
+      if (entries.length === 0) {
+        lbContainer.innerHTML = `
+          <div style="text-align: center; color: var(--text-muted); padding: 24px 0; font-size: 13px;">
+            ${this.lang === 'vi' ? 'Chưa có điểm số nào được ghi nhận. Hãy chơi ván đầu tiên!' : 'No party scores recorded yet. Play a match to begin!'}
+          </div>
+        `;
+        return;
       }
 
       entries.forEach((item, idx) => {
         const row = document.createElement('div');
-        row.className = `leaderboard-row ${idx === 0 ? 'mvp-highlight' : ''}`;
+        row.className = `leaderboard-row ${idx === 0 && item.total > 0 ? 'mvp-highlight' : ''}`;
         const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : 'rank-other';
         const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`;
 
@@ -1830,12 +2277,65 @@ class ImposterGame {
             </div>
           </div>
           <div style="display: flex; align-items: center;">
-            <span class="score-tag-total" style="font-size: 16px; color: #f59e0b;">${item.total}đ</span>
+            <span class="score-tag-total ${item.total < 0 ? 'negative' : ''}" style="font-size: 16px; color: ${item.total < 0 ? '#ef4444' : '#f59e0b'};">${item.total}đ</span>
           </div>
         `;
         lbContainer.appendChild(row);
       });
     }
+  }
+
+  discardCurrentMatchScores() {
+    if (this.isCurrentRoundScoreDiscarded) {
+      this.showToast(this.lang === 'vi' ? 'Ván này đã được hủy tính điểm!' : 'Match scores already discarded!', 'warning');
+      return;
+    }
+
+    if (!this.lastRoundScores || this.lastRoundScores.length === 0) {
+      this.showToast(this.lang === 'vi' ? 'Không có điểm số nào để hủy!' : 'No scores to discard!', 'warning');
+      return;
+    }
+
+    // Hoàn tác điểm số đã tính trong ván này khỏi BXH giải đấu partyScores
+    this.lastRoundScores.forEach(item => {
+      if (this.partyScores && this.partyScores[item.name]) {
+        const pData = this.partyScores[item.name];
+        pData.total = (pData.total || 0) - item.delta;
+        pData.games = Math.max(0, (pData.games || 1) - 1);
+        if (item.delta >= 10) {
+          pData.wins = Math.max(0, (pData.wins || 1) - 1);
+        }
+        item.total = pData.total;
+      }
+      item.delta = 0;
+      item.reason = this.lang === 'vi' ? '🚫 Không tính điểm ván này' : '🚫 Match score discarded';
+    });
+
+    this.isCurrentRoundScoreDiscarded = true;
+    localStorage.setItem('gti_party_scores', JSON.stringify(this.partyScores));
+
+    // Xóa ván vừa lưu khỏi lịch sử nếu có
+    if (Array.isArray(this.history) && this.history.length > 0) {
+      this.history.pop();
+      localStorage.setItem('gti_history', JSON.stringify(this.history));
+    }
+
+    // Cập nhật giao diện scoreboard Screen 7 & setup banner
+    if (typeof sound !== 'undefined') sound.playClick();
+    this.renderResultsScoreboard();
+    this.renderCumulativeLeaderboard();
+    this.updateSetupTournamentBanner();
+
+    // Cập nhật trạng thái hiển thị của nút
+    const btn = document.getElementById('btn-discard-round-score');
+    if (btn) {
+      btn.classList.add('discarded');
+      btn.title = this.lang === 'vi' ? 'Đã hủy tính điểm ván này' : 'Scores discarded';
+      const textEl = btn.querySelector('.btn-text');
+      if (textEl) textEl.textContent = this.lang === 'vi' ? 'Đã hủy điểm' : 'Discarded';
+    }
+
+    this.showToast(this.lang === 'vi' ? '🗑️ Đã hủy điểm ván này! Không tính vào BXH giải đấu.' : '🗑️ Match scores discarded! Not counted towards leaderboard.', 'danger');
   }
 
   updateSetupTournamentBanner() {
@@ -1860,27 +2360,98 @@ class ImposterGame {
       : `Played: <strong style="color: #fff;">${totalMatches} matches</strong> • Leader: <strong style="color: #f59e0b;">${topPlayer[0]} (${topPlayer[1].total} pts)</strong>`;
   }
 
-  resetAllScores() {
-    const msg = this.lang === 'vi'
-      ? 'Bạn có chắc chắn muốn xóa và đặt lại toàn bộ điểm số của tất cả người chơi về 0 để bắt đầu giải đấu mới?'
-      : 'Reset all tournament party scores back to 0 to begin a fresh tournament series?';
-
-    if (confirm(msg)) {
-      if (typeof sound !== 'undefined') sound.playClick();
-      this.partyScores = {};
-      localStorage.removeItem('gti_party_scores');
-      if (this.lastRoundScores) {
-        this.lastRoundScores.forEach(x => { x.total = 0; });
-      }
-      
-      const countEl = document.getElementById('val-match-count');
-      if (countEl) countEl.textContent = `0 ${this.lang === 'vi' ? 'ván đã chơi' : 'matches played'}`;
-
-      this.renderResultsScoreboard();
-      this.renderCumulativeLeaderboard();
-      this.updateSetupTournamentBanner();
-      alert(this.lang === 'vi' ? '✅ Đã đặt lại toàn bộ điểm số về 0!' : '✅ All scores reset to 0!');
+  showToast(message, type = 'success') {
+    let toast = document.getElementById('app-floating-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'app-floating-toast';
+      toast.className = 'app-toast';
+      document.body.appendChild(toast);
     }
+    toast.textContent = message;
+    toast.className = `app-toast active ${type}`;
+    clearTimeout(this.toastTimeout);
+    this.toastTimeout = setTimeout(() => {
+      toast.classList.remove('active');
+    }, 2500);
+  }
+
+  resetAllScores() {
+    const modal = document.getElementById('modal-confirm-reset');
+    if (modal) {
+      if (typeof sound !== 'undefined') sound.playClick();
+      modal.classList.add('open');
+    } else {
+      const msg = this.lang === 'vi'
+        ? 'Bạn có chắc chắn muốn xóa và đặt lại toàn bộ điểm số của tất cả người chơi về 0 để bắt đầu giải đấu mới?'
+        : 'Reset all tournament party scores back to 0 to begin a fresh tournament series?';
+      if (confirm(msg)) {
+        this.executeResetAllScores();
+      }
+    }
+  }
+
+  executeResetAllScores() {
+    if (typeof sound !== 'undefined') sound.playClick();
+
+    // Khởi tạo lại điểm số về 0 cho tất cả người chơi trong giải đấu
+    const resetScores = {};
+    if (Array.isArray(this.players) && this.players.length > 0) {
+      this.players.forEach(p => {
+        resetScores[p.name] = {
+          total: 0,
+          wins: 0,
+          games: 0,
+          avatar: p.avatar || '👤',
+          avatarBg: p.avatarBg || '#e0e7ff'
+        };
+      });
+    } else if (this.partyScores && Object.keys(this.partyScores).length > 0) {
+      Object.entries(this.partyScores).forEach(([name, data]) => {
+        resetScores[name] = {
+          total: 0,
+          wins: 0,
+          games: 0,
+          avatar: data.avatar || '👤',
+          avatarBg: data.avatarBg || '#e0e7ff'
+        };
+      });
+    }
+
+    this.partyScores = resetScores;
+    localStorage.setItem('gti_party_scores', JSON.stringify(this.partyScores));
+
+    // Đặt lại điểm số ván gần nhất đồng bộ về 0
+    if (this.lastRoundScores) {
+      this.lastRoundScores.forEach(x => {
+        x.delta = 0;
+        x.total = 0;
+        x.reason = this.lang === 'vi' ? 'Đã đặt lại điểm số' : 'Scores reset';
+      });
+    }
+
+    // Đặt lại số ván hiển thị
+    const countEl = document.getElementById('val-match-count');
+    if (countEl) {
+      countEl.textContent = `0 ${this.lang === 'vi' ? 'ván đã chơi' : 'matches played'}`;
+    }
+
+    // Đặt lại nhãn MVP
+    const mvpTag = document.getElementById('label-mvp-tag');
+    if (mvpTag) {
+      mvpTag.textContent = 'MVP: -';
+    }
+
+    // Đóng modal xác nhận
+    document.getElementById('modal-confirm-reset')?.classList.remove('open');
+
+    // Cập nhật giao diện
+    this.renderResultsScoreboard();
+    this.renderCumulativeLeaderboard();
+    this.updateSetupTournamentBanner();
+
+    // Thông báo Toast thành công
+    this.showToast(this.lang === 'vi' ? '✅ Đã đặt lại toàn bộ điểm số về 0đ!' : '✅ All scores reset to 0!');
   }
 
   renderCumulativeLeaderboard() {
@@ -1888,10 +2459,17 @@ class ImposterGame {
     if (!list) return;
     list.innerHTML = '';
 
-    const entries = Object.entries(this.partyScores).map(([name, data]) => ({
-      name,
-      ...data
-    }));
+    const entries = Object.entries(this.partyScores).map(([name, data]) => {
+      const parsedData = typeof data === 'object' && data !== null ? data : { total: Number(data) || 0 };
+      const total = Number(parsedData.total ?? parsedData.score ?? parsedData.points ?? 0);
+      return {
+        name,
+        ...parsedData,
+        total,
+        wins: Number(parsedData.wins || 0),
+        games: Number(parsedData.games || 0)
+      };
+    });
 
     if (entries.length === 0) {
       list.innerHTML = `
@@ -1924,7 +2502,7 @@ class ImposterGame {
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 6px;">
-          <span class="score-tag-total" style="font-size: 16px; color: #f59e0b;">${item.total} pts</span>
+          <span class="score-tag-total ${item.total < 0 ? 'negative' : ''}" style="font-size: 16px; color: ${item.total < 0 ? '#ef4444' : '#f59e0b'};">${item.total} pts</span>
           <button type="button" class="leaderboard-action-btn btn-edit-lb-player" data-player="${item.name}" title="${this.lang === 'vi' ? 'Đổi tên người chơi' : 'Rename player'}">✏️</button>
           <button type="button" class="leaderboard-action-btn btn-delete-lb-player" data-player="${item.name}" title="${this.lang === 'vi' ? 'Xóa người chơi khỏi BXH' : 'Delete player'}">🗑️</button>
         </div>
@@ -1935,21 +2513,7 @@ class ImposterGame {
     list.querySelectorAll('.btn-edit-lb-player').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const oldName = e.currentTarget.dataset.player;
-        const newName = prompt(this.lang === 'vi' ? `Nhập tên mới cho "${oldName}":` : `New name for "${oldName}":`, oldName);
-        if (newName && newName.trim() && newName.trim() !== oldName) {
-          const trimmed = newName.trim();
-          this.partyScores[trimmed] = { ...this.partyScores[oldName] };
-          delete this.partyScores[oldName];
-          if (this.playerNames) {
-            const pIdx = this.playerNames.indexOf(oldName);
-            if (pIdx !== -1) this.playerNames[pIdx] = trimmed;
-            localStorage.setItem('gti_player_names', JSON.stringify(this.playerNames));
-          }
-          localStorage.setItem('gti_party_scores', JSON.stringify(this.partyScores));
-          this.renderCumulativeLeaderboard();
-          this.renderResultsScoreboard();
-          this.updateSetupTournamentBanner();
-        }
+        this.openRenamePlayerModal(oldName);
       });
     });
 
@@ -1962,15 +2526,223 @@ class ImposterGame {
           this.renderCumulativeLeaderboard();
           this.renderResultsScoreboard();
           this.updateSetupTournamentBanner();
+          if (document.getElementById('screen-players')?.classList.contains('active')) {
+            this.generatePlayerInputs();
+          }
         }
       });
     });
+  }
+
+  // ==========================================
+  // RENAME PLAYER MODAL (NO POINT TAMPERING)
+  // ==========================================
+  openRenamePlayerModal(playerName) {
+    if (!this.partyScores || !this.partyScores[playerName]) return;
+    this.renamingOldPlayerName = playerName;
+    const rawData = this.partyScores[playerName];
+    const data = typeof rawData === 'object' && rawData !== null ? rawData : { total: Number(rawData) || 0 };
+    const total = Number(data.total ?? data.score ?? data.points ?? 0);
+    
+    const modal = document.getElementById('modal-rename-player');
+    const pointsVal = document.getElementById('rename-player-points-val');
+    const input = document.getElementById('input-rename-player-name');
+    
+    if (pointsVal) {
+      pointsVal.textContent = `${total} pts (${data.wins || 0} ${this.lang === 'vi' ? 'chiến thắng' : 'wins'} / ${data.games || 0} ${this.lang === 'vi' ? 'ván' : 'matches'})`;
+    }
+    if (input) {
+      input.value = playerName;
+    }
+    if (typeof sound !== 'undefined') sound.playClick();
+    modal?.classList.add('open');
+    setTimeout(() => input?.focus(), 150);
+  }
+
+  saveRenamedPlayer() {
+    const input = document.getElementById('input-rename-player-name');
+    const oldName = this.renamingOldPlayerName;
+    if (!input || !oldName || !this.partyScores[oldName]) return;
+    
+    const newName = input.value.trim();
+    if (!newName) {
+      this.showToast(this.lang === 'vi' ? 'Tên người chơi không được để trống!' : 'Player name cannot be empty!', 'danger');
+      return;
+    }
+    if (newName === oldName) {
+      document.getElementById('modal-rename-player')?.classList.remove('open');
+      return;
+    }
+    if (this.partyScores[newName]) {
+      this.showToast(this.lang === 'vi' ? `Tên "${newName}" đã tồn tại trên BXH! Vui lòng chọn tên khác.` : `Name "${newName}" already exists!`, 'danger');
+      return;
+    }
+
+    // Sao chép điểm số của người chơi cũ sang tên mới (ĐIỂM SỐ ĐƯỢC GIỮ NGUYÊN BẢO MẬT, KHÔNG THỂ SỬA)
+    const oldEntry = this.partyScores[oldName];
+    const entryObj = typeof oldEntry === 'object' && oldEntry !== null 
+      ? { ...oldEntry } 
+      : { total: Number(oldEntry) || 0, wins: 0, games: 0, avatar: '👤', avatarBg: '#e0e7ff' };
+    this.partyScores[newName] = entryObj;
+    delete this.partyScores[oldName];
+
+    // Cập nhật trong danh sách người chơi ván hiện tại nếu có
+    if (Array.isArray(this.playerNames)) {
+      const idx = this.playerNames.indexOf(oldName);
+      if (idx !== -1) {
+        this.playerNames[idx] = newName;
+        localStorage.setItem('gti_player_names', JSON.stringify(this.playerNames));
+      }
+    }
+
+    localStorage.setItem('gti_party_scores', JSON.stringify(this.partyScores));
+
+    // Cập nhật lại giao diện
+    this.renderCumulativeLeaderboard();
+    this.renderResultsScoreboard();
+    this.updateSetupTournamentBanner();
+    if (document.getElementById('screen-players')?.classList.contains('active')) {
+      this.generatePlayerInputs();
+    }
+
+    document.getElementById('modal-rename-player')?.classList.remove('open');
+    if (typeof sound !== 'undefined') sound.playClick();
+    const scoreVal = entryObj.total ?? entryObj.score ?? entryObj.points ?? 0;
+    this.showToast(this.lang === 'vi' ? `✅ Đã đổi tên thành "${newName}"! (Điểm số ${scoreVal} pts được giữ nguyên)` : `✅ Renamed to "${newName}"!`);
+  }
+
+  // ==========================================
+  // ROSTER PICKER: CHỌN NGƯỜI CHƠI TỪ GIẢI ĐẤU
+  // ==========================================
+  openRosterPicker() {
+    const modal = document.getElementById('modal-roster-picker');
+    const list = document.getElementById('roster-picker-items-list');
+    const counter = document.getElementById('label-roster-selected-count');
+    if (!modal || !list) return;
+
+    if (typeof sound !== 'undefined') sound.playClick();
+
+    const entries = Object.entries(this.partyScores || {}).map(([name, data]) => {
+      const parsedData = typeof data === 'object' && data !== null ? data : { total: Number(data) || 0 };
+      const total = Number(parsedData.total ?? parsedData.score ?? parsedData.points ?? 0);
+      return {
+        name,
+        ...parsedData,
+        total,
+        wins: Number(parsedData.wins || 0),
+        games: Number(parsedData.games || 0)
+      };
+    });
+
+    if (entries.length === 0) {
+      list.innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); padding: 30px 10px; font-size: 13px;">
+          ${this.lang === 'vi' 
+            ? 'Chưa có người chơi nào trên BXH giải đấu. Hãy chơi ván đầu tiên hoặc nhập tên để bắt đầu tích lũy điểm!' 
+            : 'No tournament players on leaderboard yet. Play a match to begin accumulating points!'}
+        </div>
+      `;
+      modal.classList.add('open');
+      return;
+    }
+
+    entries.sort((a, b) => b.total - a.total || b.wins - a.wins);
+
+    // Mặc định chọn các người chơi đang có trong danh sách ván hiện tại
+    this.selectedRosterNames = new Set(this.playerNames.filter(n => this.partyScores[n]));
+    if (this.selectedRosterNames.size === 0) {
+      entries.slice(0, Math.min(this.playerCount, entries.length)).forEach(e => this.selectedRosterNames.add(e.name));
+    }
+
+    const updateCounter = () => {
+      if (counter) {
+        counter.textContent = this.lang === 'vi'
+          ? `Đã chọn: ${this.selectedRosterNames.size} người chơi`
+          : `Selected: ${this.selectedRosterNames.size} players`;
+      }
+    };
+
+    list.innerHTML = '';
+    entries.forEach((item, idx) => {
+      const isSelected = this.selectedRosterNames.has(item.name);
+      const row = document.createElement('div');
+      row.className = `roster-picker-item ${isSelected ? 'selected' : ''}`;
+      row.dataset.player = item.name;
+      const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : 'rank-other';
+      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`;
+
+      row.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="roster-checkbox">${isSelected ? '✓' : ''}</div>
+          <div class="rank-badge ${rankClass}" style="width: 24px; height: 24px; font-size: 11px;">${medal}</div>
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: ${item.avatarBg || '#e0e7ff'}; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+            ${item.avatar || '👤'}
+          </div>
+          <div>
+            <div style="font-family: var(--font-display); font-weight: 700; font-size: 14px;">${item.name}</div>
+            <div style="font-size: 11px; color: var(--text-muted);">${item.wins || 0} ${this.lang === 'vi' ? 'chiến thắng' : 'wins'} / ${item.games || 0} ${this.lang === 'vi' ? 'ván' : 'matches'}</div>
+          </div>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 800; color: #f59e0b;">
+          ${item.total || 0} pts
+        </div>
+      `;
+
+      row.addEventListener('click', () => {
+        if (this.selectedRosterNames.has(item.name)) {
+          this.selectedRosterNames.delete(item.name);
+          row.classList.remove('selected');
+          row.querySelector('.roster-checkbox').textContent = '';
+        } else {
+          if (this.selectedRosterNames.size >= 20) {
+            this.showToast(this.lang === 'vi' ? 'Tối đa 20 người chơi trong một ván!' : 'Maximum 20 players per match!', 'danger');
+            return;
+          }
+          this.selectedRosterNames.add(item.name);
+          row.classList.add('selected');
+          row.querySelector('.roster-checkbox').textContent = '✓';
+        }
+        updateCounter();
+      });
+
+      list.appendChild(row);
+    });
+
+    updateCounter();
+    modal.classList.add('open');
+  }
+
+  applySelectedRoster() {
+    if (!this.selectedRosterNames || this.selectedRosterNames.size < 3) {
+      this.showToast(this.lang === 'vi' ? 'Vui lòng chọn ít nhất 3 người chơi!' : 'Please select at least 3 players!', 'danger');
+      return;
+    }
+
+    const chosen = Array.from(this.selectedRosterNames);
+    this.playerCount = chosen.length;
+    this.playerNames = chosen;
+    localStorage.setItem('gti_player_names', JSON.stringify(this.playerNames));
+    localStorage.setItem('gti_players', this.playerCount.toString());
+
+    // Cập nhật thanh trượt số người chơi trên màn hình cài đặt nếu có
+    const slider = document.getElementById('setting-players');
+    const countVal = document.getElementById('val-players');
+    if (slider) slider.value = this.playerCount;
+    if (countVal) countVal.textContent = this.playerCount.toString();
+
+    this.autoBalanceRoles(this.playerCount);
+    this.generatePlayerInputs();
+
+    document.getElementById('modal-roster-picker')?.classList.remove('open');
+    if (typeof sound !== 'undefined') sound.playClick();
+    this.showToast(this.lang === 'vi' ? `✅ Đã chọn ${this.playerCount} người chơi từ BXH vào ván đấu!` : `✅ Selected ${this.playerCount} players from leaderboard!`);
   }
 
   checkImposterComebackGuess(isGiveup = false) {
     const input = document.getElementById('input-imposter-guess');
     const guess = input ? input.value.trim() : '';
     const target = this.secretWord || '';
+    this.imposterGuessText = isGiveup ? '' : guess;
 
     const norm = str => str.toLowerCase()
       .normalize('NFD')
@@ -1990,10 +2762,12 @@ class ImposterGame {
       sound.playWinFanfare();
       this.winningTeam = 'evil';
       this.imposterWonByComeback = true;
+      this.imposterGuessResult = 'correct';
     } else {
       sound.playWinFanfare();
       this.winningTeam = 'good';
       this.imposterWonByComeback = false;
+      this.imposterGuessResult = 'wrong';
     }
 
     this.showResultsScreen(this.caughtImposter || this.players.find(p => p.isImposter));
@@ -2063,6 +2837,16 @@ class ImposterGame {
       item.className = 'setting-item-row';
       item.style.flexDirection = 'column';
       item.style.alignItems = 'flex-start';
+      const aliveDetectives = this.players.filter(p => !p.isEliminated && p.role.id === 'detective');
+      const actorSelectorHtml = aliveDetectives.length > 1
+        ? `<div style="display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 8px;">
+            <span style="font-size: 11px; color: var(--text-muted);">${this.lang === 'vi' ? 'Thám Tử thực hiện:' : 'Detective actor:'}</span>
+            <select id="detective-actor" class="form-select" style="flex: 1; padding: 4px 8px; font-size: 12px;">
+              ${aliveDetectives.map(d => `<option value="${d.id}">${d.name}</option>`).join('')}
+            </select>
+          </div>`
+        : '';
+
       item.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
           <span style="font-size: 24px;">🔍</span>
@@ -2071,6 +2855,7 @@ class ImposterGame {
             <p style="font-size: 11px; color: var(--text-muted);">${this.lang === 'vi' ? 'Chọn 1 người chơi để kiểm tra phe' : 'Inspect 1 player alignment'}</p>
           </div>
         </div>
+        ${actorSelectorHtml}
         <div style="display: flex; gap: 8px; width: 100%; margin-top: 10px;">
           <select id="detective-target" class="form-select" style="flex: 1; padding: 6px 10px;">
             ${this.players.filter(p => !p.isEliminated && p.role.id !== 'detective').map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
@@ -2089,12 +2874,20 @@ class ImposterGame {
         const target = this.players.find(p => p.id === targetId);
         const resEl = item.querySelector('#detective-result');
         resEl.style.display = 'block';
-        if (target.isImposter) {
+        if (target && target.isImposter) {
           resEl.style.color = '#ef4444';
           resEl.textContent = this.lang === 'vi' 
             ? `⚠️ BÁO ĐỘNG: ${target.name} THUỘC PHE ÁC (IMPOSTER)!` 
             : `⚠️ ALERT: ${target.name} IS EVIL (IMPOSTER)!`;
-        } else {
+          const actorEl = item.querySelector('#detective-actor');
+          const actorId = actorEl ? actorEl.value : (aliveDetectives[0]?.id || null);
+          if (!this.detectivesExposedImposter) this.detectivesExposedImposter = new Set();
+          if (actorId) {
+            this.detectivesExposedImposter.add(actorId);
+          } else {
+            aliveDetectives.forEach(d => this.detectivesExposedImposter.add(d.id));
+          }
+        } else if (target) {
           resEl.style.color = '#10b981';
           resEl.textContent = this.lang === 'vi'
             ? `✓ BÌNH AN: ${target.name} là người vô tội (Phe Dân).`
@@ -2114,6 +2907,82 @@ class ImposterGame {
             <strong>${this.lang === 'vi' ? 'Gián Điệp - Manh Mối Ẩn' : 'Spy Intel'}</strong>
             <p style="font-size: 12px; color: var(--team-neutral);">
               ${this.lang === 'vi' ? `Chữ cái đầu của từ khóa: "${firstLetter}..."` : `First letter of keyword: "${firstLetter}..."`}
+            </p>
+          </div>
+        </div>
+      `;
+      content.appendChild(item);
+    }
+
+    if (activeRoles.has('doctor')) {
+      const item = document.createElement('div');
+      item.className = 'setting-item-row';
+      item.style.flexDirection = 'column';
+      item.style.alignItems = 'flex-start';
+      item.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+          <span style="font-size: 24px;">💉</span>
+          <div>
+            <strong>${this.lang === 'vi' ? 'Bác Sĩ - Lá Chắn Bảo Hộ' : 'Doctor Protection'}</strong>
+            <p style="font-size: 11px; color: var(--text-muted);">${this.lang === 'vi' ? 'Chọn 1 người để bảo vệ khỏi bị loại vòng này' : 'Protect 1 player from elimination'}</p>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; width: 100%; margin-top: 10px;">
+          <select id="doctor-target" class="form-select" style="flex: 1; padding: 6px 10px;">
+            ${this.players.filter(p => !p.isEliminated).map(p => `<option value="${p.id}" ${this.doctorShieldedPlayerId === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </select>
+          <button id="btn-doctor-shield" class="ctrl-btn" style="background: var(--team-good); color: #fff;">
+            ${this.lang === 'vi' ? 'Bảo vệ' : 'Shield'}
+          </button>
+        </div>
+        <div id="doctor-result" style="font-size: 12px; font-weight: 700; margin-top: 6px; color: #10b981; display: ${this.doctorShieldedPlayerId ? 'block' : 'none'};">
+          ${this.doctorShieldedPlayerId ? `✓ Đang bảo vệ: ${this.players.find(p => p.id === this.doctorShieldedPlayerId)?.name}` : ''}
+        </div>
+      `;
+      content.appendChild(item);
+
+      item.querySelector('#btn-doctor-shield')?.addEventListener('click', () => {
+        sound.playWinFanfare();
+        const targetId = item.querySelector('#doctor-target').value;
+        this.doctorShieldedPlayerId = targetId;
+        if (!this.doctorShieldHistory) this.doctorShieldHistory = [];
+        this.doctorShieldHistory.push(targetId);
+        const target = this.players.find(p => p.id === targetId);
+        const resEl = item.querySelector('#doctor-result');
+        resEl.style.display = 'block';
+        resEl.textContent = `✓ Đã kích hoạt lá chắn bảo hộ cho: ${target?.name}!`;
+      });
+    }
+
+    if (activeRoles.has('seer')) {
+      const item = document.createElement('div');
+      item.className = 'setting-item-row';
+      const wordCount = this.secretWord ? this.secretWord.trim().split(/\s+/).length : 0;
+      const charCount = this.secretWord ? this.secretWord.replace(/\s+/g, '').length : 0;
+      item.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 24px;">🔮</span>
+          <div>
+            <strong>${this.lang === 'vi' ? 'Nhà Tiên Tri - Cấu Trúc Từ Khóa' : 'Seer Clue'}</strong>
+            <p style="font-size: 12px; color: #a855f7;">
+              Từ khóa bí mật gồm <strong>${wordCount} tiếng</strong> (${charCount} ký tự)
+            </p>
+          </div>
+        </div>
+      `;
+      content.appendChild(item);
+    }
+
+    if (activeRoles.has('mayor')) {
+      const item = document.createElement('div');
+      item.className = 'setting-item-row';
+      item.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 24px;">👑</span>
+          <div>
+            <strong>${this.lang === 'vi' ? 'Thị Trưởng - Quyền Lực Phiếu Bầu' : 'Mayor Power'}</strong>
+            <p style="font-size: 12px; color: #f59e0b;">
+              Lá phiếu biểu quyết của Thị Trưởng tính giá trị gấp đôi (x2 phiếu bầu)!
             </p>
           </div>
         </div>
@@ -2162,10 +3031,62 @@ class ImposterGame {
   bindEvents() {
     document.getElementById('btn-toggle-lang')?.addEventListener('click', () => this.toggleLanguage());
     document.getElementById('btn-toggle-theme')?.addEventListener('click', () => this.toggleTheme());
-    document.getElementById('btn-toggle-frame')?.addEventListener('click', () => this.toggleFrameMode());
     document.getElementById('btn-toggle-sound')?.addEventListener('click', () => {
-      sound.muted = !sound.muted;
-      document.getElementById('sound-icon').textContent = sound.muted ? '🔇' : '🔊';
+      sound.setMuted(!sound.muted);
+      this.updateSoundSettingsUI();
+    });
+
+    // Settings Modal Open/Close & Controls
+    document.getElementById('btn-open-settings')?.addEventListener('click', () => {
+      this.openSettingsModal();
+    });
+    document.getElementById('btn-close-settings')?.addEventListener('click', () => {
+      document.getElementById('modal-settings')?.classList.remove('open');
+    });
+    document.getElementById('btn-close-settings-done')?.addEventListener('click', () => {
+      document.getElementById('modal-settings')?.classList.remove('open');
+    });
+    document.getElementById('modal-settings')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-settings') {
+        document.getElementById('modal-settings').classList.remove('open');
+      }
+    });
+
+    // Theme Selector Buttons in Settings
+    document.getElementById('btn-theme-dark')?.addEventListener('click', () => {
+      this.setTheme('dark');
+    });
+    document.getElementById('btn-theme-light')?.addEventListener('click', () => {
+      this.setTheme('light');
+    });
+
+    // Sound Toggle Button in Settings
+    document.getElementById('btn-toggle-sound-switch')?.addEventListener('click', () => {
+      sound.setMuted(!sound.muted);
+      if (!sound.muted) sound.playToggle();
+      this.updateSoundSettingsUI();
+    });
+
+    // Volume Slider in Settings
+    document.getElementById('slider-sound-volume')?.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      sound.setVolume(val / 100);
+      const volVal = document.getElementById('val-sound-volume');
+      if (volVal) volVal.textContent = `${val}%`;
+      if (sound.muted && val > 0) {
+        sound.setMuted(false);
+      }
+      this.updateSoundSettingsUI();
+    });
+    document.getElementById('slider-sound-volume')?.addEventListener('change', () => {
+      sound.playClick();
+    });
+
+    // Haptic Vibration Switch in Settings
+    document.getElementById('switch-haptic')?.addEventListener('change', (e) => {
+      sound.hapticEnabled = e.target.checked;
+      localStorage.setItem('gti_haptic', sound.hapticEnabled ? 'true' : 'false');
+      if (sound.hapticEnabled) sound.vibrate(40);
     });
 
     document.getElementById('screen-jump-select')?.addEventListener('change', (e) => {
@@ -2311,6 +3232,10 @@ class ImposterGame {
       this.renderRolesList();
     });
 
+    document.getElementById('btn-enable-all-roles')?.addEventListener('click', () => {
+      this.enableAllRolesInPool();
+    });
+
     document.querySelectorAll('.filter-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         sound.playClick();
@@ -2330,6 +3255,9 @@ class ImposterGame {
       this.playerNames = pool.slice(0, this.playerCount);
       localStorage.setItem('gti_player_names', JSON.stringify(this.playerNames));
       this.generatePlayerInputs();
+    });
+    document.getElementById('btn-pick-roster')?.addEventListener('click', () => {
+      this.openRosterPicker();
     });
     document.getElementById('btn-add-player')?.addEventListener('click', () => {
       this.addPlayer();
@@ -2424,6 +3352,9 @@ class ImposterGame {
       sound.playClick();
       this.startMatchSession();
     });
+    document.getElementById('btn-discard-round-score')?.addEventListener('click', () => {
+      this.discardCurrentMatchScores();
+    });
     document.getElementById('btn-change-roles')?.addEventListener('click', () => {
       this.switchScreen('screen-roles');
     });
@@ -2493,10 +3424,97 @@ class ImposterGame {
     document.getElementById('btn-setup-reset-scores')?.addEventListener('click', () => {
       this.resetAllScores();
     });
+
+    // In-App Confirm Reset Modal Listeners
+    document.getElementById('btn-cancel-reset')?.addEventListener('click', () => {
+      if (typeof sound !== 'undefined') sound.playClick();
+      document.getElementById('modal-confirm-reset')?.classList.remove('open');
+    });
+    document.getElementById('btn-confirm-reset-action')?.addEventListener('click', () => {
+      this.executeResetAllScores();
+    });
+    document.getElementById('modal-confirm-reset')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-confirm-reset') {
+        document.getElementById('modal-confirm-reset').classList.remove('open');
+      }
+    });
+
     document.getElementById('btn-setup-view-leaderboard')?.addEventListener('click', () => {
       if (typeof sound !== 'undefined') sound.playClick();
       this.renderCumulativeLeaderboard();
       document.getElementById('modal-leaderboard')?.classList.add('open');
+    });
+
+    // Roster Picker Modal Events
+    document.getElementById('btn-close-roster-picker')?.addEventListener('click', () => {
+      document.getElementById('modal-roster-picker')?.classList.remove('open');
+    });
+    document.getElementById('btn-cancel-roster-picker')?.addEventListener('click', () => {
+      document.getElementById('modal-roster-picker')?.classList.remove('open');
+    });
+    document.getElementById('btn-confirm-roster-picker')?.addEventListener('click', () => {
+      this.applySelectedRoster();
+    });
+    document.getElementById('btn-roster-select-all')?.addEventListener('click', () => {
+      const items = document.querySelectorAll('#roster-picker-items-list .roster-picker-item');
+      if (!this.selectedRosterNames) this.selectedRosterNames = new Set();
+      items.forEach(it => {
+        const p = it.dataset.player;
+        if (p && this.selectedRosterNames.size < 20) {
+          this.selectedRosterNames.add(p);
+          it.classList.add('selected');
+          const cb = it.querySelector('.roster-checkbox');
+          if (cb) cb.textContent = '✓';
+        }
+      });
+      const counter = document.getElementById('label-roster-selected-count');
+      if (counter) {
+        counter.textContent = this.lang === 'vi'
+          ? `Đã chọn: ${this.selectedRosterNames.size} người chơi`
+          : `Selected: ${this.selectedRosterNames.size} players`;
+      }
+    });
+    document.getElementById('btn-roster-deselect-all')?.addEventListener('click', () => {
+      if (this.selectedRosterNames) this.selectedRosterNames.clear();
+      const items = document.querySelectorAll('#roster-picker-items-list .roster-picker-item');
+      items.forEach(it => {
+        it.classList.remove('selected');
+        const cb = it.querySelector('.roster-checkbox');
+        if (cb) cb.textContent = '';
+      });
+      const counter = document.getElementById('label-roster-selected-count');
+      if (counter) {
+        counter.textContent = this.lang === 'vi'
+          ? `Đã chọn: 0 người chơi`
+          : `Selected: 0 players`;
+      }
+    });
+    document.getElementById('modal-roster-picker')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-roster-picker') {
+        document.getElementById('modal-roster-picker').classList.remove('open');
+      }
+    });
+
+    // Rename Player Modal Events
+    document.getElementById('btn-close-rename-player')?.addEventListener('click', () => {
+      document.getElementById('modal-rename-player')?.classList.remove('open');
+    });
+    document.getElementById('btn-cancel-rename-player')?.addEventListener('click', () => {
+      document.getElementById('modal-rename-player')?.classList.remove('open');
+    });
+    document.getElementById('btn-save-rename-player')?.addEventListener('click', () => {
+      this.saveRenamedPlayer();
+    });
+    document.getElementById('input-rename-player-name')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this.saveRenamedPlayer();
+      }
+    });
+    document.getElementById('modal-rename-player')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-rename-player') {
+        document.getElementById('modal-rename-player').classList.remove('open');
+      }
     });
 
     // Scoreboard Tabs on Screen 7
@@ -2534,6 +3552,22 @@ class ImposterGame {
     });
     document.getElementById('btn-next-round-continue')?.addEventListener('click', () => {
       sound.playClick();
+
+      // Apply pending wrong vote penalties if this intermission was for an innocent civilian
+      if (!this.lastIntermissionWasImposter) {
+        if (this.pendingWrongVotePenaltyMode === 'custom') {
+          this.players.filter(p => !p.isEliminated).forEach(p => {
+            if (this.pendingCustomPenalizedPlayerIds && this.pendingCustomPenalizedPlayerIds.has(p.id)) {
+              p.penalty = (p.penalty || 0) + 5;
+            }
+          });
+        } else {
+          this.players.filter(p => p.role.team === 'good' && !p.isEliminated).forEach(p => {
+            p.penalty = (p.penalty || 0) + 5;
+          });
+        }
+      }
+
       document.getElementById('modal-round-intermission')?.classList.remove('open');
       this.roundNumber++;
       this.startDiscussionStage();
@@ -2617,8 +3651,13 @@ class ImposterGame {
         r.count = this.imposterCount;
       } else {
         const count = this.fixedRoles[r.id] || 0;
-        r.enabled = count > 0;
-        r.count = count;
+        if (count > 0) {
+          r.enabled = true;
+          r.count = count;
+        } else {
+          r.enabled = false;
+          r.count = 0;
+        }
       }
     });
 

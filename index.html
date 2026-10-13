@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Guess the Imposter - Arcade Social Deduction Party Game</title>
   
-  <!-- Google Fonts: Outfit & Be Vietnam Pro -->
+  <!-- Google Fonts: Lexend (Display Headlines), Be Vietnam Pro (Body & UI), JetBrains Mono (Numbers & Timers) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=JetBrains+Mono:wght@500;600;700;800&family=Lexend:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
   
   <!-- Canvas Confetti CDN with Local Fallback -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="frame-mode">
+<body>
 
   <!-- Ambient Light Orbs -->
   <div class="ambient-glow glow-top"></div>
@@ -24,42 +24,20 @@
   <!-- App Viewport Wrapper -->
   <div id="app-viewport">
 
-    <!-- Phone Notch & Dynamic Island Simulation -->
-    <div class="phone-notch">
-      <span id="phone-clock">21:42</span>
-      <div class="notch-island">
-        <span class="notch-dot"></span>
-        <span style="font-size: 10px; color: #ff3b30; font-weight: 800;">IMPOSTER</span>
-      </div>
-      <div style="display: flex; gap: 4px; font-size: 11px;">
-        <span>5G</span>
-        <span>100%</span>
-      </div>
-    </div>
-
     <header class="global-control-bar">
       <div class="control-group">
         <button id="btn-open-word-pairs" class="ctrl-btn" title="Quản lý Cặp Từ Vựng" style="color: #ec4899; border-color: rgba(236, 72, 153, 0.4);">
           <span style="font-size: 13px;">🔤</span> <span style="font-size: 11px; font-weight: 700;">Cặp từ</span>
         </button>
-        <button id="btn-toggle-theme" class="ctrl-btn" title="Chế độ sáng/tối">
-          <span id="theme-icon">🌙</span>
-        </button>
-        <button id="btn-toggle-sound" class="ctrl-btn" title="Bật/Tắt âm thanh">
-          <span id="sound-icon">🔊</span>
-        </button>
-      </div>
-
-      <div class="control-group">
         <button id="btn-open-rules" class="ctrl-btn" title="Luật chơi & Tính điểm">
           <span>📜</span> <span id="label-rules-btn" data-i18n="btn_rules">Luật</span>
         </button>
         <button id="btn-open-leaderboard" class="ctrl-btn" title="Bảng điểm nhóm">
           <span>🏆</span> <span id="label-scores-btn">Điểm</span>
         </button>
-        <button id="btn-toggle-frame" class="ctrl-btn" title="Khung điện thoại / Toàn màn hình">
-          <span id="frame-icon">📱</span>
-        </button>
+      </div>
+
+      <div class="control-group">
         <!-- Quick Screen Jump for Reviewer Inspection -->
         <select id="screen-jump-select" class="ctrl-btn screen-selector-btn" title="Kiểm tra màn hình">
           <option value="screen-setup">1. Cài đặt ván (Setup)</option>
@@ -73,6 +51,10 @@
           <option value="screen-results">7. Kết quả & MVP (Results)</option>
           <option value="screen-history">8. Lịch sử ván đấu (History)</option>
         </select>
+        <!-- Icon Setting ở phía trên góc bên phải -->
+        <button id="btn-open-settings" class="ctrl-btn" title="Cài đặt hệ thống (Âm thanh & Giao diện)" aria-label="Cài đặt">
+          <span style="font-size: 15px;">⚙️</span>
+        </button>
       </div>
     </header>
 
@@ -109,7 +91,7 @@
         <div id="online-lobby-banner" class="instruction-box" style="display: none; border-left-color: #3b82f6;">
           <span class="instruction-icon">📡</span>
           <div class="instruction-text">
-            <strong data-i18n="room_code">Mã phòng:</strong> <span style="font-family: var(--font-display); font-weight: 800; color: #3b82f6;">#IMP-8821</span>
+            <strong data-i18n="room_code">Mã phòng:</strong> <span style="font-family: var(--font-mono); font-weight: 800; color: #3b82f6; letter-spacing: 0.5px;">#IMP-8821</span>
             <p style="margin-top: 4px; font-size: 11px;" data-i18n="online_desc">Các thiết bị khác truy cập cùng mạng Wi-Fi hoặc quét mã để tham gia.</p>
           </div>
         </div>
@@ -182,6 +164,7 @@
               </div>
             </div>
           </div>
+
 
           <!-- Choose Roles Item -->
           <div class="setting-item-row" id="btn-open-roles">
@@ -374,11 +357,13 @@
 
         </div>
 
-        <!-- START GAME CTA -->
-        <button id="btn-start-game" class="primary-cta-btn">
-          <span>🚀</span>
-          <span data-i18n="btn_start_game">Bắt đầu ván chơi</span>
-        </button>
+        <!-- STICKY BOTTOM ACTION BAR -->
+        <div class="sticky-bottom-action-bar">
+          <button id="btn-start-game" class="primary-cta-btn">
+            <span>🚀</span>
+            <span data-i18n="btn_start_game">Bắt đầu thiết lập người chơi</span>
+          </button>
+        </div>
       </section>
 
       <!-- ==========================================
@@ -409,9 +394,12 @@
           <div id="role-balance-warning-msg" style="font-size: 11px; margin-top: 6px; color: var(--text-muted);">
             ✓ Bộ vai trò đã khớp chính xác với 6 người chơi.
           </div>
-          <div class="balance-actions-row">
-            <button id="btn-auto-balance" class="auto-balance-btn">
+          <div class="balance-actions-row" style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button id="btn-auto-balance" class="auto-balance-btn" style="flex: 1;">
               <span>⚡</span> <span data-i18n="btn_auto_balance">Tự động cân bằng (Auto Balance)</span>
+            </button>
+            <button type="button" id="btn-enable-all-roles" class="ctrl-btn" style="color: #ec4899; border-color: rgba(236, 72, 153, 0.4); font-size: 11px; padding: 6px 12px; font-weight: 700;">
+              <span>🎲</span> <span>Bật tất cả vai trò vào vòng quay</span>
             </button>
           </div>
         </div>
@@ -450,9 +438,11 @@
           <!-- Roles will be injected dynamically via roles_data.js -->
         </div>
 
-        <button id="btn-save-roles-done" class="primary-cta-btn">
-          <span>✓</span> <span data-i18n="btn_save_roles">Lưu cấu hình vai trò</span>
-        </button>
+        <div class="sticky-bottom-action-bar">
+          <button id="btn-save-roles-done" class="primary-cta-btn">
+            <span>✓</span> <span data-i18n="btn_save_roles">Lưu cấu hình vai trò</span>
+          </button>
+        </div>
       </section>
 
       <!-- ==========================================
@@ -464,9 +454,14 @@
             <span>←</span> <span data-i18n="btn_back">Quay lại</span>
           </button>
           <h2 style="font-family: var(--font-display); font-size: 18px; font-weight: 800;" data-i18n="title_players">Người chơi</h2>
-          <button id="btn-random-names" class="ctrl-btn" style="color: var(--primary-orange);">
-            <span>🎲</span> <span data-i18n="btn_random_names">Tên ngẫu nhiên</span>
-          </button>
+          <div style="display: flex; gap: 6px;">
+            <button id="btn-pick-roster" class="ctrl-btn" style="color: #ec4899; border-color: rgba(236, 72, 153, 0.4);" title="Chọn những người chơi từ các ván trước để tiếp tục tính điểm">
+              <span>👥</span> <span data-i18n="btn_pick_roster">Chọn từ BXH</span>
+            </button>
+            <button id="btn-random-names" class="ctrl-btn" style="color: var(--primary-orange);">
+              <span>🎲</span> <span data-i18n="btn_random_names">Tên ngẫu nhiên</span>
+            </button>
+          </div>
         </div>
 
         <div class="instruction-box" style="margin-bottom: 16px;">
@@ -481,14 +476,19 @@
           <!-- Dynamically populated with avatar, name input, edit & delete buttons -->
         </div>
 
+        <!-- Datalist for autocomplete linking with existing party players -->
+        <datalist id="datalist-party-roster"></datalist>
+
         <!-- Add Player Quick Action -->
         <button id="btn-add-player" class="secondary-btn" style="border: 1.5px dashed var(--border-medium); width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; margin-bottom: 22px; font-weight: 700; color: var(--primary-orange); cursor: pointer;" title="Thêm người chơi mới vào phòng">
           <span style="font-size: 16px;">➕</span> <span data-i18n="btn_add_player">Thêm người chơi</span>
         </button>
 
-        <button id="btn-confirm-players" class="primary-cta-btn">
-          <span>🔒</span> <span data-i18n="btn_deal_roles">Phân vai & Chuyền điện thoại</span>
-        </button>
+        <div class="sticky-bottom-action-bar">
+          <button id="btn-confirm-players" class="primary-cta-btn">
+            <span>🔒</span> <span data-i18n="btn_deal_roles">Phân vai & Chuyền điện thoại</span>
+          </button>
+        </div>
       </section>
 
       <!-- ==========================================
@@ -699,7 +699,7 @@
             </div>
 
             <!-- Per-Speaker Countdown Pill -->
-            <div id="speaker-timer-pill" style="display: flex; align-items: center; gap: 4px; background: rgba(255, 107, 53, 0.15); color: var(--primary-orange); padding: 4px 10px; border-radius: var(--radius-pill); font-family: var(--font-display); font-weight: 800; font-size: 13px;">
+            <div id="speaker-timer-pill" style="display: flex; align-items: center; gap: 4px; background: rgba(255, 107, 53, 0.15); color: var(--primary-orange); padding: 4px 10px; border-radius: var(--radius-pill); font-family: var(--font-mono); font-weight: 800; font-size: 13px; font-feature-settings: 'tnum';">
               <span>🎙️</span> <span id="val-speaker-timer">30s</span>
             </div>
 
@@ -766,7 +766,7 @@
         <div class="penalty-warning-box">
           <span class="warning-icon">⚠️</span>
           <div class="warning-text" data-i18n="voting_penalty_rule">
-            <strong>Luật trừ điểm:</strong> Nếu trục xuất nhầm <strong>DÂN THƯỜNG</strong> vô tội, phe Dân sẽ bị <strong>trừ -5 điểm</strong> và ván chơi tiếp tục sang <strong>vòng thảo luận tiếp theo</strong>!
+            <strong>Luật trừ điểm oan sai:</strong> Nếu trục xuất nhầm <strong>DÂN THƯỜNG</strong> vô tội, áp dụng <strong>trừ -5 điểm</strong> (mặc định trách nhiệm tập thể cho cả phe Dân còn sống, hoặc có thể chọn cụ thể người đã chỉ tay vote nhầm).
           </div>
         </div>
 
@@ -893,16 +893,24 @@
           <!-- Dynamically populated -->
         </div>
 
-        <!-- Action Buttons -->
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <button id="btn-play-again" class="primary-cta-btn">
-            <span>🔄</span> <span data-i18n="btn_play_again">Chơi lại ván mới</span>
+        <!-- Action Buttons: Bottom Bar (Responsive & Pinned on Mobile) -->
+        <div class="results-actions-bar">
+          <!-- Left: Home Icon Button -->
+          <button id="btn-back-to-home" class="results-action-btn results-nav-btn" title="Về trang chủ" aria-label="Về trang chủ">
+            <span class="btn-icon">🏠</span>
+            <span class="btn-text" data-i18n="btn_back_home">Về trang chủ</span>
           </button>
-          <button id="btn-change-roles" class="secondary-btn">
-            <span>⚙️</span> <span data-i18n="btn_change_roles">Thay đổi vai trò</span>
+
+          <!-- Center: Play Again (Prominent Vibrant CTA) -->
+          <button id="btn-play-again" class="results-action-btn results-play-again-btn" title="Chơi lại ván mới" aria-label="Chơi lại ván mới">
+            <span class="btn-icon">🔄</span>
+            <span class="btn-text" data-i18n="btn_play_again">Chơi lại ván mới</span>
           </button>
-          <button id="btn-back-to-home" class="secondary-btn">
-            <span>🏠</span> <span data-i18n="btn_back_home">Về trang chủ</span>
+
+          <!-- Right: Discard Match Scores (Button Thùng Rác - Không tính điểm số) -->
+          <button id="btn-discard-round-score" class="results-action-btn results-nav-btn btn-discard-score" title="Không tính điểm ván này (Hủy kết quả BXH)" aria-label="Không tính điểm">
+            <span class="btn-icon">🗑️</span>
+            <span class="btn-text">Không tính điểm</span>
           </button>
         </div>
       </section>
@@ -1090,15 +1098,14 @@
           </div>
         </div>
 
-        <div style="display: flex; gap: 8px; align-items: flex-end;">
-          <div style="flex: 1;">
-            <label class="form-label" style="font-size: 11px;">🏷️ Chủ đề / Nhóm từ</label>
-            <input type="text" id="wp-category" class="form-input" placeholder="VD: Ẩm Thực, Tự Do..." value="Cặp từ tự tạo" />
-          </div>
-          <button type="submit" class="primary-cta-btn" style="min-height: 42px; padding: 0 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-            <span>💾 Lưu</span>
-          </button>
+        <div style="margin-bottom: 12px;">
+          <label class="form-label" style="font-size: 11px;">🏷️ Chủ đề / Nhóm từ</label>
+          <input type="text" id="wp-category" class="form-input" placeholder="VD: Ẩm Thực, Tự Do..." value="Cặp từ tự tạo" />
         </div>
+
+        <button type="submit" class="primary-cta-btn" style="min-height: 42px; width: 100%; margin: 0; background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 14px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);">
+          <span>💾 Lưu Cặp Từ</span>
+        </button>
       </form>
 
       <!-- Danh Sách Cặp Từ Đang Lưu -->
@@ -1162,6 +1169,183 @@
     </div>
   </div>
 
+  <!-- Modal: Confirm Reset Tournament Scores (In-App Reliable Confirmation) -->
+  <div id="modal-confirm-reset" class="modal-overlay">
+    <div class="bottom-sheet-content" style="max-width: 440px; text-align: center; padding: 26px 22px;">
+      <div class="sheet-drag-handle"></div>
+      <div style="font-size: 42px; margin-bottom: 10px;">⚠️</div>
+      <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; margin-bottom: 8px;">
+        Đặt lại điểm số giải đấu?
+      </h3>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.55; margin-bottom: 22px;">
+        Toàn bộ điểm tích lũy, số ván đấu và số trận thắng của tất cả người chơi sẽ được đưa về <strong style="color: var(--primary-orange);">0đ</strong> để bắt đầu giải đấu mới.
+      </p>
+      <div style="display: flex; gap: 10px;">
+        <button id="btn-cancel-reset" class="secondary-btn" style="flex: 1; min-height: 44px; font-size: 13.5px;">
+          Hủy bỏ
+        </button>
+        <button id="btn-confirm-reset-action" class="primary-cta-btn" style="flex: 1.2; min-height: 44px; font-size: 13.5px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45); margin-top: 0;">
+          <span>🔄</span> <span>Đặt lại về 0</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Roster Picker (Select Previous Players from Tournament) -->
+  <div id="modal-roster-picker" class="modal-overlay">
+    <div class="bottom-sheet-content" style="max-width: 520px; padding: 22px 20px;">
+      <div class="sheet-drag-handle"></div>
+      <div class="sheet-header" style="margin-bottom: 8px;">
+        <h3 class="sheet-title" style="font-size: 17px; display: flex; align-items: center; gap: 8px;">
+          <span>👥</span> <span data-i18n="modal_roster_title">Chọn người chơi từ BXH</span>
+        </h3>
+        <button class="close-sheet-btn" id="btn-close-roster-picker">✕</button>
+      </div>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;" data-i18n="modal_roster_desc">
+        Chọn các thành viên có mặt hôm nay để tiếp tục tích lũy điểm số vào hồ sơ của họ:
+      </p>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary);" id="label-roster-selected-count">
+          Đã chọn: 0 người chơi
+        </span>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" id="btn-roster-select-all" class="ctrl-btn" style="font-size: 11px; padding: 4px 8px;">
+            Chọn tất cả
+          </button>
+          <button type="button" id="btn-roster-deselect-all" class="ctrl-btn" style="font-size: 11px; padding: 4px 8px;">
+            Bỏ chọn
+          </button>
+        </div>
+      </div>
+
+      <!-- Roster Items List -->
+      <div id="roster-picker-items-list" class="roster-picker-list">
+        <!-- Dynamically injected -->
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button id="btn-cancel-roster-picker" class="secondary-btn" style="flex: 1; min-height: 44px; font-size: 13.5px;">
+          Hủy bỏ
+        </button>
+        <button id="btn-confirm-roster-picker" class="primary-cta-btn" style="flex: 1.4; min-height: 44px; font-size: 13.5px; background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%); box-shadow: 0 4px 16px rgba(236, 72, 153, 0.4); margin-top: 0;">
+          <span>✅</span> <span data-i18n="btn_apply_roster">Áp dụng vào ván đấu</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Rename Player (Edit Name only - Points Locked) -->
+  <div id="modal-rename-player" class="modal-overlay">
+    <div class="bottom-sheet-content" style="max-width: 440px; padding: 24px 20px; text-align: center; position: relative;">
+      <button class="close-sheet-btn" id="btn-close-rename-player" style="position: absolute; top: 16px; right: 16px;">✕</button>
+      <div class="sheet-drag-handle"></div>
+      <div style="font-size: 38px; margin-bottom: 6px;">✏️</div>
+      <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; margin-bottom: 6px;">
+        Đổi tên người chơi
+      </h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+        Cập nhật tên hiển thị của người chơi trong giải đấu. Điểm số được bảo mật tuyệt đối và không thể chỉnh sửa thủ công.
+      </p>
+
+      <!-- Locked Points HUD -->
+      <div class="locked-points-display" id="rename-player-locked-hud">
+        <span>🔒</span>
+        <span>Điểm tích lũy: <strong id="rename-player-points-val">0 pts</strong></span>
+      </div>
+
+      <div style="text-align: left; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 6px;">
+          Tên hiển thị mới:
+        </label>
+        <input type="text" id="input-rename-player-name" class="form-input" placeholder="Nhập tên mới..." style="width: 100%; padding: 10px 14px; font-size: 14px; font-weight: 700;" />
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button id="btn-cancel-rename-player" class="secondary-btn" style="flex: 1; min-height: 44px; font-size: 13.5px;">
+          Hủy bỏ
+        </button>
+        <button id="btn-save-rename-player" class="primary-cta-btn" style="flex: 1.2; min-height: 44px; font-size: 13.5px; margin-top: 0;">
+          <span>💾</span> <span>Lưu tên mới</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: System Settings (Theme & Audio FX) -->
+  <div id="modal-settings" class="modal-overlay">
+    <div class="bottom-sheet-content" style="max-width: 480px; padding: 22px 20px;">
+      <div class="sheet-drag-handle"></div>
+      <div class="sheet-header" style="margin-bottom: 16px;">
+        <h3 class="sheet-title" style="font-size: 18px; display: flex; align-items: center; gap: 8px;">
+          <span>⚙️</span> <span>Cài đặt hệ thống</span>
+        </h3>
+        <button class="close-sheet-btn" id="btn-close-settings">✕</button>
+      </div>
+
+      <!-- Settings Group 1: Dark / Light Theme -->
+      <div class="settings-group-card" style="margin-bottom: 14px; background: rgba(0, 0, 0, 0.22); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div>
+            <div style="font-family: var(--font-display); font-weight: 700; font-size: 14px;">Giao diện nền</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">Tùy chỉnh chế độ hiển thị tối hoặc sáng</div>
+          </div>
+          <span id="label-current-theme-badge" class="hero-badge" style="font-size: 11px;">Dark Mode</span>
+        </div>
+        
+        <div class="theme-selector-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button type="button" id="btn-theme-dark" class="theme-option-btn active">
+            <span style="font-size: 22px;">🌙</span>
+            <span style="font-weight: 700; font-size: 13px;">Chế độ Tối (Dark)</span>
+          </button>
+          <button type="button" id="btn-theme-light" class="theme-option-btn">
+            <span style="font-size: 22px;">☀️</span>
+            <span style="font-weight: 700; font-size: 13px;">Chế độ Sáng (Light)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Settings Group 2: Sound & Audio FX -->
+      <div class="settings-group-card" style="margin-bottom: 20px; background: rgba(0, 0, 0, 0.22); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <div style="font-family: var(--font-display); font-weight: 700; font-size: 14px;">Âm thanh & Hiệu ứng</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">Tiếng click, lật thẻ, chuông đếm ngược</div>
+          </div>
+          <button type="button" id="btn-toggle-sound-switch" class="switch-toggle-btn active" title="Bật/Tắt âm thanh">
+            <span id="settings-sound-icon" style="font-size: 16px;">🔊</span>
+            <span id="settings-sound-text" style="font-size: 12px; font-weight: 700;">Đang bật</span>
+          </button>
+        </div>
+
+        <!-- Volume Slider -->
+        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Âm lượng hiệu ứng</span>
+            <span id="val-sound-volume" style="font-family: var(--font-mono); font-size: 12px; font-weight: 800; color: var(--primary-orange);">100%</span>
+          </div>
+          <input type="range" id="slider-sound-volume" min="0" max="100" value="100" style="width: 100%; accent-color: var(--primary-orange); cursor: pointer;" />
+        </div>
+
+        <!-- Haptic Vibration Switch -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+          <div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">Rung phản hồi (Haptic)</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Rung nhẹ khi chạm tương tác trên điện thoại</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="switch-haptic" checked />
+            <span class="slider round"></span>
+          </label>
+        </div>
+      </div>
+
+      <button id="btn-close-settings-done" class="primary-cta-btn" style="width: 100%; min-height: 44px; margin-top: 0;">
+        <span>✓</span> <span>Xong</span>
+      </button>
+    </div>
+  </div>
+
   <!-- Modal 5: Round Elimination Intermission -->
   <div id="modal-round-intermission" class="modal-overlay">
     <div class="bottom-sheet-content" style="text-align: center;">
@@ -1180,9 +1364,30 @@
         Kẻ Giả Mạo vẫn đang ẩn nấp trong số những người còn lại.
       </p>
 
-      <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+      <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 14px;">
         <span class="status-pill green" id="pill-innocents-left">👥 4 Dân thường</span>
         <span class="status-pill red" id="pill-imposters-left">🎭 1 Imposter</span>
+      </div>
+
+      <!-- Interactive Penalty Target Selector (when Civilian voted out) -->
+      <div id="intermission-penalty-config" style="display: none; margin: 0 0 16px; text-align: left; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); padding: 12px;">
+        <div style="font-size: 12px; font-weight: 700; color: #ef4444; margin-bottom: 8px;">
+          ⚖️ Áp dụng trừ -5 điểm oan sai cho ai?
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+          <button type="button" id="btn-penalty-team" class="ctrl-btn" style="font-size: 11px; padding: 7px 8px; border-radius: var(--radius-sm); border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.25); color: #fff; font-weight: 700; cursor: pointer;">
+            👥 Cả phe Dân còn sống
+          </button>
+          <button type="button" id="btn-penalty-voters" class="ctrl-btn" style="font-size: 11px; padding: 7px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-weight: 700; cursor: pointer;">
+            👆 Chọn người đã chỉ tay
+          </button>
+        </div>
+        <div id="penalty-voters-selector-grid" style="display: none; flex-wrap: wrap; gap: 6px; margin: 8px 0;">
+          <!-- Dynamically populated toggle chips -->
+        </div>
+        <p id="penalty-explainer-text" style="font-size: 11px; color: var(--text-secondary); margin: 0; line-height: 1.4;">
+          <strong>Trách nhiệm tập thể:</strong> Cả nhóm đã thống nhất biểu quyết theo số đông, do đó toàn bộ phe Dân còn sống cùng chịu phạt -5 điểm.
+        </p>
       </div>
 
       <button id="btn-next-round-continue" class="primary-cta-btn" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);">
@@ -1255,24 +1460,44 @@
                 <td class="pts-plus">+5 điểm</td>
               </tr>
               <tr>
+                <td>💀 <strong>Dân Thường thua trận trước Imposter</strong></td>
+                <td class="pts-minus">-5 điểm</td>
+              </tr>
+              <tr>
+                <td>💥 <strong>Để Imposter Lật Kèo đoán trúng từ</strong></td>
+                <td class="pts-minus">-3 điểm<br><span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(Gợi ý quá lộ liễu)</span></td>
+              </tr>
+              <tr>
                 <td>⚠️ <strong>Phe Dân vote nhầm Dân vô tội</strong></td>
-                <td class="pts-minus"><strong>-5 điểm</strong></td>
+                <td class="pts-minus">-5 điểm<br><span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(Tập thể hoặc người chỉ tay)</span></td>
               </tr>
               <tr>
-                <td>💀 Imposter sống sót thắng chung cuộc</td>
-                <td class="pts-plus">+25 điểm</td>
+                <td>👑 <strong>Imposter sống sót thắng chung cuộc</strong></td>
+                <td class="pts-plus">+3đ / Dân<br><span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(Min 10đ, Max 30đ)</span></td>
               </tr>
               <tr>
-                <td>🔥 Imposter lật kèo đoán đúng từ khóa</td>
-                <td class="pts-plus">+20 điểm</td>
+                <td>🔥 <strong>Imposter lật kèo đoán đúng từ khóa</strong></td>
+                <td class="pts-plus">+2.5đ / Dân<br><span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(Min 12đ, Max 25đ)</span></td>
               </tr>
               <tr>
-                <td>🃏 Kẻ Hề (Jester) bị vote trục xuất</td>
+                <td>🔒 <strong>Imposter bị bắt ngay Vòng 1</strong></td>
+                <td class="pts-minus">-15 điểm<br><span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(Bị lộ quá sớm)</span></td>
+              </tr>
+              <tr>
+                <td>🩸 <strong>Imposter bị bắt & đoán sai từ</strong></td>
+                <td class="pts-minus">-3 điểm<br><span style="font-size: 10px; color: #10b981; font-weight: normal;">(+2đ / vòng trụ vững)</span></td>
+              </tr>
+              <tr>
+                <td>🃏 <strong>Kẻ Hề (Jester) bị vote trục xuất</strong></td>
                 <td class="pts-plus">+30 điểm</td>
               </tr>
               <tr>
-                <td>🔍 Thám Tử (Detective) soi trúng Imposter</td>
-                <td class="pts-plus">+5 điểm</td>
+                <td>🪤 <strong>Người chơi mắc bẫy Kẻ Hề</strong></td>
+                <td class="pts-minus">-5 điểm<br><span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(Bị Kẻ Hề dắt mũi)</span></td>
+              </tr>
+              <tr>
+                <td>🏃 <strong>Kẻ Sống Sót (Survivor) bị loại</strong></td>
+                <td class="pts-minus">-5 điểm</td>
               </tr>
             </tbody>
           </table>

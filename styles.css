@@ -35,9 +35,11 @@
   --team-neutral-glow: rgba(139, 92, 246, 0.3);
   --accent-amber: #f59e0b;
 
-  /* Typography */
-  --font-display: 'Outfit', sans-serif;
-  --font-body: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Typography System (100% Native Vietnamese Accent Support) */
+  --font-display: 'Lexend', 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --font-accent: 'Lexend', 'Be Vietnam Pro', sans-serif;
 
   /* Spacing & Radii */
   --radius-sm: 8px;
@@ -94,7 +96,28 @@ body {
   overflow-x: hidden;
   position: relative;
   transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
+
+/* Global Heading & Typography Hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+p, span, label, input, textarea, select {
+  font-family: var(--font-body);
+}
+
+.font-display { font-family: var(--font-display) !important; }
+.font-body { font-family: var(--font-body) !important; }
+.font-mono { font-family: var(--font-mono) !important; font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+.font-accent { font-family: var(--font-accent) !important; }
 
 /* Ambient Background Blobs */
 .ambient-glow {
@@ -118,81 +141,26 @@ body {
   background: var(--primary-orange);
 }
 
-/* App Container & Phone Mockup Framing */
+/* ==========================================================
+   APP VIEWPORT & ADAPTIVE CONTAINER
+   ========================================================== */
 #app-viewport {
   position: relative;
   z-index: 10;
   width: 100%;
-  max-width: 480px;
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   background-color: var(--bg-surface);
-  box-shadow: var(--shadow-floating);
-  transition: max-width 0.35s ease, border-radius 0.35s ease, margin 0.35s ease;
+  transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-radius 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Phone Frame Mode (iPhone 16 Pro Style) */
-body.frame-mode {
-  padding: 24px 16px;
-  background: radial-gradient(circle at 50% 20%, #1e2029 0%, #0d0e12 100%);
-}
-body.frame-mode #app-viewport {
-  border-radius: 48px;
-  border: 8px solid #2a2c36;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 2px rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-  min-height: 840px;
-  max-height: 92vh;
-}
-body.frame-mode .phone-notch {
-  display: flex;
-}
-
-/* Full Screen Mode */
-body.fullscreen-mode {
-  padding: 0;
-}
-body.fullscreen-mode #app-viewport {
-  max-width: 100%;
-  border-radius: 0;
-  border: none;
-  box-shadow: none;
-}
-body.fullscreen-mode .phone-notch {
-  display: none;
-}
-
-/* Phone Dynamic Island / Status Bar */
+/* Tai thỏ & Mockup notch được loại bỏ hoàn toàn trên mọi môi trường */
 .phone-notch {
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 28px 6px;
-  background: transparent;
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-primary);
-  user-select: none;
-}
-.notch-island {
-  width: 86px;
-  height: 22px;
-  background: #000;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-.notch-dot {
-  width: 6px;
-  height: 6px;
-  background: var(--primary-red);
-  border-radius: 50%;
-  animation: pulse 1.8s infinite;
+  display: none !important;
 }
 
 /* Top Universal Toolbar (Language, Theme, Mute, Frame, Screen Jump) */
@@ -515,9 +483,10 @@ body.fullscreen-mode .phone-notch {
   color: #fff;
 }
 .stepper-val {
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 700;
   min-width: 24px;
   text-align: center;
   color: var(--text-primary);
@@ -566,6 +535,35 @@ input:checked + .switch-slider::before {
 /* ==========================================================
    PRIMARY CTA BUTTONS & FLOATING ACTION
    ========================================================== */
+.sticky-bottom-action-bar {
+  position: sticky;
+  bottom: -28px;
+  margin-top: auto;
+  margin-left: -20px;
+  margin-right: -20px;
+  margin-bottom: -28px;
+  padding: 14px 20px max(24px, env(safe-area-inset-bottom, 24px));
+  background: linear-gradient(180deg, rgba(23, 24, 29, 0) 0%, rgba(23, 24, 29, 0.82) 25%, var(--bg-surface) 65%, var(--bg-surface) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-subtle);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 -12px 30px -6px rgba(0, 0, 0, 0.45);
+}
+
+html[data-theme="light"] .sticky-bottom-action-bar {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.88) 25%, #ffffff 65%, #ffffff 100%);
+  box-shadow: 0 -12px 30px -6px rgba(0, 0, 0, 0.08);
+}
+
+.sticky-bottom-action-bar .primary-cta-btn {
+  margin-top: 0;
+  box-shadow: 0 8px 24px -4px rgba(255, 59, 48, 0.45);
+}
+
 .primary-cta-btn {
   width: 100%;
   min-height: 54px;
@@ -1018,12 +1016,13 @@ input:checked + .switch-slider::before {
   text-align: center;
 }
 .timer-digits {
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: 52px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1;
   color: var(--text-primary);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
 }
 .timer-phase-caption {
   font-size: 12px;
@@ -1310,8 +1309,8 @@ input:checked + .switch-slider::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-display);
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 13px;
   font-weight: 800;
   flex-shrink: 0;
 }
@@ -1325,20 +1324,134 @@ input:checked + .switch-slider::before {
   color: var(--team-good);
   padding: 2px 8px;
   border-radius: var(--radius-pill);
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
 }
 .score-tag-delta.negative {
   background: rgba(239, 68, 68, 0.15);
   color: var(--primary-red);
 }
 .score-tag-total {
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 800;
   color: var(--text-primary);
   margin-left: 6px;
+}
+.score-tag-total.negative {
+  color: #ef4444 !important;
+}
+
+/* ==========================================================
+   RESULTS SCREEN BOTTOM ACTIONS BAR (HOME / PLAY AGAIN / SETTINGS)
+   ========================================================== */
+.results-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.results-action-btn {
+  font-family: var(--font-display);
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-bounce);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+.results-action-btn:active {
+  transform: scale(0.95);
+}
+
+/* Secondary Navigation Buttons (Left: Home, Right: Settings) */
+.results-nav-btn {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
+  font-weight: 700;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: var(--transition-bounce);
+}
+.results-nav-btn:hover {
+  background: var(--bg-surface-high);
+  border-color: var(--text-muted);
+  transform: translateY(-1px);
+}
+.results-nav-btn:active {
+  transform: scale(0.93);
+}
+.results-nav-btn .btn-icon {
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.results-nav-btn .btn-text {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+/* Center Primary CTA: Chơi lại ván mới (Prominent Vibrant Red-Orange Gradient) */
+.results-play-again-btn {
+  background: linear-gradient(135deg, #ff2442 0%, #ff5224 45%, #ff8c00 100%);
+  color: #ffffff;
+  font-weight: 800;
+  border: none;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 4px 20px -2px rgba(255, 59, 48, 0.55), 
+              0 0 14px rgba(255, 87, 34, 0.35),
+              inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition-bounce);
+}
+.results-play-again-btn:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 6px 24px -2px rgba(255, 59, 48, 0.7), 
+              0 0 18px rgba(255, 87, 34, 0.5);
+  transform: translateY(-2px);
+}
+.results-play-again-btn:active {
+  transform: scale(0.96);
+}
+.results-play-again-btn .btn-icon {
+  font-size: 17px;
+  line-height: 1;
+}
+.results-play-again-btn .btn-text {
+  font-size: 15px;
+  font-weight: 800;
+}
+.results-play-again-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; 
+  left: -100%;
+  width: 60%; 
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transform: skewX(-20deg);
+  animation: shine-sweep 3.5s infinite;
+  pointer-events: none;
 }
 
 /* ==========================================================
@@ -1481,6 +1594,38 @@ input:checked + .switch-slider::before {
   font-size: 12px;
   color: var(--text-primary);
   line-height: 1.45;
+}
+
+.penalty-voter-chip {
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+}
+
+.penalty-voter-chip:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.penalty-voter-chip.selected {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+.penalty-voter-chip .chip-check {
+  font-size: 11px;
+  color: #ffffff;
+  font-weight: 800;
 }
 
 .active-speakers-box {
@@ -2091,6 +2236,425 @@ input:checked + .switch-slider::before {
   background: rgba(16, 185, 129, 0.15);
   border-color: #10b981;
 }
+
+/* ==========================================================
+   ADAPTIVE RESPONSIVE LAYOUT SYSTEM
+   Tự động thích nghi giao diện Máy tính (Desktop) & Điện thoại (Mobile)
+   ========================================================== */
+
+/* 1. GIAO DIỆN MÁY TÍNH (DESKTOP MODE) */
+@media (min-width: 769px) {
+  body {
+    padding: 24px 20px;
+    background: radial-gradient(circle at 50% 12%, #1a1c24 0%, #08090c 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  #app-viewport {
+    max-width: 760px;
+    min-height: calc(100vh - 48px);
+    border-radius: 28px;
+    border: 1px solid var(--border-medium);
+    box-shadow: 0 28px 75px -15px rgba(0, 0, 0, 0.85), 
+                0 0 0 1px rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    margin: 0 auto;
+  }
+
+  .global-control-bar {
+    padding: 12px 24px;
+  }
+
+  .ctrl-btn {
+    padding: 7px 14px;
+    font-size: 13px;
+  }
+
+  .screen-container {
+    padding: 24px 30px 40px;
+  }
+
+  /* Desktop Modal: Tự động căn giữa màn hình như Dialog sang trọng */
+  .modal-overlay {
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .bottom-sheet-content {
+    border-radius: var(--radius-xl);
+    max-width: 620px;
+    max-height: 85vh;
+    box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    transform: scale(0.96) translateY(12px);
+    opacity: 0;
+  }
+
+  .modal-overlay.open .bottom-sheet-content {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+
+  .sheet-drag-handle {
+    display: none;
+  }
+
+  .brand-hero-card {
+    padding: 28px 24px;
+  }
+
+  .settings-card {
+    padding: 18px 20px;
+  }
+
+  /* Desktop Results Action Bar */
+  .results-actions-bar {
+    margin-top: 28px;
+    padding: 14px 18px;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    gap: 14px;
+  }
+  .results-actions-bar .results-nav-btn {
+    padding: 10px 18px;
+    min-height: 48px;
+    font-size: 13.5px;
+    flex-shrink: 0;
+  }
+  .results-actions-bar .results-play-again-btn {
+    flex: 1;
+    min-height: 50px;
+    font-size: 15.5px;
+  }
+}
+
+/* 2. GIAO DIỆN ĐIỆN THOẠI (MOBILE MODE) */
+@media (max-width: 768px) {
+  body {
+    padding: 0;
+    margin: 0;
+    background-color: var(--bg-canvas);
+    width: 100%;
+    align-items: stretch;
+  }
+
+  #app-viewport {
+    max-width: 100%;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    margin: 0;
+  }
+
+  .global-control-bar {
+    padding: 8px 12px;
+  }
+
+  .screen-container {
+    padding: 16px 16px 28px;
+  }
+
+  /* Mobile Modal: Bottom Sheet vuốt từ đáy màn hình */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .bottom-sheet-content {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    max-width: 100%;
+    max-height: 88vh;
+    transform: translateY(100%);
+    opacity: 1;
+  }
+
+  .modal-overlay.open .bottom-sheet-content {
+    transform: translateY(0);
+  }
+
+  .sheet-drag-handle {
+    display: block;
+  }
+
+  /* Mobile Results Screen: Cố định và thu nhỏ 3 button ở đáy màn hình */
+  .results-actions-bar {
+    position: sticky;
+    bottom: -28px;
+    margin-top: auto;
+    margin-left: -16px;
+    margin-right: -16px;
+    margin-bottom: -28px;
+    padding: 10px 16px max(16px, env(safe-area-inset-bottom, 16px));
+    background: rgba(18, 19, 26, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border-medium);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
+    z-index: 70;
+    gap: 10px;
+  }
+
+  html[data-theme="light"] .results-actions-bar {
+    background: rgba(255, 255, 255, 0.95);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Thu nhỏ 2 nút điều hướng: Bên trái chỉ là 1 icon Home, bên phải chỉ là icon Setting */
+  .results-actions-bar .results-nav-btn {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    min-height: 46px;
+    padding: 0;
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-medium);
+    flex-shrink: 0;
+  }
+
+  .results-actions-bar .results-nav-btn .btn-text {
+    display: none !important;
+  }
+
+  .results-actions-bar .results-nav-btn .btn-icon {
+    font-size: 21px;
+    line-height: 1;
+  }
+
+  /* Nút Chơi lại ván mới ở giữa, thu nhỏ vừa vặn, màu sắc rực rỡ nổi bật */
+  .results-actions-bar .results-play-again-btn {
+    flex: 1;
+    height: 46px;
+    min-height: 46px;
+    padding: 0 12px;
+    font-size: 14.5px;
+    font-weight: 800;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 4px 18px rgba(255, 59, 48, 0.55),
+                0 0 12px rgba(255, 87, 34, 0.4);
+    white-space: nowrap;
+  }
+  .results-actions-bar .results-play-again-btn .btn-icon {
+    font-size: 16px;
+  }
+  .results-actions-bar .results-play-again-btn .btn-text {
+    font-size: 14px;
+    font-weight: 800;
+  }
+}
+
+/* ==========================================================
+   APP FLOATING TOAST NOTIFICATION
+   ========================================================== */
+.app-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-40px);
+  background: rgba(18, 19, 26, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-medium);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 16px rgba(16, 185, 129, 0.25);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+  z-index: 99999;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.app-toast.active {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.app-toast.success {
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(16, 185, 129, 0.35);
+}
+.app-toast.danger {
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(239, 68, 68, 0.35);
+}
+
+/* ==========================================================
+   ROSTER PICKER & RENAME MODAL STYLES
+   ========================================================== */
+.roster-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 52vh;
+  overflow-y: auto;
+  margin: 10px 0 18px;
+  padding-right: 4px;
+}
+.roster-picker-list::-webkit-scrollbar {
+  width: 4px;
+}
+.roster-picker-list::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 4px;
+}
+
+.roster-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-surface-elevated);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+.roster-picker-item:hover {
+  background: var(--bg-surface-high);
+  border-color: var(--border-medium);
+}
+.roster-picker-item.selected {
+  background: rgba(236, 72, 153, 0.12);
+  border-color: #ec4899;
+  box-shadow: 0 2px 12px rgba(236, 72, 153, 0.25);
+}
+
+.roster-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+  color: #fff;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.roster-picker-item.selected .roster-checkbox {
+  background: #ec4899;
+  border-color: #ec4899;
+}
+
+.player-score-link-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  animation: fadeInBadge 0.25s ease;
+}
+@keyframes fadeInBadge {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.locked-points-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  color: #f59e0b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ==========================================
+   SETTINGS MODAL: THEME & AUDIO STYLES
+   ========================================== */
+.theme-option-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 10px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-elevated);
+  border: 1.5px solid var(--border-subtle);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition-bounce);
+}
+.theme-option-btn:hover {
+  background: var(--bg-surface-high);
+  transform: translateY(-2px);
+}
+.theme-option-btn.active {
+  background: rgba(255, 107, 53, 0.15);
+  border-color: var(--primary-orange);
+  color: var(--primary-orange);
+  box-shadow: 0 0 14px rgba(255, 107, 53, 0.25);
+}
+
+.switch-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: var(--font-display);
+  transition: var(--transition-fast);
+}
+.switch-toggle-btn.active {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #10b981;
+}
+.switch-toggle-btn.muted {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+}
+
+.btn-discard-score {
+  color: var(--primary-red) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+.btn-discard-score:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: var(--primary-red) !important;
+}
+.btn-discard-score.discarded {
+  opacity: 0.55;
+  filter: grayscale(0.5);
+  cursor: not-allowed;
+}
+
+
 
 
 
