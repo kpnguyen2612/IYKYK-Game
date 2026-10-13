@@ -1284,3 +1284,56 @@ input:checked + .switch-slider::before {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
 }
+
+/* ==========================================================
+   SCOREBOARD & LEADERBOARD STYLES
+   ========================================================== */
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  transition: var(--transition-bounce);
+}
+.leaderboard-row.mvp-highlight {
+  border-color: rgba(245, 158, 11, 0.5);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(255, 107, 53, 0.05));
+  box-shadow: 0 4px 20px -4px rgba(245, 158, 11, 0.25);
+}
+.rank-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.rank-1 { background: #f59e0b; color: #fff; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
+.rank-2 { background: #94a3b8; color: #fff; }
+.rank-3 { background: #b45309; color: #fff; }
+.rank-other { background: var(--bg-surface-high); color: var(--text-muted); }
+
+.score-tag-delta {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--team-good);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+}
+.score-tag-total {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--text-primary);
+  margin-left: 6px;
+}
+

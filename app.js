@@ -825,7 +825,10 @@ const I18N = {
     form_gets_hint: "Nhận gợi ý",
     btn_save_role: "Lưu vai trò (Save Role)",
     modal_categories_title: "Chọn chủ đề từ khóa",
-    toolbox_title: "Hộp công cụ vai trò bí mật"
+    toolbox_title: "Hộp công cụ vai trò bí mật",
+    section_scoreboard: "🏆 Bảng Điểm & Xếp Hạng Party",
+    modal_leaderboard_title: "🏆 Bảng Điểm Tích Lũy Party",
+    btn_reset_scores: "Đặt lại điểm số giải đấu"
   },
   en: {
     party_game: "Party Deduction Game",
@@ -907,7 +910,10 @@ const I18N = {
     form_gets_hint: "Receives Clues",
     btn_save_role: "Save Role",
     modal_categories_title: "Select Keyword Topic",
-    toolbox_title: "Secret Role Toolkit"
+    toolbox_title: "Secret Role Toolkit",
+    section_scoreboard: "🏆 Match Leaderboard & Party Scores",
+    modal_leaderboard_title: "🏆 Cumulative Party Leaderboard",
+    btn_reset_scores: "Reset Tournament Scores"
   }
 };
 
@@ -950,9 +956,10 @@ class ImposterGame {
     // Voting State
     this.selectedSuspectId = null;
 
-    // Results State
+    // Results & Scoreboard State
     this.winningTeam = null;
     this.history = JSON.parse(localStorage.getItem('gti_history') || '[]');
+    this.partyScores = JSON.parse(localStorage.getItem('gti_party_scores') || '{}');
 
     this.init();
   }
@@ -1650,7 +1657,163 @@ class ImposterGame {
       <div>• <strong>${this.lang === 'vi' ? 'Kết quả bỏ phiếu:' : 'Voting verdict:'}</strong> ${eliminatedPlayer.name} (${this.lang === 'vi' ? eliminatedPlayer.role.name_vi : eliminatedPlayer.role.name_en}) ${this.lang === 'vi' ? 'đã bị đa số trục xuất.' : 'was eliminated.'}</div>
     `;
 
+    // ==========================================
+    // SCORE CALCULATION & PARTY LEADERBOARD
+    // ==========================================
+    const roundScores = [];
+    this.players.forEach(p => {
+      let delta = 0;
+      let reasons = [];
+
+      if (this.winningTeam === 'good') {
+        if (p.role.team === 'good') {
+          if (!p.isEliminated) {
+            delta += 10;
+            reasons.push(this.lang === 'vi' ? 'Thắng ván (+10)' : 'Match win (+10)');
+          } else {
+            delta += 5;
+            reasons.push(this.lang === 'vi' ? 'Phe thắng (+5)' : 'Team win (+5)');
+          }
+        }
+        if (this.selectedSuspectId && this.players.find(x => x.id === this.selectedSuspectId)?.isImposter) {
+          delta += 5;
+          reasons.push(this.lang === 'vi' ? 'Bắt Imposter (+5)' : 'Exiled Imposter (+5)');
+        }
+      } else if (this.winningTeam === 'jester') {
+        if (p.role.id === 'jester') {
+          delta += 30;
+          reasons.push(this.lang === 'vi' ? 'Jackpot Kẻ Hề (+30)' : 'Jester Jackpot (+30)');
+        }
+      } else { // Evil won
+        if (p.isImposter) {
+          if (!p.isEliminated) {
+            delta += 25;
+            reasons.push(this.lang === 'vi' ? 'Imposter sống sót (+25)' : 'Imposter survived (+25)');
+          } else {
+            delta += 15;
+            reasons.push(this.lang === 'vi' ? 'Imposter thắng (+15)' : 'Imposter win (+15)');
+          }
+        }
+      }
+
+      if (p.role.id === 'survivor' && !p.isEliminated) {
+        delta += 15;
+        reasons.push(this.lang === 'vi' ? 'Sống sót (+15)' : 'Survivor bonus (+15)');
+      }
+      if (p.role.id === 'detective') {
+        delta += 5;
+        reasons.push(this.lang === 'vi' ? 'Điều tra (+5)' : 'Detective clue (+5)');
+      }
+
+      if (!this.partyScores[p.name]) {
+        this.partyScores[p.name] = { total: 0, wins: 0, games: 0, avatar: p.avatar, avatarBg: p.avatarBg };
+      }
+      this.partyScores[p.name].total += delta;
+      this.partyScores[p.name].games += 1;
+      if (delta >= 10) this.partyScores[p.name].wins += 1;
+      this.partyScores[p.name].avatar = p.avatar;
+      this.partyScores[p.name].avatarBg = p.avatarBg;
+
+      roundScores.push({
+        name: p.name,
+        avatar: p.avatar,
+        avatarBg: p.avatarBg,
+        role: p.role,
+        delta,
+        total: this.partyScores[p.name].total,
+        reason: reasons.join(', ') || (this.lang === 'vi' ? 'Tham gia (+0)' : 'Participated (+0)')
+      });
+    });
+
+    localStorage.setItem('gti_party_scores', JSON.stringify(this.partyScores));
+
+    // Sort by delta to find MVP of this round
+    roundScores.sort((a, b) => b.delta - a.delta || b.total - a.total);
+    const mvpPlayer = roundScores[0];
+    const mvpTag = document.getElementById('label-mvp-tag');
+    if (mvpTag && mvpPlayer && mvpPlayer.delta > 0) {
+      mvpTag.textContent = `MVP: ${mvpPlayer.name} (+${mvpPlayer.delta}đ)`;
+    }
+
+    // Render Round Leaderboard
+    const lbContainer = document.getElementById('results-leaderboard-list');
+    if (lbContainer) {
+      lbContainer.innerHTML = '';
+      roundScores.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = `leaderboard-row ${idx === 0 && item.delta > 0 ? 'mvp-highlight' : ''}`;
+        const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : 'rank-other';
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`;
+
+        row.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="rank-badge ${rankClass}">${medal}</div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: ${item.avatarBg}; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+              ${item.avatar}
+            </div>
+            <div>
+              <div style="font-family: var(--font-display); font-weight: 700; font-size: 14px;">${item.name}</div>
+              <div style="font-size: 11px; color: var(--text-muted);">${item.reason}</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="score-tag-delta">+${item.delta}</span>
+            <span class="score-tag-total" title="${this.lang === 'vi' ? 'Tổng điểm' : 'Total Score'}">${item.total}đ</span>
+          </div>
+        `;
+        lbContainer.appendChild(row);
+      });
+    }
+
     this.saveMatchToHistory();
+  }
+
+  renderCumulativeLeaderboard() {
+    const list = document.getElementById('cumulative-leaderboard-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    const entries = Object.entries(this.partyScores).map(([name, data]) => ({
+      name,
+      ...data
+    }));
+
+    if (entries.length === 0) {
+      list.innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); padding: 30px 0; font-size: 13px;">
+          ${this.lang === 'vi' ? 'Chưa có điểm số nào được ghi nhận. Hãy chơi ván đầu tiên!' : 'No party scores recorded yet. Play a match to begin!'}
+        </div>
+      `;
+      return;
+    }
+
+    entries.sort((a, b) => b.total - a.total || b.wins - a.wins);
+
+    entries.forEach((item, idx) => {
+      const row = document.createElement('div');
+      row.className = `leaderboard-row ${idx === 0 ? 'mvp-highlight' : ''}`;
+      const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : 'rank-other';
+      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`;
+
+      row.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="rank-badge ${rankClass}">${medal}</div>
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: ${item.avatarBg || '#e0e7ff'}; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+            ${item.avatar || '👤'}
+          </div>
+          <div>
+            <div style="font-family: var(--font-display); font-weight: 700; font-size: 14px;">${item.name}</div>
+            <div style="font-size: 11px; color: var(--text-muted);">
+              ${item.wins} ${this.lang === 'vi' ? 'chiến thắng' : 'wins'} / ${item.games} ${this.lang === 'vi' ? 'ván' : 'matches'}
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center;">
+          <span class="score-tag-total" style="font-size: 18px; color: #f59e0b;">${item.total} pts</span>
+        </div>
+      `;
+      list.appendChild(row);
+    });
   }
 
   checkImposterComebackGuess() {
@@ -2080,6 +2243,24 @@ class ImposterGame {
     });
     document.getElementById('btn-close-toolbox')?.addEventListener('click', () => {
       document.getElementById('modal-toolbox').classList.remove('open');
+    });
+
+    // Leaderboard Modal Events
+    document.getElementById('btn-open-leaderboard')?.addEventListener('click', () => {
+      sound.playClick();
+      this.renderCumulativeLeaderboard();
+      document.getElementById('modal-leaderboard').classList.add('open');
+    });
+    document.getElementById('btn-close-leaderboard')?.addEventListener('click', () => {
+      document.getElementById('modal-leaderboard').classList.remove('open');
+    });
+    document.getElementById('btn-reset-scores')?.addEventListener('click', () => {
+      if (confirm(this.lang === 'vi' ? 'Bạn có chắc chắn muốn đặt lại toàn bộ điểm số giải đấu?' : 'Reset all tournament party scores?')) {
+        sound.playClick();
+        this.partyScores = {};
+        localStorage.removeItem('gti_party_scores');
+        this.renderCumulativeLeaderboard();
+      }
     });
   }
 

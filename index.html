@@ -52,6 +52,9 @@
       </div>
 
       <div class="control-group">
+        <button id="btn-open-leaderboard" class="ctrl-btn" title="Bảng điểm nhóm">
+          <span>🏆</span> <span id="label-scores-btn">Điểm</span>
+        </button>
         <button id="btn-toggle-frame" class="ctrl-btn" title="Khung điện thoại / Toàn màn hình">
           <span id="frame-icon">📱</span>
         </button>
@@ -538,6 +541,15 @@
           <div id="comeback-result-msg" style="font-size: 12px; font-weight: 700; display: none;"></div>
         </div>
 
+        <!-- Match Scores & MVP Leaderboard -->
+        <div class="settings-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span data-i18n="section_scoreboard">🏆 Bảng điểm & Xếp hạng Party</span>
+          <span style="font-size: 11px; color: var(--primary-orange); font-weight: 700;" id="label-mvp-tag">MVP: -</span>
+        </div>
+        <div id="results-leaderboard-list" class="all-roles-summary-list" style="margin-bottom: 20px;">
+          <!-- Dynamically populated with ranks, points & badges -->
+        </div>
+
         <!-- All Roles Breakdown List -->
         <div class="settings-section-title" data-i18n="section_roster">Danh tính toàn bộ người chơi</div>
         <div id="results-roster-list" class="all-roles-summary-list">
@@ -691,6 +703,36 @@
       <div id="toolbox-content" style="display: flex; flex-direction: column; gap: 14px;">
         <!-- Injected dynamically based on active match roles (Detective, Spy, Fortune Teller, Hacker) -->
       </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Party Cumulative Leaderboard -->
+  <div id="modal-leaderboard" class="modal-overlay">
+    <div class="bottom-sheet-content">
+      <div class="sheet-drag-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title" data-i18n="modal_leaderboard_title">🏆 Bảng điểm Party</h3>
+        <button class="close-sheet-btn" id="btn-close-leaderboard">✕</button>
+      </div>
+
+      <div class="instruction-box" style="margin-bottom: 16px;">
+        <span class="instruction-icon">⭐</span>
+        <div class="instruction-text" style="font-size: 11px;">
+          <strong>Cách tính điểm:</strong><br />
+          • Thắng ván: +10đ (Phe Dân) / +25đ (Imposter)<br />
+          • Imposter lật kèo đoán đúng từ: +20đ<br />
+          • Bỏ phiếu chuẩn / Bắt Imposter: +5đ<br />
+          • Kẻ Hề (Jester) bị loại: +30đ jackpot!
+        </div>
+      </div>
+
+      <div id="cumulative-leaderboard-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
+        <!-- Injected dynamically -->
+      </div>
+
+      <button id="btn-reset-scores" class="secondary-btn" style="color: var(--primary-red); border-color: rgba(239, 68, 68, 0.3);">
+        <span>🗑️</span> <span data-i18n="btn_reset_scores">Đặt lại điểm số giải đấu</span>
+      </button>
     </div>
   </div>
 

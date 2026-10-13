@@ -1,0 +1,11 @@
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "method": "tools/call",
+  "params": {
+    "name": "list_screens",
+    "arguments": {
+      "parent": "projects/9999126548102854520"
+    }
+  }
+}
