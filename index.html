@@ -69,6 +69,7 @@
           <option value="screen-reveal">4. Lật thẻ vai trò (Reveal)</option>
           <option value="screen-discussion">5. Thảo luận & Đếm ngược (Timer)</option>
           <option value="screen-voting">6. Bỏ phiếu (Voting)</option>
+          <option value="screen-comeback">6.5. Cơ hội Lật Kèo (Comeback)</option>
           <option value="screen-results">7. Kết quả & MVP (Results)</option>
           <option value="screen-history">8. Lịch sử ván đấu (History)</option>
         </select>
@@ -578,7 +579,45 @@
       </section>
 
       <!-- ==========================================
+           SCREEN 6.5: DEDICATED IMPOSTER COMEBACK STAGE
+           (Separate screen where secret word is NOT displayed)
+           ========================================== -->
+      <section id="screen-comeback" class="view-screen">
+        <div class="unmask-reveal-box" style="border: 1px solid rgba(239, 68, 68, 0.4); margin-bottom: 20px;">
+          <span class="hero-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; font-size: 11px; padding: 4px 12px; margin-bottom: 12px;" data-i18n="badge_comeback_stage">🎲 CƠ HỘI LẬT KÈO CUỐI CÙNG</span>
+          <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;" data-i18n="imposter_unmasked_title">Đã bắt được Kẻ Giả Mạo:</div>
+          <h2 class="unmasked-names" id="comeback-imposter-name" style="color: var(--primary-red); margin: 6px 0 12px;">Tuấn Kiệt</h2>
+          <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
+            Cả làng đã đồng thuận trục xuất bạn. Tuy nhiên, nếu bạn suy luận và đoán đúng <strong>Từ Khóa Bí Mật</strong> của phe Dân, bạn sẽ giành chiến thắng lật kèo!
+          </div>
+        </div>
+
+        <div class="instruction-box" style="border-left-color: var(--primary-orange); margin-bottom: 20px;">
+          <span class="instruction-icon">📱</span>
+          <p class="instruction-text" data-i18n="comeback_pass_phone">
+            <strong>Chuyền điện thoại cho Kẻ Giả Mạo!</strong> Những người chơi khác tuyệt đối không được xem hoặc gợi ý từ khóa.
+          </p>
+        </div>
+
+        <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 24px;">
+          <label class="form-label" style="font-size: 13px; font-weight: 700; margin-bottom: 8px; display: block;" data-i18n="label_imposter_guess_input">
+            Từ khóa bí mật của phe Dân là gì?
+          </label>
+          <input type="text" id="input-imposter-guess" class="form-input" placeholder="Gõ từ khóa bạn suy luận được..." style="font-size: 15px; padding: 14px; margin-bottom: 14px; text-align: center; font-weight: 700;" autocomplete="off" />
+
+          <button id="btn-check-guess" class="primary-cta-btn" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); margin-bottom: 10px;">
+            <span>🔥</span> <span data-i18n="btn_confirm_comeback">Xác nhận đoán từ & Lật kèo</span>
+          </button>
+
+          <button id="btn-giveup-guess" class="secondary-btn" style="width: 100%;">
+            <span>🏳️</span> <span data-i18n="btn_giveup">Không đoán được (Chấp nhận thua)</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ==========================================
            SCREEN 7: RESULTS & WINNER SCREEN
+           (Secret keyword revealed ONLY here after Comeback stage)
            ========================================== -->
       <section id="screen-results" class="view-screen">
         
@@ -587,27 +626,14 @@
           <span class="winner-banner-tag" id="result-winner-banner">Phe Dân Làng Chiến Thắng!</span>
           <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;" data-i18n="imposter_was">Kẻ Giả Mạo thực sự là:</div>
           <h2 class="unmasked-names" id="result-imposter-names">Minh Anh</h2>
-          <div style="font-size: 14px; color: var(--text-secondary); margin-top: 6px;">
-            <span data-i18n="secret_word_was">Từ khóa bí mật là:</span> <strong style="color: #fff;" id="result-keyword">Trà Sữa Trân Châu</strong>
+          
+          <!-- Secret keyword revealed to all players ONLY now -->
+          <div style="font-size: 14px; color: var(--text-secondary); margin-top: 8px; background: rgba(255, 255, 255, 0.05); padding: 8px 14px; border-radius: var(--radius-md); display: inline-block;">
+            <span data-i18n="secret_word_was">Từ khóa bí mật là:</span> <strong style="color: #fff; font-size: 16px; margin-left: 4px;" id="result-keyword">Trà Sữa Trân Châu</strong>
           </div>
-        </div>
 
-        <!-- Imposter Comeback Word Guess Minigame -->
-        <div id="imposter-comeback-card" class="instruction-box" style="border-left-color: #ef4444; flex-direction: column; gap: 8px; margin-bottom: 20px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 20px;">🎲</span>
-            <strong style="color: #ef4444;" data-i18n="comeback_title">Cơ hội lật kèo của Imposter!</strong>
-          </div>
-          <p style="font-size: 12px; color: var(--text-secondary);" data-i18n="comeback_desc">
-            Nếu Imposter bị bỏ phiếu loại nhưng đoán đúng từ khóa bí mật, Imposter sẽ LẬT KÈO CHIẾN THẮNG!
-          </p>
-          <div style="display: flex; gap: 6px; width: 100%; margin-top: 4px;">
-            <input type="text" id="input-imposter-guess" class="form-input" placeholder="Nhập từ khóa đoán..." style="padding: 8px 12px;" />
-            <button id="btn-check-guess" class="ctrl-btn" style="background: var(--primary-red); color: #fff; white-space: nowrap;">
-              <span data-i18n="btn_guess">Đoán</span>
-            </button>
-          </div>
-          <div id="comeback-result-msg" style="font-size: 12px; font-weight: 700; display: none;"></div>
+          <!-- Comeback Status Badge -->
+          <div id="results-comeback-badge" style="margin-top: 10px; font-size: 12px; font-weight: 700; display: none;"></div>
         </div>
 
         <!-- Match Scores & MVP Leaderboard -->

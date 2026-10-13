@@ -842,7 +842,13 @@ const I18N = {
     speakers_list: "Lượt phát biểu vòng này:",
     voting_penalty_rule: "Luật trừ điểm: Nếu trục xuất nhầm DÂN THƯỜNG vô tội, phe Dân sẽ bị trừ -5 điểm và ván chơi tiếp tục sang vòng sau!",
     btn_tie_vote: "Hòa phiếu / Bỏ qua vòng này",
-    modal_rules_title: "📜 Luật Chơi Sâu Sắc & Hệ Thống Điểm"
+    modal_rules_title: "📜 Luật Chơi Sâu Sắc & Hệ Thống Điểm",
+    badge_comeback_stage: "🎲 CƠ HỘI LẬT KÈO CUỐI CÙNG",
+    imposter_unmasked_title: "Đã bắt được Kẻ Giả Mạo:",
+    comeback_pass_phone: "Chuyền điện thoại cho Kẻ Giả Mạo! Những người chơi khác tuyệt đối không được xem hoặc gợi ý từ khóa.",
+    label_imposter_guess_input: "Từ khóa bí mật của phe Dân là gì?",
+    btn_confirm_comeback: "Xác nhận đoán từ & Lật kèo",
+    btn_giveup: "Không đoán được (Chấp nhận thua)"
   },
   en: {
     party_game: "Party Deduction Game",
@@ -941,7 +947,13 @@ const I18N = {
     speakers_list: "Current Round Speakers:",
     voting_penalty_rule: "Penalty rule: Exiling an innocent CIVILIAN penalizes good team by -5 points and continues to the next round!",
     btn_tie_vote: "Tie Vote / Skip this Round",
-    modal_rules_title: "📜 Deep Game Rules & Scoring System"
+    modal_rules_title: "📜 Deep Game Rules & Scoring System",
+    badge_comeback_stage: "🎲 FINAL COMEBACK CHANCE",
+    imposter_unmasked_title: "Imposter Unmasked:",
+    comeback_pass_phone: "Pass phone to the Imposter! Other players must not reveal or peek at clues.",
+    label_imposter_guess_input: "What was the Civilians' secret keyword?",
+    btn_confirm_comeback: "Submit Guess & Steal Win",
+    btn_giveup: "Give Up (Admit Defeat)"
   }
 };
 
@@ -987,6 +999,8 @@ class ImposterGame {
 
     // Results & Scoreboard State
     this.winningTeam = null;
+    this.caughtImposter = null;
+    this.imposterWonByComeback = false;
     this.history = JSON.parse(localStorage.getItem('gti_history') || '[]');
     this.partyScores = JSON.parse(localStorage.getItem('gti_party_scores') || '{}');
 
@@ -1664,8 +1678,11 @@ class ImposterGame {
     if (suspect.isImposter) {
       const remainingImposters = this.players.filter(p => p.isImposter && !p.isEliminated);
       if (remainingImposters.length === 0) {
-        this.winningTeam = 'good';
-        this.showResultsScreen(suspect);
+        // All imposters caught!
+        // DO NOT show results screen yet! (Keep secret word confidential)
+        // Route to dedicated separate Comeback stage:
+        this.caughtImposter = suspect;
+        this.showComebackStage(suspect);
         return;
       } else {
         // Multi-imposter match: 1 down, 1 remaining!
@@ -1758,7 +1775,34 @@ class ImposterGame {
     this.startDiscussionStage();
   }
 
+  showComebackStage(suspect) {
+    this.caughtImposter = suspect;
+    this.switchScreen('screen-comeback');
+    sound.playDramaticReveal();
+
+    const nameEl = document.getElementById('comeback-imposter-name');
+    if (nameEl) nameEl.textContent = suspect.name;
+
+    const input = document.getElementById('input-imposter-guess');
+    if (input) {
+      input.value = '';
+      setTimeout(() => input.focus(), 300);
+    }
+  }
+
   showResultsScreen(eliminatedPlayer) {
+    if (!this.categoryData) this.categoryData = CATEGORIES[0];
+    if (!this.secretWord) this.secretWord = this.lang === 'vi' ? 'Trà Sữa Trân Châu' : 'Boba Milk Tea';
+    if (!eliminatedPlayer) {
+      eliminatedPlayer = this.caughtImposter || this.players.find(p => p.isImposter) || {
+        name: 'Minh Anh',
+        role: DEFAULT_ROLES[1],
+        avatar: '🦊',
+        avatarBg: '#fee2e2',
+        isImposter: true
+      };
+    }
+
     this.switchScreen('screen-results');
 
     if (typeof confetti === 'function') {
@@ -1770,7 +1814,10 @@ class ImposterGame {
     }
 
     const winnerBanner = document.getElementById('result-winner-banner');
-    if (this.winningTeam === 'good') {
+    if (this.imposterWonByComeback) {
+      winnerBanner.textContent = this.lang === 'vi' ? '💀 KẺ GIẢ MẠO LẬT KÈO CHIẾN THẮNG!' : '💀 IMPOSTER COMEBACK WIN!';
+      winnerBanner.style.background = 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)';
+    } else if (this.winningTeam === 'good') {
       winnerBanner.textContent = this.lang === 'vi' ? '🎉 PHE DÂN LÀNG CHIẾN THẮNG!' : '🎉 CIVILIANS WIN!';
       winnerBanner.style.background = 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)';
     } else if (this.winningTeam === 'jester') {
@@ -1785,13 +1832,23 @@ class ImposterGame {
     document.getElementById('result-imposter-names').textContent = imposters || eliminatedPlayer.name;
     document.getElementById('result-keyword').textContent = this.secretWord;
 
-    const comebackBox = document.getElementById('imposter-comeback-card');
-    if (eliminatedPlayer.isImposter) {
-      comebackBox.style.display = 'flex';
-      document.getElementById('input-imposter-guess').value = '';
-      document.getElementById('comeback-result-msg').style.display = 'none';
-    } else {
-      comebackBox.style.display = 'none';
+    const comebackBadge = document.getElementById('results-comeback-badge');
+    if (comebackBadge) {
+      if (this.imposterWonByComeback) {
+        comebackBadge.style.display = 'block';
+        comebackBadge.style.color = '#f59e0b';
+        comebackBadge.textContent = this.lang === 'vi' 
+          ? '🔥 Lật kèo thành công! Imposter đã xuất sắc đoán trúng từ khóa (+20đ)'
+          : '🔥 Comeback Success! Imposter accurately guessed keyword (+20 pts)';
+      } else if (this.caughtImposter) {
+        comebackBadge.style.display = 'block';
+        comebackBadge.style.color = 'var(--text-muted)';
+        comebackBadge.textContent = this.lang === 'vi'
+          ? '❌ Lật kèo thất bại: Imposter không đoán trúng từ khóa bí mật'
+          : '❌ Comeback Failed: Imposter failed to guess secret keyword';
+      } else {
+        comebackBadge.style.display = 'none';
+      }
     }
 
     const rosterList = document.getElementById('results-roster-list');
@@ -1820,10 +1877,12 @@ class ImposterGame {
     });
 
     const logBox = document.getElementById('match-timeline-log');
+    const elimName = eliminatedPlayer ? eliminatedPlayer.name : 'Nghi phạm';
+    const elimRole = eliminatedPlayer && eliminatedPlayer.role ? (this.lang === 'vi' ? eliminatedPlayer.role.name_vi : eliminatedPlayer.role.name_en) : 'Kẻ Giả Mạo';
     logBox.innerHTML = `
-      <div>• <strong>${this.lang === 'vi' ? 'Bắt đầu ván:' : 'Match start:'}</strong> ${this.players.length} ${this.lang === 'vi' ? 'người chơi tham gia' : 'players participated'}.</div>
+      <div>• <strong>${this.lang === 'vi' ? 'Bắt đầu ván:' : 'Match start:'}</strong> ${this.players.length || 6} ${this.lang === 'vi' ? 'người chơi tham gia' : 'players participated'}.</div>
       <div>• <strong>${this.lang === 'vi' ? 'Chủ đề từ khóa:' : 'Topic:'}</strong> ${this.categoryData.name_vi} (${this.secretWord}).</div>
-      <div>• <strong>${this.lang === 'vi' ? 'Kết quả bỏ phiếu:' : 'Voting verdict:'}</strong> ${eliminatedPlayer.name} (${this.lang === 'vi' ? eliminatedPlayer.role.name_vi : eliminatedPlayer.role.name_en}) ${this.lang === 'vi' ? 'đã bị đa số trục xuất.' : 'was eliminated.'}</div>
+      <div>• <strong>${this.lang === 'vi' ? 'Kết quả bỏ phiếu:' : 'Voting verdict:'}</strong> ${elimName} (${elimRole}) ${this.lang === 'vi' ? 'đã bị đa số trục xuất.' : 'was eliminated.'}</div>
     `;
 
     // ==========================================
@@ -1855,7 +1914,10 @@ class ImposterGame {
         }
       } else { // Evil won
         if (p.isImposter) {
-          if (!p.isEliminated) {
+          if (this.imposterWonByComeback) {
+            delta += 20;
+            reasons.push(this.lang === 'vi' ? 'Lật kèo đoán trúng từ (+20)' : 'Comeback word guess (+20)');
+          } else if (!p.isEliminated) {
             delta += 25;
             reasons.push(this.lang === 'vi' ? 'Imposter sống sót (+25)' : 'Imposter survived (+25)');
           } else {
@@ -1985,29 +2047,22 @@ class ImposterGame {
     });
   }
 
-  checkImposterComebackGuess() {
+  checkImposterComebackGuess(isGiveup = false) {
     const input = document.getElementById('input-imposter-guess');
-    const guess = input.value.trim().toLowerCase();
+    const guess = input ? input.value.trim().toLowerCase() : '';
     const target = this.secretWord.toLowerCase();
-    const msg = document.getElementById('comeback-result-msg');
-    msg.style.display = 'block';
 
-    if (guess && (target.includes(guess) || guess.includes(target))) {
+    if (!isGiveup && guess && (target.includes(guess) || guess.includes(target))) {
       sound.playWinFanfare();
-      msg.style.color = '#ef4444';
-      msg.textContent = this.lang === 'vi' 
-        ? '🔥 CHÍNH XÁC! Kẻ Giả Mạo đã đoán đúng từ khóa và LẬT KÈO CHIẾN THẮNG!' 
-        : '🔥 CORRECT! The Imposter guessed the keyword and STOLE THE WIN!';
-      const banner = document.getElementById('result-winner-banner');
-      banner.textContent = this.lang === 'vi' ? '💀 KẺ GIẢ MẠO LẬT KÈO THẮNG!' : '💀 IMPOSTER COMEBACK WIN!';
-      banner.style.background = 'var(--gradient-brand)';
+      this.winningTeam = 'evil';
+      this.imposterWonByComeback = true;
     } else {
-      sound.playClick();
-      msg.style.color = '#71717a';
-      msg.textContent = this.lang === 'vi'
-        ? '❌ Đoán sai rồi! Dân Làng vẫn giữ vững chiến thắng.'
-        : '❌ Incorrect guess! Civilians maintain victory.';
+      sound.playWinFanfare();
+      this.winningTeam = 'good';
+      this.imposterWonByComeback = false;
     }
+
+    this.showResultsScreen(this.caughtImposter || this.players.find(p => p.isImposter));
   }
 
   saveMatchToHistory() {
@@ -2373,7 +2428,10 @@ class ImposterGame {
       this.switchScreen('screen-setup');
     });
     document.getElementById('btn-check-guess')?.addEventListener('click', () => {
-      this.checkImposterComebackGuess();
+      this.checkImposterComebackGuess(false);
+    });
+    document.getElementById('btn-giveup-guess')?.addEventListener('click', () => {
+      this.checkImposterComebackGuess(true);
     });
 
     document.getElementById('btn-history-back')?.addEventListener('click', () => {
