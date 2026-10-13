@@ -292,6 +292,10 @@ p, span, label, input, textarea, select {
   .control-group-left .ctrl-btn {
     padding: 6px 8px;
   }
+  .control-group-right .icon-only-btn {
+    padding: 6px 8px;
+    min-width: 32px;
+  }
   .screen-selector-btn.center-select {
     font-size: 10px;
     padding: 5px 8px;
@@ -319,6 +323,11 @@ p, span, label, input, textarea, select {
 }
 .ctrl-btn:active {
   transform: scale(0.96);
+}
+.ctrl-btn.icon-only-btn {
+  padding: 6px 10px;
+  min-width: 36px;
+  justify-content: center;
 }
 .screen-selector-btn {
   background: linear-gradient(135deg, rgba(255, 59, 48, 0.15), rgba(255, 107, 53, 0.15));
