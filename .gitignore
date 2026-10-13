@@ -6,5 +6,6 @@ stitch_tools.json
 stitch_result.json
 test_stitch.mjs
 stitch_exports/
+tools_stitch/
 .DS_Store
 Thumbs.db

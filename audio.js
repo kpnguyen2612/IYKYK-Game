@@ -237,4 +237,5 @@ class SoundManager {
   }
 }
 
-export const sound = new SoundManager();
+window.sound = new SoundManager();
+const sound = window.sound;

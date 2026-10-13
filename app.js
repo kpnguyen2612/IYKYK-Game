@@ -4,745 +4,8 @@
 // ==========================================================
 
 // ==========================================
-// 1. ROLES & CATEGORIES DATA
-// ==========================================
-const DEFAULT_ROLES = [
-  {
-    id: "civilian",
-    name_vi: "Dân Thường",
-    name_en: "Civilian",
-    icon: "👤",
-    team: "good",
-    color: "#10B981",
-    desc_vi: "Người dân bình thường không có năng lực đặc biệt.",
-    desc_en: "Ordinary citizen with no special abilities.",
-    ability_vi: "Biết từ khóa bí mật. Hãy thảo luận để tìm ra Kẻ Giả Mạo.",
-    ability_en: "Knows the secret keyword. Discuss and identify the Imposter.",
-    win_vi: "Phe Dân Làng bỏ phiếu loại bỏ toàn bộ Kẻ Giả Mạo.",
-    win_en: "Civilians eliminate all Imposters through voting.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 15,
-    defaultCount: 3,
-    enabled: true,
-    isDefault: true
-  },
-  {
-    id: "imposter",
-    name_vi: "Kẻ Giả Mạo",
-    name_en: "Imposter",
-    icon: "🎭",
-    team: "evil",
-    color: "#EF4444",
-    desc_vi: "Kẻ trà trộn không biết từ khóa bí mật.",
-    desc_en: "Infiltrator who doesn't know the secret keyword.",
-    ability_vi: "Không biết từ khóa. Hãy hòa nhập, lắng nghe manh mối và đoán từ khóa.",
-    ability_en: "Does not know the keyword. Blend in, gather clues, and guess the keyword.",
-    win_vi: "Không bị loại khi bỏ phiếu HOẶC đoán đúng từ khóa bí mật khi bị lộ.",
-    win_en: "Survive voting OR correctly guess the secret word when unmasked.",
-    knowsKeyword: false,
-    getsHint: true,
-    maxCount: 5,
-    defaultCount: 1,
-    enabled: true,
-    isDefault: true
-  },
-  {
-    id: "detective",
-    name_vi: "Thám Tử",
-    name_en: "Detective",
-    icon: "🔍",
-    team: "good",
-    color: "#3B82F6",
-    desc_vi: "Có khả năng điều tra hành tung của một người chơi.",
-    desc_en: "Can investigate the identity of one player.",
-    ability_vi: "Trong giai đoạn thảo luận, có thể kiểm tra xem 1 người chơi có thuộc phe Ác hay không.",
-    ability_en: "During discussion, can inspect if 1 player belongs to the Evil team.",
-    win_vi: "Phe Dân Làng chiến thắng.",
-    win_en: "Civilian team wins.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 2,
-    defaultCount: 1,
-    enabled: true,
-    isDefault: true
-  },
-  {
-    id: "doctor",
-    name_vi: "Bác Sĩ",
-    name_en: "Doctor",
-    icon: "💉",
-    team: "good",
-    color: "#06B6D4",
-    desc_vi: "Có khả năng chữa lành và bảo vệ một người khỏi bị loại.",
-    desc_en: "Can protect one player from being eliminated.",
-    ability_vi: "Chọn bảo vệ 1 người chơi trong vòng bỏ phiếu, cứu họ nếu họ bị đa số phiếu.",
-    ability_en: "Shield 1 player during voting, saving them if they receive majority votes.",
-    win_vi: "Phe Dân Làng chiến thắng.",
-    win_en: "Civilian team wins.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 2,
-    defaultCount: 1,
-    enabled: true,
-    isDefault: true
-  },
-  {
-    id: "spy",
-    name_vi: "Gián Điệp",
-    name_en: "Spy",
-    icon: "🕵️",
-    team: "good",
-    color: "#8B5CF6",
-    desc_vi: "Nằm gai nếm mật, nhận được một gợi ý mở rộng về từ khóa.",
-    desc_en: "Undercover agent who receives an expanded clue about the secret word.",
-    ability_vi: "Nhận được chữ cái đầu tiên hoặc gợi ý chi tiết về từ khóa bí mật.",
-    ability_en: "Receives the first letter or an advanced clue about the secret word.",
-    win_vi: "Phe Dân Làng chiến thắng.",
-    win_en: "Civilian team wins.",
-    knowsKeyword: true,
-    getsHint: true,
-    maxCount: 2,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "sheriff",
-    name_vi: "Cảnh Sát Trưởng",
-    name_en: "Sheriff",
-    icon: "⭐",
-    team: "good",
-    color: "#F59E0B",
-    desc_vi: "Có quyền loại bỏ trực tiếp 1 người chơi nghi vấn.",
-    desc_en: "Has authority to directly eliminate a suspected player.",
-    ability_vi: "Có quyền bắn 1 người bị nghi ngờ. Nếu bắn nhầm Dân thường, Cảnh sát trưởng sẽ tự bị loại!",
-    ability_en: "Can eliminate 1 suspected player. If they target an innocent, the Sheriff is eliminated!",
-    win_vi: "Phe Dân Làng chiến thắng.",
-    win_en: "Civilian team wins.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "jester",
-    name_vi: "Kẻ Hề",
-    name_en: "Jester",
-    icon: "🃏",
-    team: "neutral",
-    color: "#EC4899",
-    desc_vi: "Kẻ lập dị muốn bị mọi người nghi ngờ và bỏ phiếu loại.",
-    desc_en: "Chaos maker who wins only if voted out by the other players.",
-    ability_vi: "Không biết từ khóa nhưng phải hành xử đáng ngờ để bị bỏ phiếu trục xuất.",
-    ability_en: "Does not know the word. Act suspiciously to get voted out.",
-    win_vi: "Chiến thắng ĐỘC LẬP nếu bị đa số người chơi bỏ phiếu loại!",
-    win_en: "Wins SOLO if voted out by the majority in any round!",
-    knowsKeyword: false,
-    getsHint: true,
-    maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "bodyguard",
-    name_vi: "Vệ Sĩ",
-    name_en: "Bodyguard",
-    icon: "🛡️",
-    team: "good",
-    color: "#14B8A6",
-    desc_vi: "Bảo vệ một người chơi được chỉ định.",
-    desc_en: "Protects a designated player from harm.",
-    ability_vi: "Được chỉ định bảo vệ bí mật 1 người chơi. Nếu người đó bị nghi ngờ, Vệ Sĩ có thể đỡ phiếu.",
-    ability_en: "Designated to protect 1 player secretly. Can intercept votes against their client.",
-    win_vi: "Phe Dân Làng thắng và Thân chủ còn sống sót.",
-    win_en: "Civilians win and their VIP survives.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 2,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "hacker",
-    name_vi: "Hacker",
-    name_en: "Hacker",
-    icon: "💻",
-    team: "good",
-    color: "#10B981",
-    desc_vi: "Xâm nhập hệ thống, biết được thông tin ẩn của ván đấu.",
-    desc_en: "Infiltrates the system to obtain hidden match telemetry.",
-    ability_vi: "Thấy được số lượng kẻ xấu còn lại hoặc số lượng phiếu đã bầu trước khi công bố.",
-    ability_en: "Sees remaining evil roles or anonymous tally counts prior to final reveal.",
-    win_vi: "Phe Dân Làng chiến thắng.",
-    win_en: "Civilian team wins.",
-    knowsKeyword: true,
-    getsHint: true,
-    maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "fortune_teller",
-    name_vi: "Nhà Tiên Tri",
-    name_en: "Fortune Teller",
-    icon: "🔮",
-    team: "good",
-    color: "#6366F1",
-    desc_vi: "Nhìn thấu tương lai, nhận được một manh mối giới hạn.",
-    desc_en: "Sees into the future, receiving a restricted match clue.",
-    ability_vi: "Biết được 2 vai trò đang có mặt trong ván đấu (nhưng không biết thuộc về ai).",
-    ability_en: "Learns 2 active roles currently in play (without knowing player assignments).",
-    win_vi: "Phe Dân Làng chiến thắng.",
-    win_en: "Civilian team wins.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "shapeshifter",
-    name_vi: "Kẻ Biến Hình",
-    name_en: "Shapeshifter",
-    icon: "🦎",
-    team: "evil",
-    color: "#DC2626",
-    desc_vi: "Kẻ giả mạo bậc cao có khả năng bắt chước vai trò khác.",
-    desc_en: "Advanced imposter capable of mimicking innocent roles.",
-    ability_vi: "Biết chủ đề nhưng không biết từ khóa. Khi bị điều tra sẽ hiển thị như Dân Thường.",
-    ability_en: "Knows category but not keyword. Appears innocent if investigated by Detective.",
-    win_vi: "Phe Kẻ Giả Mạo chiến thắng.",
-    win_en: "Evil team wins.",
-    knowsKeyword: false,
-    getsHint: true,
-    maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "trickster",
-    name_vi: "Kẻ Đánh Lừa",
-    name_en: "Trickster",
-    icon: "🎭",
-    team: "evil",
-    color: "#B91C1C",
-    desc_vi: "Gây rối loạn thông tin, có thể làm sai lệch một gợi ý.",
-    desc_en: "Spreads misinformation, can distort one clue.",
-    ability_vi: "Nhận được một từ khóa GIẢ gần giống để tung hỏa mù trong phòng thảo luận.",
-    ability_en: "Given a near-identical FALSE keyword to mislead discussion.",
-    win_vi: "Phe Kẻ Giả Mạo chiến thắng.",
-    win_en: "Evil team wins.",
-    knowsKeyword: false,
-    getsHint: true,
-    maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "witness",
-    name_vi: "Nhân Chứng",
-    name_en: "Witness",
-    icon: "👁️",
-    team: "good",
-    color: "#0284C7",
-    desc_vi: "Tình cờ biết được một phần thông tin về sự kiện.",
-    desc_en: "Accidentally knows partial intel about the match.",
-    ability_vi: "Biết chắc chắn 1 người chơi KHÔNG PHẢI là Kẻ Giả Mạo ngay từ đầu ván.",
-    ability_en: "Guaranteed to know 1 player who is DEFINITELY NOT the Imposter.",
-    win_vi: "Phe Dân Làng chiến thắng.",
-    win_en: "Civilian team wins.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 2,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "survivor",
-    name_vi: "Người Sống Sót",
-    name_en: "Survivor",
-    icon: "🏕️",
-    team: "neutral",
-    color: "#EAB308",
-    desc_vi: "Chỉ quan tâm đến việc sống sót đến cuối ván đấu.",
-    desc_en: "Neutral entity whose sole objective is survival until the end.",
-    ability_vi: "Biết từ khóa. Không thuộc phe Dân hay Ác. Miễn không bị loại là thắng.",
-    ability_en: "Knows keyword. Belongs to neither team. Wins as long as not voted out.",
-    win_vi: "Sống sót đến khi ván đấu kết thúc.",
-    win_en: "Survive until the match ends.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 2,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "secret_agent",
-    name_vi: "Đặc Vụ Bí Mật",
-    name_en: "Secret Agent",
-    icon: "🕶️",
-    team: "good",
-    color: "#475569",
-    desc_vi: "Đặc vụ có nhiệm vụ phụ cài cắm từ bí mật.",
-    desc_en: "Undercover agent with a covert secondary keyword mission.",
-    ability_vi: "Nhận một từ phụ. Nếu nói được từ này trong thảo luận mà không bị nghi ngờ, nhận thêm điểm.",
-    ability_en: "Receives a secret sub-word. Earn bonus MVP score by saying it undetected.",
-    win_vi: "Phe Dân Làng chiến thắng.",
-    win_en: "Civilian team wins.",
-    knowsKeyword: true,
-    getsHint: true,
-    maxCount: 2,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "mayor",
-    name_vi: "Thị Trưởng",
-    name_en: "Mayor",
-    icon: "🏛️",
-    team: "good",
-    color: "#F97316",
-    desc_vi: "Người đứng đầu thị trấn, phiếu bầu có trọng số cao hơn.",
-    desc_en: "Town leader whose vote carries double weight.",
-    ability_vi: "Phiếu bầu của Thị Trưởng tính gấp đôi (2 phiếu) trong mọi vòng bỏ phiếu.",
-    ability_en: "The Mayor's vote counts as 2 votes in all voting rounds.",
-    win_vi: "Phe Dân Làng chiến thắng.",
-    win_en: "Civilian team wins.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "mimic",
-    name_vi: "Kẻ Bắt Chước",
-    name_en: "Mimic",
-    icon: "🦜",
-    team: "neutral",
-    color: "#A855F7",
-    desc_vi: "Sao chép năng lực của vai trò đầu tiên bị loại.",
-    desc_en: "Copies the ability and team of the first eliminated player.",
-    ability_vi: "Ban đầu là Dân thường, sau khi người đầu tiên bị loại sẽ kế thừa vai trò của họ.",
-    ability_en: "Starts as neutral citizen, assumes the identity of the first player exiled.",
-    win_vi: "Thắng theo điều kiện của vai trò vừa sao chép.",
-    win_en: "Wins according to the conditions of the copied role.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "saboteur",
-    name_vi: "Kẻ Phá Hoại",
-    name_en: "Saboteur",
-    icon: "💣",
-    team: "evil",
-    color: "#991B1B",
-    desc_vi: "Gây nhiễu và làm rút ngắn thời gian thảo luận.",
-    desc_en: "Creates chaos and cuts discussion time short.",
-    ability_vi: "Có thể kích hoạt sự kiện rút ngắn thời gian thảo luận đi 30 giây trong ván.",
-    ability_en: "Can secretly trigger a sabotage that reduces discussion timer by 30 seconds.",
-    win_vi: "Phe Kẻ Giả Mạo chiến thắng.",
-    win_en: "Evil team wins.",
-    knowsKeyword: false,
-    getsHint: true,
-    maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "guardian",
-    name_vi: "Người Bảo Hộ",
-    name_en: "Guardian",
-    icon: "✨",
-    team: "good",
-    color: "#38BDF8",
-    desc_vi: "Ngăn một người bị loại trong một lượt bỏ phiếu gay cấn.",
-    desc_en: "Prevents a player from being exiled in a close vote.",
-    ability_vi: "Có quyền hủy bỏ kết quả bỏ phiếu của 1 vòng nếu nghi ngờ phe Dân đang bị dắt mũi.",
-    ability_en: "Can veto one voting round outcome if suspected innocent is targeted.",
-    win_vi: "Phe Dân Làng chiến thắng.",
-    win_en: "Civilian team wins.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  },
-  {
-    id: "double_agent",
-    name_vi: "Điệp Viên Hai Mang",
-    name_en: "Double Agent",
-    icon: "🎭",
-    team: "neutral",
-    color: "#64748B",
-    desc_vi: "Có điều kiện thắng riêng biệt, đổi phe theo thời cuộc.",
-    desc_en: "Has independent victory condition, toggling alliances.",
-    ability_vi: "Biết từ khóa nhưng cũng biết ai là Kẻ Giả Mạo. Thắng nếu giúp Imposter sống sót mà không bị nghi ngờ.",
-    ability_en: "Knows keyword AND who the Imposter is. Wins by keeping Imposter alive undercover.",
-    win_vi: "Chiến thắng nếu Imposter không bị loại HOẶC là người cuối cùng sống sót.",
-    win_en: "Wins if the Imposter survives OR if they are the final survivor.",
-    knowsKeyword: true,
-    getsHint: true,
-    maxCount: 1,
-    defaultCount: 0,
-    enabled: false,
-    isDefault: true
-  }
-];
-
-const CATEGORIES = [
-  {
-    id: "food_drink",
-    name_vi: "Ẩm Thực & Đồ Uống",
-    name_en: "Food & Drinks",
-    icon: "🍜",
-    words: [
-      { vi: "Phở Bò Hà Nội", en: "Beef Pho" },
-      { vi: "Bánh Mì Pa-tê", en: "Vietnamese Banh Mi" },
-      { vi: "Trà Sữa Trân Châu", en: "Boba Milk Tea" },
-      { vi: "Cà Phê Trứng", en: "Egg Coffee" },
-      { vi: "Bún Bò Huế", en: "Hue Spicy Beef Noodle" },
-      { vi: "Pizza Phô Mai", en: "Cheese Pizza" },
-      { vi: "Sushi Cá Hồi", en: "Salmon Sushi" },
-      { vi: "Gà Rán Giòn Cay", en: "Crispy Fried Chicken" },
-      { vi: "Kem Bơ Đà Lạt", en: "Avocado Ice Cream" },
-      { vi: "Lẩu Thái Hải Sản", en: "Thai Seafood Hotpot" }
-    ]
-  },
-  {
-    id: "animals",
-    name_vi: "Thế Giới Động Vật",
-    name_en: "Wild Animals",
-    icon: "🦁",
-    words: [
-      { vi: "Hổ Bengal", en: "Bengal Tiger" },
-      { vi: "Cá Heo Đại Dương", en: "Ocean Dolphin" },
-      { vi: "Chim Cánh Cụt Hoàng Đế", en: "Emperor Penguin" },
-      { vi: "Gấu Trúc Khổng Lồ", en: "Giant Panda" },
-      { vi: "Tắc Kè Hoa", en: "Chameleon" },
-      { vi: "Sư Tử Châu Phi", en: "African Lion" },
-      { vi: "Đại Bàng Đầu Trắng", en: "Bald Eagle" },
-      { vi: "Bạch Tuộc Khổng Lồ", en: "Giant Octopus" },
-      { vi: "Sói Xám Bắc Cực", en: "Arctic Wolf" },
-      { vi: "Hươu Cao Cổ", en: "Giraffe" }
-    ]
-  },
-  {
-    id: "movies_culture",
-    name_vi: "Điện Ảnh & Phim Truyện",
-    name_en: "Cinema & Movies",
-    icon: "🎬",
-    words: [
-      { vi: "Titanic (Tàu Chìm)", en: "Titanic" },
-      { vi: "Harry Potter & Phù Thủy", en: "Harry Potter" },
-      { vi: "Avatar (Hành Tinh Xanh)", en: "Avatar" },
-      { vi: "Spider-Man (Người Nhện)", en: "Spider-Man" },
-      { vi: "Jurassic Park (Khủng Long)", en: "Jurassic Park" },
-      { vi: "Avengers: Endgame", en: "Avengers: Endgame" },
-      { vi: "Batman (Kỵ Sĩ Bóng Đêm)", en: "The Dark Knight" },
-      { vi: "Inception (Giấc Mơ)", en: "Inception" },
-      { vi: "Sherlock Holmes", en: "Sherlock Holmes" },
-      { vi: "Star Wars", en: "Star Wars" }
-    ]
-  },
-  {
-    id: "vietnam_culture",
-    name_vi: "Văn Hóa & Địa Danh Việt Nam",
-    name_en: "Vietnam Culture & Landmarks",
-    icon: "🇻🇳",
-    words: [
-      { vi: "Vịnh Hạ Long", en: "Ha Long Bay" },
-      { vi: "Hồ Gươm & Tháp Rùa", en: "Sword Lake & Turtle Tower" },
-      { vi: "Phố Cổ Hội An", en: "Hoi An Ancient Town" },
-      { vi: "Chợ Bến Thành", en: "Ben Thanh Market" },
-      { vi: "Đỉnh Fansipan", en: "Fansipan Peak" },
-      { vi: "Áo Dài Truyền Thống", en: "Traditional Ao Dai" },
-      { vi: "Nón Lá Bài Thơ", en: "Conical Hat" },
-      { vi: "Trống Đồng Đông Sơn", en: "Dong Son Bronze Drum" },
-      { vi: "Cố Đô Huế", en: "Hue Imperial Citadel" },
-      { vi: "Động Phong Nha", en: "Phong Nha Cave" }
-    ]
-  },
-  {
-    id: "daily_life",
-    name_vi: "Đời Sống Hàng Ngày",
-    name_en: "Everyday Objects",
-    icon: "🎒",
-    words: [
-      { vi: "Điện Thoại Thông Minh", en: "Smartphone" },
-      { vi: "Bàn Chải Đánh Răng", en: "Toothbrush" },
-      { vi: "Tai Nghe Không Dây", en: "Wireless Earbuds" },
-      { vi: "Đồng Hồ Báo Thức", en: "Alarm Clock" },
-      { vi: "Kính Râm Chống Nắng", en: "Sunglasses" },
-      { vi: "Xe Máy Tay Ga", en: "Motorcycle Scooter" },
-      { vi: "Nồi Cơm Điện", en: "Rice Cooker" },
-      { vi: "Thẻ Tín Dụng", en: "Credit Card" },
-      { vi: "Cây Dù Che Mưa", en: "Rain Umbrella" },
-      { vi: "Ví Cầm Tay", en: "Wallet" }
-    ]
-  },
-  {
-    id: "sci_fi_tech",
-    name_vi: "Công Nghệ & Khoa Học Vũ Trụ",
-    name_en: "Sci-Fi & Space Tech",
-    icon: "🚀",
-    words: [
-      { vi: "Trí Tuệ Nhân Tạo (AI)", en: "Artificial Intelligence (AI)" },
-      { vi: "Tàu Vũ Trụ Mars Rover", en: "Mars Rover" },
-      { vi: "Kính Viễn Vọng James Webb", en: "James Webb Telescope" },
-      { vi: "Du Hành Thời Gian", en: "Time Travel" },
-      { vi: "Trạm Vũ Trụ Quốc Tế (ISS)", en: "International Space Station" },
-      { vi: "Lỗ Đen Vũ Trụ (Black Hole)", en: "Supermassive Black Hole" },
-      { vi: "Robot Hình Người", en: "Humanoid Robot" },
-      { vi: "Thực Tế Ảo (VR Glass)", en: "Virtual Reality" },
-      { vi: "Xe Ô Tô Bay", en: "Flying Car" },
-      { vi: "Máy Tính Lượng Tử", en: "Quantum Computer" }
-    ]
-  }
-];
-
-const RANDOM_NAMES_VI = [
-  "Bảo Long", "Minh Anh", "Thỏ Ngọc", "Khánh Vy", "Gia Huy",
-  "Tú Linh", "Đức Bo", "Trúc Mây", "Hoàng Nam", "Diệu Nhi",
-  "Tuấn Kiệt", "Mai Phương", "Quang Hải", "Hà My", "Hải Đăng",
-  "Thanh Hằng", "Duy Mạnh", "Bích Phương", "Tiến Dũng", "Ngọc Trinh"
-];
-
-const RANDOM_NAMES_EN = [
-  "Alex Blaze", "Chloe Star", "Max Hunter", "Luna Sky", "Leo Vance",
-  "Maya Reed", "Oliver Fox", "Sophie Chen", "Lucas Grey", "Emma Watson",
-  "Ethan Cole", "Zoe Frost", "Noah Storm", "Ava Knight", "Liam Scott",
-  "Mia Harper", "Jackson Ray", "Ella Brooks", "Aiden Cross", "Grace Miller"
-];
-
-const AVATAR_PALETTES = [
-  { bg: "#FEE2E2", text: "#DC2626", emoji: "🦊" },
-  { bg: "#FEF3C7", text: "#D97706", emoji: "🦁" },
-  { bg: "#D1FAE5", text: "#059669", emoji: "🐼" },
-  { bg: "#CFFAFE", text: "#0891B2", emoji: "🐬" },
-  { bg: "#E0E7FF", text: "#4F46E5", emoji: "🦉" },
-  { bg: "#F3E8FF", text: "#9333EA", emoji: "🦄" },
-  { bg: "#FCE7F3", text: "#DB2777", emoji: "🐱" },
-  { bg: "#FFE4E6", text: "#E11D48", emoji: "🐯" },
-  { bg: "#EDE9FE", text: "#7C3AED", emoji: "🦅" },
-  { bg: "#CCFBF1", text: "#0D9488", emoji: "🐺" }
-];
-
-// ==========================================
-// 2. WEB AUDIO SYNTHESIZER
-// ==========================================
-class SoundManager {
-  constructor() {
-    this.ctx = null;
-    this.muted = false;
-  }
-
-  init() {
-    if (!this.ctx) {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx) this.ctx = new AudioCtx();
-    }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
-    }
-  }
-
-  vibrate(pattern = 25) {
-    if (navigator.vibrate) {
-      try { navigator.vibrate(pattern); } catch (e) {}
-    }
-  }
-
-  playClick() {
-    if (this.muted) return;
-    this.init();
-    if (!this.ctx) return;
-    this.vibrate(15);
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(600, now);
-    osc.frequency.exponentialRampToValueAtTime(120, now + 0.05);
-    gain.gain.setValueAtTime(0.2, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.05);
-  }
-
-  playToggle() {
-    if (this.muted) return;
-    this.init();
-    if (!this.ctx) return;
-    this.vibrate(20);
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(320, now);
-    osc.frequency.exponentialRampToValueAtTime(680, now + 0.08);
-    gain.gain.setValueAtTime(0.18, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.08);
-  }
-
-  playFlipCard() {
-    if (this.muted) return;
-    this.init();
-    if (!this.ctx) return;
-    this.vibrate(40);
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(220, now);
-    osc.frequency.exponentialRampToValueAtTime(880, now + 0.18);
-    gain.gain.setValueAtTime(0.01, now);
-    gain.gain.linearRampToValueAtTime(0.3, now + 0.08);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.22);
-  }
-
-  playTick() {
-    if (this.muted) return;
-    this.init();
-    if (!this.ctx) return;
-    this.vibrate(20);
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(950, now);
-    osc.frequency.exponentialRampToValueAtTime(400, now + 0.04);
-    gain.gain.setValueAtTime(0.15, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.04);
-  }
-
-  playGong() {
-    if (this.muted) return;
-    this.init();
-    if (!this.ctx) return;
-    this.vibrate([100, 50, 150]);
-    const now = this.ctx.currentTime;
-    [160, 240, 360].forEach((freq, idx) => {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(freq, now);
-      gain.gain.setValueAtTime(0.18 / (idx + 1), now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start(now);
-      osc.stop(now + 1.2);
-    });
-  }
-
-  playDramaticReveal() {
-    if (this.muted) return;
-    this.init();
-    if (!this.ctx) return;
-    this.vibrate([80, 50, 120]);
-    const now = this.ctx.currentTime;
-    const notes = [261.63, 329.63, 392.00, 523.25];
-    notes.forEach((freq, idx) => {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      const startTime = now + idx * 0.08;
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, startTime);
-      gain.gain.setValueAtTime(0.2, startTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start(startTime);
-      osc.stop(startTime + 0.4);
-    });
-  }
-
-  playVote() {
-    if (this.muted) return;
-    this.init();
-    if (!this.ctx) return;
-    this.vibrate(30);
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(440, now);
-    osc.frequency.linearRampToValueAtTime(587.33, now + 0.1);
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.15);
-  }
-
-  playWinFanfare() {
-    if (this.muted) return;
-    this.init();
-    if (!this.ctx) return;
-    this.vibrate([60, 40, 60, 40, 150]);
-    const now = this.ctx.currentTime;
-    const melody = [
-      { f: 392, d: 0.12 },
-      { f: 523.25, d: 0.12 },
-      { f: 659.25, d: 0.15 },
-      { f: 783.99, d: 0.35 }
-    ];
-    let t = now;
-    melody.forEach((note) => {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(note.f, t);
-      gain.gain.setValueAtTime(0.25, t);
-      gain.gain.exponentialRampToValueAtTime(0.01, t + note.d);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start(t);
-      osc.stop(t + note.d);
-      t += note.d * 0.9;
-    });
-  }
-}
-
-const sound = new SoundManager();
-
-// ==========================================
-// 3. I18N DICTIONARY
+// 1. DATA & AUDIO MODULES
+// Loaded via audio.js, data_roles.js, data_categories.js
 // ==========================================
 const I18N = {
   vi: {
@@ -848,112 +111,15 @@ const I18N = {
     comeback_pass_phone: "Chuyền điện thoại cho Kẻ Giả Mạo! Những người chơi khác tuyệt đối không được xem hoặc gợi ý từ khóa.",
     label_imposter_guess_input: "Từ khóa bí mật của phe Dân là gì?",
     btn_confirm_comeback: "Xác nhận đoán từ & Lật kèo",
-    btn_giveup: "Không đoán được (Chấp nhận thua)"
-  },
-  en: {
-    party_game: "Party Deduction Game",
-    hero_subtitle: "Who is the hidden Imposter?",
-    mode_pass: "Pass the Phone",
-    mode_online: "Play Online",
-    room_code: "Room Code:",
-    online_desc: "Other devices connect on the same Wi-Fi or enter room code to join.",
-    instruction_text: "Each player secretly views their role. Discuss, search for clues, and deduce who the imposter is.",
-    section_match_settings: "Game Setup",
-    setting_players: "Players",
-    setting_players_desc: "From 3 to 20 players",
-    setting_imposters: "Imposters",
-    setting_imposters_desc: "Number of imposters in match",
-    setting_roles: "Choose Roles",
-    setting_roles_desc: "20 default & custom roles",
-    setting_category: "Keyword Topic",
-    setting_hints: "Hints for Imposter",
-    setting_hints_desc: "Provide clues for the imposter",
-    setting_timelimit: "Time Limit",
-    setting_difficulty: "Difficulty",
-    setting_difficulty_desc: "Easy, Normal, Hard, Custom",
-    btn_start_game: "Start Player Setup",
-    btn_back: "Back",
-    title_choose_roles: "Choose Roles",
-    btn_custom_role: "+ Custom Role",
-    balance_label: "Role balance ratio:",
-    btn_auto_balance: "⚡ Auto Balance Roles",
-    filter_all: "All",
-    filter_good: "Good",
-    filter_evil: "Evil",
-    filter_neutral: "Neutral",
-    filter_custom: "Custom",
-    btn_save_roles: "Save Roles Setup",
-    title_players: "Player Names",
-    btn_random_names: "Random Names",
-    players_instruction: "Enter each player's name according to circle seating order.",
-    btn_deal_roles: "Deal Roles & Pass Phone",
-    pass_phone_to: "Pass the phone to:",
-    curtain_warning: "Ensure nobody around you is peeking before tapping reveal!",
-    btn_curtain_ready: "I'm ready, reveal role",
-    tap_to_flip: "Tap to reveal secret card",
-    secret_keyword_label: "Secret Keyword:",
-    btn_hide_role: "Memorized, hide role",
-    phase_discussion: "Discussion Round",
-    toolbox_btn: "Secret Toolkit",
-    timer_caption: "Time remaining",
-    hint_available: "Hints available",
-    discussion_tip: "Take turns giving 1 clue describing the secret word without saying it directly. Imposter must blend in!",
-    btn_pause: "Pause",
-    btn_resume: "Resume",
-    btn_add_time: "+30 Sec",
-    btn_vote_now: "Vote for Imposter",
-    title_voting: "Voting Phase",
-    voting_instruction: "Select the player most suspected to be the Imposter. The player with the most votes is unmasked!",
-    suspect_chosen: "Suspect chosen:",
-    btn_confirm_elimination: "Unmask & Reveal Results",
-    imposter_was: "The real Imposter was:",
-    secret_word_was: "Secret keyword was:",
-    comeback_title: "Imposter Comeback Shot!",
-    comeback_desc: "If unmasked, the Imposter can steal the victory by guessing the secret keyword!",
-    btn_guess: "Guess Word",
-    section_roster: "All Players Roles Breakdown",
-    section_timeline: "Match Event Timeline",
-    btn_play_again: "Play Again",
-    btn_change_roles: "Change Roles",
-    btn_back_home: "Back to Home",
-    title_history: "Match History",
-    btn_clear: "Clear History",
-    modal_custom_role_title: "Create Custom Role",
-    form_role_name: "Role Name",
-    form_role_icon: "Icon / Emoji",
-    form_role_color: "Identity Color",
-    form_role_team: "Team",
-    form_role_desc: "Short Description",
-    form_role_ability: "Special Ability",
-    form_role_win: "Win Condition",
-    form_knows_keyword: "Knows Keyword",
-    form_gets_hint: "Receives Clues",
-    btn_save_role: "Save Role",
-    modal_categories_title: "Select Keyword Topic",
-    toolbox_title: "Secret Role Toolkit",
-    section_scoreboard: "🏆 Match Leaderboard & Party Scores",
-    modal_leaderboard_title: "🏆 Cumulative Party Leaderboard",
-    btn_reset_scores: "Reset Tournament Scores",
-    btn_rules: "Rules",
-    section_vocab_topic: "Vocabulary Topic",
-    badge_topic_options: "2 Options",
-    topic_specific_title: "Specific Context",
-    topic_specific_desc: "Pick your own familiar keyword categories",
-    btn_change_topic: "Change Topic ›",
-    topic_random_title: "Random All",
-    topic_random_desc: "System picks a surprise topic from all categories every match",
-    badge_surprise: "Surprise",
-    badge_selected: "Active",
-    speakers_list: "Current Round Speakers:",
-    voting_penalty_rule: "Penalty rule: Exiling an innocent CIVILIAN penalizes good team by -5 points and continues to the next round!",
-    btn_tie_vote: "Tie Vote / Skip this Round",
-    modal_rules_title: "📜 Deep Game Rules & Scoring System",
-    badge_comeback_stage: "🎲 FINAL COMEBACK CHANCE",
-    imposter_unmasked_title: "Imposter Unmasked:",
-    comeback_pass_phone: "Pass phone to the Imposter! Other players must not reveal or peek at clues.",
-    label_imposter_guess_input: "What was the Civilians' secret keyword?",
-    btn_confirm_comeback: "Submit Guess & Steal Win",
-    btn_giveup: "Give Up (Admit Defeat)"
+    btn_giveup: "Không đoán được (Chấp nhận thua)",
+    section_experience: "Tùy chọn trải nghiệm ván chơi",
+    setting_roulette: "Vòng quay người nói trước",
+    setting_roulette_desc: "Quay bánh xe chọn người phát biểu đầu tiên",
+    setting_speech_time: "Thời gian phát biểu mỗi người",
+    setting_speech_time_desc: "Thời gian đếm ngược từng lượt phát biểu",
+    title_roulette: "Ai Là Người Nói Trước?",
+    desc_roulette: "Bánh xe may mắn chọn người đầu tiên phải đưa ra manh mối về từ khóa!",
+    btn_skip_wheel: "Bỏ qua",
   }
 };
 
@@ -962,7 +128,7 @@ const I18N = {
 // ==========================================
 class ImposterGame {
   constructor() {
-    this.lang = localStorage.getItem('gti_lang') || 'vi';
+    this.lang = 'vi';
     this.theme = localStorage.getItem('gti_theme') || 'dark';
     this.frameMode = localStorage.getItem('gti_frame') !== 'false';
 
@@ -972,9 +138,19 @@ class ImposterGame {
     this.categoryMode = localStorage.getItem('gti_category_mode') || 'specific'; // 'specific' | 'random'
     this.selectedCategoryId = 'food_drink';
     this.hintsEnabled = true;
-    this.durationSeconds = 180;
+    this.durationSeconds = parseInt(localStorage.getItem('gti_discussion_time') || '180', 10);
+    this.speechDurationSeconds = parseInt(localStorage.getItem('gti_speech_time') || '30', 10);
+    this.rouletteEnabled = localStorage.getItem('gti_roulette') !== 'false';
     this.difficulty = 'Normal';
     this.gameMode = 'pass';
+
+    // Custom Word Pairs (Cặp từ tự tạo)
+    this.customWordPairs = JSON.parse(localStorage.getItem('gti_custom_word_pairs') || '[]');
+    this.secretWord = null;
+    this.imposterWord = null;
+
+    // Fixed Guaranteed Roles (Vai trò cố định kèm số lượng)
+    this.fixedRoles = this.loadSavedFixedRoles();
 
     // Active Roles
     this.customRoles = JSON.parse(localStorage.getItem('gti_custom_roles') || '[]');
@@ -982,17 +158,24 @@ class ImposterGame {
 
     // Match State
     this.players = [];
-    this.secretWord = null;
+    this.playerNames = this.loadSavedPlayerNames();
     this.categoryData = null;
     this.currentRevealIndex = 0;
     this.isCardFlipped = false;
+    this.currentSpeakerIndex = 0;
 
-    // Timer State
+    // Timer & Speech State
     this.timerInterval = null;
     this.timerRemaining = 180;
     this.timerTotal = 180;
     this.isPaused = false;
+    this.speechTimerInterval = null;
+    this.speechTimerRemaining = 30;
     this.roundNumber = 1;
+
+    // Lucky Wheel State
+    this.rouletteAngle = 0;
+    this.isSpinning = false;
 
     // Voting State
     this.selectedSuspectId = null;
@@ -1003,8 +186,32 @@ class ImposterGame {
     this.imposterWonByComeback = false;
     this.history = JSON.parse(localStorage.getItem('gti_history') || '[]');
     this.partyScores = JSON.parse(localStorage.getItem('gti_party_scores') || '{}');
+    this.currentScoreboardTab = 'round'; // 'round' | 'cumulative'
+    this.lastRoundScores = [];
 
     this.init();
+  }
+
+  loadSavedFixedRoles() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('gti_fixed_roles') || '{}');
+      if (Array.isArray(saved)) {
+        const obj = {};
+        saved.forEach(id => { obj[id] = 1; });
+        return obj;
+      } else if (typeof saved === 'object' && saved !== null) {
+        return saved;
+      }
+    } catch (e) {}
+    return {};
+  }
+
+  getTotalFixedCount() {
+    return Object.values(this.fixedRoles || {}).reduce((sum, count) => sum + (count || 0), 0);
+  }
+
+  getMaxSpecialAllowed() {
+    return Math.max(0, this.playerCount - this.imposterCount - 1);
   }
 
   buildInitialRoles() {
@@ -1024,7 +231,9 @@ class ImposterGame {
     setInterval(() => this.updateClock(), 10000);
 
     this.autoBalanceRoles(this.playerCount);
+    this.renderFixedRolesChips();
     this.renderSettingsValues();
+    this.updateSetupTournamentBanner();
   }
 
   applyTheme() {
@@ -1041,14 +250,8 @@ class ImposterGame {
   }
 
   applyLanguage() {
-    document.documentElement.lang = this.lang;
-    const flag = document.getElementById('lang-flag');
-    const text = document.getElementById('lang-text');
-    if (flag) flag.textContent = this.lang === 'vi' ? '🇻🇳' : '🇬🇧';
-    if (text) text.textContent = this.lang === 'vi' ? 'VI' : 'EN';
-    localStorage.setItem('gti_lang', this.lang);
-
-    const dict = I18N[this.lang] || I18N.vi;
+    document.documentElement.lang = 'vi';
+    const dict = I18N.vi || I18N;
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
       if (dict[key]) {
@@ -1058,12 +261,6 @@ class ImposterGame {
 
     this.renderSettingsValues();
     this.renderRolesList();
-  }
-
-  toggleLanguage() {
-    this.lang = this.lang === 'vi' ? 'en' : 'vi';
-    sound.playToggle();
-    this.applyLanguage();
   }
 
   applyFrameMode() {
@@ -1111,9 +308,18 @@ class ImposterGame {
     if (screenId === 'screen-history') {
       this.renderHistoryScreen();
     }
+    if (screenId === 'screen-roulette') {
+      this.drawRouletteWheel();
+    }
   }
 
   autoBalanceRoles(players) {
+    if (this.getTotalFixedCount() > 0) {
+      this.syncFixedRolesWithDeck();
+      this.renderSettingsValues();
+      return;
+    }
+
     this.roles.forEach(r => {
       r.count = 0;
       r.enabled = false;
@@ -1260,13 +466,38 @@ class ImposterGame {
     }
 
     const timeVal = document.getElementById('val-time');
-    if (timeVal) timeVal.textContent = `${Math.floor(this.durationSeconds / 60)}m`;
+    const timeDesc = document.getElementById('label-duration-desc');
+    if (timeVal) {
+      timeVal.textContent = this.durationSeconds === 0 ? '∞' : `${Math.floor(this.durationSeconds / 60)}m`;
+    }
+    if (timeDesc) {
+      timeDesc.textContent = this.durationSeconds === 0
+        ? (this.lang === 'vi' ? 'Không giới hạn thời gian thảo luận' : 'Unlimited discussion time')
+        : (this.lang === 'vi' ? `${Math.floor(this.durationSeconds / 60)} phút / ván thảo luận` : `${Math.floor(this.durationSeconds / 60)} mins per discussion`);
+    }
+
+    const speechVal = document.getElementById('val-speech-time');
+    const speechDesc = document.getElementById('label-speech-desc');
+    if (speechVal) {
+      speechVal.textContent = this.speechDurationSeconds === 0 ? (this.lang === 'vi' ? 'Tự do' : 'Free') : `${this.speechDurationSeconds}s`;
+    }
+    if (speechDesc) {
+      speechDesc.textContent = this.speechDurationSeconds === 0
+        ? (this.lang === 'vi' ? 'Phát biểu tự do, không đếm giây' : 'Free speech, untimed')
+        : (this.lang === 'vi' ? `${this.speechDurationSeconds} giây / lượt phát biểu` : `${this.speechDurationSeconds}s per speaker turn`);
+    }
+
+    const rouletteSwitch = document.getElementById('switch-roulette');
+    if (rouletteSwitch) {
+      rouletteSwitch.checked = this.rouletteEnabled;
+    }
 
     const diffBadge = document.getElementById('badge-difficulty');
     if (diffBadge) diffBadge.textContent = this.difficulty;
 
     this.setTopicMode(this.categoryMode || 'specific', false);
     this.updateBalanceMeter();
+    this.renderFixedRolesChips();
   }
 
   setTopicMode(mode, playSound = true) {
@@ -1291,15 +522,33 @@ class ImposterGame {
   }
 
   renderRolesList(filter = 'all') {
+    this.currentRoleFilter = filter;
     const container = document.getElementById('roles-container');
     if (!container) return;
     container.innerHTML = '';
 
+    const filterFixedCountEl = document.getElementById('filter-fixed-count');
+    if (filterFixedCountEl) {
+      filterFixedCountEl.textContent = Object.keys(this.fixedRoles || {}).length;
+    }
+
     const filtered = this.roles.filter(r => {
       if (filter === 'all') return true;
+      if (filter === 'fixed') return !!(this.fixedRoles && this.fixedRoles[r.id]);
       if (filter === 'custom') return !r.isDefault;
       return r.team === filter;
     });
+
+    if (filtered.length === 0 && filter === 'fixed') {
+      container.innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); padding: 32px 16px; font-size: 13px;">
+          <div style="font-size: 28px; margin-bottom: 8px;">📌</div>
+          Chưa có vai trò nào được cố định.<br />
+          Hãy bấm nút <strong>+ Ghim cố định</strong> ở các vai trò bên dưới để đảm bảo vai trò đó xuất hiện trong ván đấu!
+        </div>
+      `;
+      return;
+    }
 
     filtered.forEach(role => {
       const card = document.createElement('div');
@@ -1314,6 +563,10 @@ class ImposterGame {
                       : role.team === 'evil' ? (this.lang === 'vi' ? 'Phe Ác' : 'Evil')
                       : (this.lang === 'vi' ? 'Trung lập' : 'Neutral');
 
+      const isSpecial = role.id !== 'civilian' && role.id !== 'imposter';
+      const isFixed = isSpecial && !!(this.fixedRoles && this.fixedRoles[role.id]);
+      const fixedCount = isFixed ? (this.fixedRoles[role.id] || 1) : 0;
+
       card.innerHTML = `
         <div class="role-header-line">
           <div class="role-id-badge">
@@ -1324,6 +577,7 @@ class ImposterGame {
               <div style="display: flex; align-items: center; gap: 6px;">
                 <h4>${title}</h4>
                 <span class="team-tag ${role.team}">${teamLabel}</span>
+                ${isFixed ? '<span class="team-tag good" style="font-size: 9px; padding: 1px 5px; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">📌 Cố định</span>' : ''}
               </div>
               <span style="font-size: 11px; color: var(--text-muted);">${winCond}</span>
             </div>
@@ -1345,6 +599,31 @@ class ImposterGame {
             <button class="stepper-btn role-inc-btn" data-role-id="${role.id}">+</button>
           </div>
         </div>
+
+        ${isSpecial ? `
+          <div class="role-fixed-pin-row">
+            <div class="role-fixed-pin-info">
+              <span class="role-fixed-pin-icon">📌</span>
+              <span class="role-fixed-pin-label ${isFixed ? 'active' : ''}">
+                ${isFixed ? 'Cố định trong ván (chắc chắn xuất hiện):' : 'Tùy chọn cố định vai trò này:'}
+              </span>
+            </div>
+            <div class="role-fixed-pin-actions">
+              ${isFixed ? `
+                <div class="fixed-role-stepper-control">
+                  <button type="button" class="stepper-btn card-dec-fixed" data-role-id="${role.id}" title="Giảm số lượng cố định">-</button>
+                  <span class="stepper-val card-val-fixed">${fixedCount}</span>
+                  <button type="button" class="stepper-btn card-inc-fixed" data-role-id="${role.id}" title="Tăng số lượng cố định">+</button>
+                </div>
+                <button type="button" class="btn-remove-fixed card-remove-fixed" data-role-id="${role.id}" title="Hủy cố định vai trò này">✕</button>
+              ` : `
+                <button type="button" class="ctrl-btn card-btn-pin-fixed" data-role-id="${role.id}" style="color: #10b981; border-color: rgba(16, 185, 129, 0.4); font-size: 11px; padding: 4px 10px; font-weight: 700;">
+                  <span>+ Ghim cố định</span>
+                </button>
+              `}
+            </div>
+          </div>
+        ` : ''}
       `;
 
       const toggle = card.querySelector('.role-toggle-switch');
@@ -1366,6 +645,9 @@ class ImposterGame {
             role.enabled = false;
             toggle.checked = false;
             card.classList.remove('enabled');
+            if (this.fixedRoles[role.id]) {
+              this.setFixedRoleCount(role.id, 0);
+            }
           }
           card.querySelector(`#role-val-${role.id}`).textContent = role.count;
           this.updateBalanceMeter();
@@ -1385,8 +667,66 @@ class ImposterGame {
         }
       });
 
+      // Bind inline card fixed pin actions
+      if (isSpecial) {
+        card.querySelector('.card-btn-pin-fixed')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const maxSpecial = this.getMaxSpecialAllowed();
+          if (this.getTotalFixedCount() >= maxSpecial) {
+            alert(`⚠️ Đã hết slot vai trò đặc biệt (${maxSpecial} slot). Hãy tăng số người chơi hoặc giảm vai trò khác!`);
+            return;
+          }
+          sound.playClick();
+          role.enabled = true;
+          if (role.count === 0) role.count = 1;
+          this.setFixedRoleCount(role.id, 1);
+        });
+
+        card.querySelector('.card-inc-fixed')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const maxSpecial = this.getMaxSpecialAllowed();
+          if (this.getTotalFixedCount() >= maxSpecial) {
+            alert(`⚠️ Đã hết slot vai trò đặc biệt (${maxSpecial} slot). Hãy tăng số người chơi hoặc giảm vai trò khác!`);
+            return;
+          }
+          if (fixedCount >= (role.maxCount || 3)) {
+            alert(`⚠️ Vai trò "${role.name_vi}" chỉ được phép có tối đa ${role.maxCount || 3} người trong ván!`);
+            return;
+          }
+          sound.playClick();
+          this.setFixedRoleCount(role.id, fixedCount + 1);
+        });
+
+        card.querySelector('.card-dec-fixed')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sound.playClick();
+          this.setFixedRoleCount(role.id, fixedCount - 1);
+        });
+
+        card.querySelector('.card-remove-fixed')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sound.playClick();
+          this.setFixedRoleCount(role.id, 0);
+        });
+      }
+
       container.appendChild(card);
     });
+  }
+
+  // ==========================================================
+  // [SEC 05] PLAYER MANAGEMENT (Edit, Delete, Add, Randomize)
+  // ==========================================================
+  loadSavedPlayerNames() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('gti_player_names') || '[]');
+      if (Array.isArray(saved) && saved.length >= 3) {
+        return saved;
+      }
+    } catch (e) {}
+    const randomPool = [...RANDOM_NAMES_VI];
+    this.shuffle(randomPool);
+    return randomPool.slice(0, this.playerCount);
   }
 
   generatePlayerInputs() {
@@ -1394,32 +734,143 @@ class ImposterGame {
     if (!container) return;
     container.innerHTML = '';
 
-    const randomPool = this.lang === 'vi' ? [...RANDOM_NAMES_VI] : [...RANDOM_NAMES_EN];
-    this.shuffle(randomPool);
+    if (!this.playerNames || !Array.isArray(this.playerNames)) {
+      this.playerNames = this.loadSavedPlayerNames();
+    }
+
+    // Ensure playerNames matches playerCount
+    while (this.playerNames.length < this.playerCount) {
+      const pool = this.lang === 'vi' ? [...RANDOM_NAMES_VI] : [...RANDOM_NAMES_EN];
+      const unused = pool.filter(n => !this.playerNames.includes(n));
+      const nextName = unused.length > 0 ? unused[0] : `Player ${this.playerNames.length + 1}`;
+      this.playerNames.push(nextName);
+    }
+    if (this.playerNames.length > this.playerCount) {
+      this.playerNames = this.playerNames.slice(0, this.playerCount);
+    }
+    localStorage.setItem('gti_player_names', JSON.stringify(this.playerNames));
 
     for (let i = 0; i < this.playerCount; i++) {
       const palette = AVATAR_PALETTES[i % AVATAR_PALETTES.length];
-      const defaultName = randomPool[i] || `Player ${i + 1}`;
+      const currentName = this.playerNames[i] || `Player ${i + 1}`;
 
       const row = document.createElement('div');
-      row.className = 'setting-item-row';
-      row.style.padding = '10px 14px';
+      row.className = 'player-item-row';
       row.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-          <div style="width: 40px; height: 40px; border-radius: 50%; background: ${palette.bg}; color: ${palette.text}; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+          <button type="button" class="player-avatar-picker-btn" data-index="${i}" title="${this.lang === 'vi' ? 'Đổi avatar' : 'Change avatar'}" style="background: ${palette.bg}; color: ${palette.text};">
             ${palette.emoji}
-          </div>
+          </button>
           <div style="flex: 1;">
-            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">
-              ${this.lang === 'vi' ? 'Người chơi' : 'Player'} ${i + 1}
-            </span>
-            <input type="text" class="player-name-input form-input" data-index="${i}" value="${defaultName}" style="padding: 6px 10px; font-weight: 700; font-size: 14px; margin-top: 2px;" />
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 11px; color: var(--text-muted); font-weight: 700;">
+                ${this.lang === 'vi' ? 'Người chơi' : 'Player'} ${i + 1}
+              </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 3px;">
+              <input type="text" class="player-name-input form-input" data-index="${i}" value="${currentName}" placeholder="${this.lang === 'vi' ? 'Nhập tên...' : 'Enter name...'}" style="padding: 6px 10px; font-weight: 700; font-size: 14px; flex: 1;" />
+              <button type="button" class="btn-random-single-name" data-index="${i}" title="${this.lang === 'vi' ? 'Đổi tên ngẫu nhiên cho người này' : 'Randomize name'}">
+                🎲
+              </button>
+            </div>
           </div>
         </div>
+        <button type="button" class="btn-delete-player" data-index="${i}" title="${this.lang === 'vi' ? 'Xóa người chơi này' : 'Delete player'}">
+          🗑️
+        </button>
       `;
       container.appendChild(row);
     }
+
+    // Bind real-time input editing
+    container.querySelectorAll('.player-name-input').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const idx = parseInt(e.target.dataset.index, 10);
+        const val = e.target.value.trim();
+        this.playerNames[idx] = val || `Player ${idx + 1}`;
+        localStorage.setItem('gti_player_names', JSON.stringify(this.playerNames));
+      });
+    });
+
+    // Bind delete player button
+    container.querySelectorAll('.btn-delete-player').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.currentTarget.dataset.index, 10);
+        this.deletePlayer(idx);
+      });
+    });
+
+    // Bind single randomize button
+    container.querySelectorAll('.btn-random-single-name').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.currentTarget.dataset.index, 10);
+        this.randomizeSinglePlayer(idx);
+      });
+    });
+
+    // Bind avatar shift button
+    container.querySelectorAll('.player-avatar-picker-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (typeof sound !== 'undefined') sound.playFlipCard();
+        // Shift palettes array for fresh avatars
+        const first = AVATAR_PALETTES.shift();
+        AVATAR_PALETTES.push(first);
+        this.generatePlayerInputs();
+      });
+    });
   }
+
+  deletePlayer(index) {
+    if (this.playerCount <= 3) {
+      if (typeof sound !== 'undefined') sound.playEmergencyTick();
+      alert(this.lang === 'vi' ? '⚠️ Trò chơi cần tối thiểu 3 người chơi!' : '⚠️ Minimum 3 players required!');
+      return;
+    }
+    if (typeof sound !== 'undefined') sound.playClick();
+    this.playerNames.splice(index, 1);
+    this.playerCount = this.playerNames.length;
+    localStorage.setItem('gti_player_names', JSON.stringify(this.playerNames));
+
+    // Synchronize Screen 1 players stepper & auto-balance
+    const stepperVal = document.getElementById('val-players');
+    if (stepperVal) stepperVal.textContent = this.playerCount;
+    this.autoBalanceRoles(this.playerCount);
+    this.renderSettingsValues();
+    this.generatePlayerInputs();
+  }
+
+  addPlayer() {
+    if (this.playerCount >= 20) {
+      if (typeof sound !== 'undefined') sound.playEmergencyTick();
+      alert(this.lang === 'vi' ? '⚠️ Tối đa 20 người chơi trong một phòng!' : '⚠️ Maximum 20 players allowed!');
+      return;
+    }
+    if (typeof sound !== 'undefined') sound.playClick();
+    const pool = [...RANDOM_NAMES_VI];
+    const unused = pool.filter(n => !this.playerNames.includes(n));
+    const newName = (unused.length > 0 ? unused[Math.floor(Math.random() * unused.length)] : `Người chơi ${this.playerCount + 1}`);
+    this.playerNames.push(newName);
+    this.playerCount = this.playerNames.length;
+    localStorage.setItem('gti_player_names', JSON.stringify(this.playerNames));
+
+    // Synchronize Screen 1 players stepper & auto-balance
+    const stepperVal = document.getElementById('val-players');
+    if (stepperVal) stepperVal.textContent = this.playerCount;
+    this.autoBalanceRoles(this.playerCount);
+    this.renderSettingsValues();
+    this.generatePlayerInputs();
+  }
+
+  randomizeSinglePlayer(index) {
+    if (typeof sound !== 'undefined') sound.playClick();
+    const pool = [...RANDOM_NAMES_VI];
+    const unused = pool.filter(n => !this.playerNames.includes(n));
+    const newName = (unused.length > 0 ? unused[Math.floor(Math.random() * unused.length)] : pool[Math.floor(Math.random() * pool.length)]);
+    this.playerNames[index] = newName;
+    localStorage.setItem('gti_player_names', JSON.stringify(this.playerNames));
+    this.generatePlayerInputs();
+  }
+
 
   startMatchSession() {
     const inputs = document.querySelectorAll('.player-name-input');
@@ -1427,7 +878,9 @@ class ImposterGame {
     inputs.forEach((inp, idx) => {
       names.push(inp.value.trim() || `Player ${idx + 1}`);
     });
+    localStorage.setItem('gti_player_names', JSON.stringify(names));
 
+    this.syncFixedRolesWithDeck();
     const deck = [];
     this.roles.forEach(r => {
       if (r.enabled && r.count > 0) {
@@ -1444,16 +897,37 @@ class ImposterGame {
     deck.length = this.playerCount;
     this.shuffle(deck);
 
+    let allCats = [...CATEGORIES];
+    if (this.customWordPairs && this.customWordPairs.length > 0) {
+      allCats.unshift({
+        id: "custom_user_pairs",
+        name_vi: "✨ Cặp Từ Tự Tạo",
+        icon: "⭐",
+        words: this.customWordPairs
+      });
+    }
+
     let cat;
     if (this.categoryMode === 'random') {
-      cat = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+      cat = allCats[Math.floor(Math.random() * allCats.length)];
     } else {
-      cat = CATEGORIES.find(c => c.id === this.selectedCategoryId) || CATEGORIES[0];
+      cat = allCats.find(c => c.id === this.selectedCategoryId) || allCats[0];
     }
     this.categoryData = cat;
-    const randomWordObj = cat.words[Math.floor(Math.random() * cat.words.length)];
-    this.secretWord = this.lang === 'vi' ? randomWordObj.vi : randomWordObj.en;
 
+    const randomPair = cat.words[Math.floor(Math.random() * cat.words.length)];
+    if (randomPair.civilian) {
+      this.secretWord = randomPair.civilian;
+      this.imposterWord = randomPair.imposter;
+    } else if (randomPair.vi) {
+      this.secretWord = randomPair.vi;
+      this.imposterWord = randomPair.imposter || "";
+    } else {
+      this.secretWord = String(randomPair);
+      this.imposterWord = "";
+    }
+
+    this.roundNumber = 1;
     this.players = names.map((name, idx) => {
       const assignedRole = deck[idx];
       const palette = AVATAR_PALETTES[idx % AVATAR_PALETTES.length];
@@ -1465,7 +939,8 @@ class ImposterGame {
         role: assignedRole,
         isImposter: assignedRole.team === 'evil',
         isEliminated: false,
-        votesReceived: 0
+        votesReceived: 0,
+        penalty: 0
       };
     });
 
@@ -1477,8 +952,15 @@ class ImposterGame {
 
   showRevealStep(index) {
     if (index >= this.players.length) {
-      sound.playWinFanfare();
-      this.startDiscussionStage();
+      if (this.rouletteEnabled) {
+        this.showRouletteScreen();
+      } else {
+        const living = this.players.filter(p => !p.isEliminated);
+        const pick = living[Math.floor(Math.random() * (living.length || 1))];
+        this.currentSpeakerIndex = pick ? this.players.indexOf(pick) : 0;
+        sound.playWinFanfare();
+        this.startDiscussionStage();
+      }
       return;
     }
 
@@ -1489,7 +971,7 @@ class ImposterGame {
     const progressPill = document.getElementById('reveal-progress-pill');
 
     if (progressPill) {
-      progressPill.textContent = `${this.lang === 'vi' ? 'Người chơi' : 'Player'} ${index + 1} / ${this.players.length}`;
+      progressPill.textContent = `Người chơi ${index + 1} / ${this.players.length}`;
     }
 
     curtainBox.style.display = 'flex';
@@ -1505,34 +987,298 @@ class ImposterGame {
 
     const teamTag = document.getElementById('revealed-team-tag');
     teamTag.className = `team-tag ${player.role.team}`;
-    teamTag.textContent = player.role.team === 'good' ? (this.lang === 'vi' ? 'Phe Dân (Good)' : 'Good Team')
-                        : player.role.team === 'evil' ? (this.lang === 'vi' ? 'Phe Ác (Evil)' : 'Evil Team')
-                        : (this.lang === 'vi' ? 'Trung Lập (Neutral)' : 'Neutral Team');
+    teamTag.textContent = player.role.team === 'good' ? 'Phe Dân'
+                        : player.role.team === 'evil' ? 'Phe Ác'
+                        : 'Trung Lập';
 
     document.getElementById('revealed-icon').textContent = player.role.icon;
-    document.getElementById('revealed-name').textContent = this.lang === 'vi' ? player.role.name_vi : player.role.name_en;
+    document.getElementById('revealed-name').textContent = player.role.name_vi;
 
     const keywordLabel = document.getElementById('keyword-label');
     const keywordText = document.getElementById('keyword-text');
     const keywordCat = document.getElementById('keyword-category');
 
     if (player.role.knowsKeyword) {
-      keywordLabel.textContent = this.lang === 'vi' ? 'Từ khóa bí mật:' : 'Secret Keyword:';
+      keywordLabel.textContent = 'Từ khóa bí mật:';
       keywordText.className = 'secret-keyword-text';
       keywordText.textContent = this.secretWord;
-      keywordCat.textContent = `${this.lang === 'vi' ? 'Chủ đề:' : 'Topic:'} ${this.lang === 'vi' ? this.categoryData.name_vi : this.categoryData.name_en}`;
+      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi}`;
     } else {
-      keywordLabel.textContent = this.lang === 'vi' ? 'BẠN LÀ KẺ GIẢ MẠO!' : 'YOU ARE THE IMPOSTER!';
+      keywordLabel.textContent = 'BẠN LÀ KẺ GIẢ MẠO!';
       keywordText.className = 'secret-keyword-text imposter';
-      keywordText.textContent = this.hintsEnabled 
-        ? (this.lang === 'vi' ? `Chủ đề: ${this.categoryData.name_vi}` : `Topic: ${this.categoryData.name_en}`)
-        : (this.lang === 'vi' ? 'Không biết từ khóa!' : 'Unknown Keyword!');
-      keywordCat.textContent = this.lang === 'vi' 
-        ? 'Hãy hòa nhập, lắng nghe manh mối và lừa mọi người!'
-        : 'Blend in, listen carefully and mislead the group!';
+      if (this.hintsEnabled && this.imposterWord) {
+        keywordText.textContent = `Gợi ý của bạn: ${this.imposterWord}`;
+        keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • Hãy khéo léo nói về từ này để hòa nhập cùng phe Dân!`;
+      } else if (this.hintsEnabled) {
+        keywordText.textContent = `Chủ đề: ${this.categoryData.name_vi}`;
+        keywordCat.textContent = 'Hãy hòa nhập, lắng nghe manh mối và lừa mọi người!';
+      } else {
+        keywordText.textContent = 'Không biết từ khóa!';
+        keywordCat.textContent = 'Hãy hòa nhập, lắng nghe manh mối và lừa mọi người!';
+      }
     }
 
-    document.getElementById('revealed-ability').textContent = this.lang === 'vi' ? player.role.ability_vi : player.role.ability_en;
+    document.getElementById('revealed-ability').textContent = player.role.ability_vi;
+  }
+
+  // ==========================================================
+  // [SEC 08.5] ROULETTE WHEEL (FIRST SPEAKER SELECTION)
+  // ==========================================================
+  showRouletteScreen() {
+    this.switchScreen('screen-roulette');
+    const winnerCard = document.getElementById('roulette-winner-card');
+    if (winnerCard) winnerCard.style.display = 'none';
+
+    if (!this.players || this.players.length === 0) {
+      this.ensureSamplePlayersForReview();
+    }
+
+    this.rouletteAngle = 0;
+    this.isSpinning = false;
+    this.drawRouletteWheel();
+  }
+
+  ensureSamplePlayersForReview() {
+    const names = (this.playerNames && this.playerNames.length >= 3) ? this.playerNames : ['Bảo Long', 'Minh Anh', 'Hải Đăng', 'Thu Hà', 'Tuấn Kiệt', 'Thùy Chi'];
+    this.players = names.map((n, i) => {
+      const p = AVATAR_PALETTES[i % AVATAR_PALETTES.length];
+      return {
+        id: `p_preview_${i}`,
+        name: n,
+        avatar: p.emoji,
+        avatarBg: p.bg,
+        role: DEFAULT_ROLES[i % DEFAULT_ROLES.length],
+        isImposter: i === 0,
+        isEliminated: false
+      };
+    });
+  }
+
+  drawRouletteWheel() {
+    const canvas = document.getElementById('roulette-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    if (!this.players || this.players.length === 0) {
+      this.ensureSamplePlayersForReview();
+    }
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const cx = width / 2;
+    const cy = height / 2;
+    const radius = cx - 10;
+    const n = this.players.length || 1;
+    const sliceAngle = (2 * Math.PI) / n;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Outer glow ring
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius + 3, 0, 2 * Math.PI);
+    ctx.strokeStyle = 'rgba(255, 107, 53, 0.45)';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.restore();
+
+    // Slices
+    for (let i = 0; i < n; i++) {
+      const p = this.players[i];
+      const palette = AVATAR_PALETTES[i % AVATAR_PALETTES.length];
+      const startAngle = this.rouletteAngle + i * sliceAngle;
+      const endAngle = startAngle + sliceAngle;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, radius, startAngle, endAngle);
+      ctx.closePath();
+      ctx.fillStyle = palette.bg;
+      ctx.fill();
+
+      // Slice divider line
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Slice content (Emoji + Name)
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(startAngle + sliceAngle / 2);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      ctx.font = '22px sans-serif';
+      ctx.fillText(p.avatar || palette.emoji, radius * 0.72, 0);
+
+      ctx.fillStyle = palette.text || '#ffffff';
+      ctx.font = 'bold 11px Outfit, sans-serif';
+      const shortName = p.name.length > 7 ? p.name.substring(0, 6) + '..' : p.name;
+      ctx.fillText(shortName, radius * 0.44, 0);
+      ctx.restore();
+
+      ctx.restore();
+    }
+
+    // Center decorative ring
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, 38, 0, 2 * Math.PI);
+    ctx.fillStyle = '#1c1c24';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  spinRouletteWheel() {
+    if (this.isSpinning) return;
+    const canvas = document.getElementById('roulette-canvas');
+    if (!canvas) return;
+
+    if (!this.players || this.players.length === 0) {
+      this.ensureSamplePlayersForReview();
+    }
+
+    const living = this.players.filter(p => !p.isEliminated);
+    if (living.length === 0) return;
+
+    this.isSpinning = true;
+    const winnerCard = document.getElementById('roulette-winner-card');
+    if (winnerCard) winnerCard.style.display = 'none';
+
+    const winner = living[Math.floor(Math.random() * living.length)];
+    const winnerIdx = this.players.indexOf(winner);
+    const n = this.players.length;
+    const sliceAngle = (2 * Math.PI) / n;
+
+    // Pointer is at top: 1.5 * Math.PI (or -Math.PI / 2)
+    // Slice center angle = rouletteAngle + (winnerIdx + 0.5) * sliceAngle = 1.5 * Math.PI
+    const desiredFinalMod = (1.5 * Math.PI - (winnerIdx + 0.5) * sliceAngle) % (2 * Math.PI);
+    const normalizedDesired = (desiredFinalMod + 2 * Math.PI) % (2 * Math.PI);
+
+    const startAngle = this.rouletteAngle % (2 * Math.PI);
+    const fullSpins = (5 + Math.floor(Math.random() * 3)) * (2 * Math.PI);
+    let targetAngle = startAngle + fullSpins;
+    const currentMod = targetAngle % (2 * Math.PI);
+    let diff = normalizedDesired - currentMod;
+    if (diff < 0) diff += 2 * Math.PI;
+    targetAngle += diff;
+
+    const duration = 3800; // 3.8s
+    const startTime = performance.now();
+    let lastSliceIdx = -1;
+
+    const animateWheel = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      // Quartic ease out
+      const ease = 1 - Math.pow(1 - progress, 4);
+
+      this.rouletteAngle = startAngle + (targetAngle - startAngle) * ease;
+      this.drawRouletteWheel();
+
+      // Sound tick on passing slices
+      const pointerNorm = ((1.5 * Math.PI - this.rouletteAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+      const currentSlice = Math.floor(pointerNorm / sliceAngle) % n;
+      if (currentSlice !== lastSliceIdx) {
+        lastSliceIdx = currentSlice;
+        sound.playTick();
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(animateWheel);
+      } else {
+        this.isSpinning = false;
+        this.currentSpeakerIndex = winnerIdx;
+        sound.playWinFanfare();
+
+        const winnerAvatar = document.getElementById('roulette-winner-avatar');
+        const winnerName = document.getElementById('roulette-winner-name');
+        if (winnerAvatar) winnerAvatar.textContent = winner.avatar;
+        if (winnerName) winnerName.textContent = winner.name;
+        if (winnerCard) winnerCard.style.display = 'block';
+
+        if (window.confetti) {
+          try {
+            window.confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+          } catch (e) {}
+        }
+      }
+    };
+
+    requestAnimationFrame(animateWheel);
+  }
+
+  // ==========================================================
+  // [SEC 08.6] ACTIVE SPEAKER HUD & SPEECH TIMER
+  // ==========================================================
+  updateCurrentSpeakerHUD() {
+    const current = this.players[this.currentSpeakerIndex];
+    if (!current) return;
+
+    const avatarEl = document.getElementById('speaker-active-avatar');
+    const nameEl = document.getElementById('speaker-active-name');
+    const timerVal = document.getElementById('val-speaker-timer');
+
+    if (avatarEl) {
+      avatarEl.textContent = current.avatar;
+      avatarEl.style.background = current.avatarBg || '#fee2e2';
+    }
+    if (nameEl) nameEl.textContent = current.name;
+
+    this.speechTimerRemaining = this.speechDurationSeconds;
+    if (timerVal) {
+      timerVal.textContent = this.speechDurationSeconds === 0
+        ? (this.lang === 'vi' ? 'Tự do' : 'Free')
+        : `${this.speechTimerRemaining}s`;
+    }
+  }
+
+  startSpeakerTimer() {
+    if (this.speechTimerInterval) clearInterval(this.speechTimerInterval);
+    if (this.speechDurationSeconds <= 0) return;
+
+    this.speechTimerRemaining = this.speechDurationSeconds;
+    const timerVal = document.getElementById('val-speaker-timer');
+
+    this.speechTimerInterval = setInterval(() => {
+      if (this.isPaused) return;
+
+      this.speechTimerRemaining--;
+      if (timerVal) {
+        timerVal.textContent = `${Math.max(0, this.speechTimerRemaining)}s`;
+      }
+
+      if (this.speechTimerRemaining <= 3 && this.speechTimerRemaining > 0) {
+        sound.playTick();
+      }
+
+      if (this.speechTimerRemaining <= 0) {
+        sound.playGavel();
+        this.nextSpeaker();
+      }
+    }, 1000);
+  }
+
+  nextSpeaker() {
+    if (!this.players || this.players.length === 0) return;
+
+    let nextIdx = (this.currentSpeakerIndex + 1) % this.players.length;
+    let attempts = 0;
+    while (this.players[nextIdx]?.isEliminated && attempts < this.players.length) {
+      nextIdx = (nextIdx + 1) % this.players.length;
+      attempts++;
+    }
+
+    this.currentSpeakerIndex = nextIdx;
+    sound.playClick();
+    this.updateCurrentSpeakerHUD();
+    this.renderSpeakersStrip();
+    this.startSpeakerTimer();
   }
 
   startDiscussionStage() {
@@ -1550,8 +1296,15 @@ class ImposterGame {
     const roundPill = document.getElementById('round-stage-pill');
     if (roundPill) roundPill.textContent = `${this.lang === 'vi' ? 'Vòng' : 'Round'} ${this.roundNumber}`;
 
+    if (this.players[this.currentSpeakerIndex]?.isEliminated) {
+      const living = this.players.find(p => !p.isEliminated);
+      if (living) this.currentSpeakerIndex = this.players.indexOf(living);
+    }
+
+    this.updateCurrentSpeakerHUD();
     this.renderSpeakersStrip();
     this.runTimer();
+    this.startSpeakerTimer();
   }
 
   renderSpeakersStrip() {
@@ -1559,17 +1312,31 @@ class ImposterGame {
     if (!strip) return;
     strip.innerHTML = '';
 
-    this.players.forEach(p => {
+    this.players.forEach((p, i) => {
       const item = document.createElement('div');
-      item.className = 'speaker-avatar-item';
+      const isSpeaking = i === this.currentSpeakerIndex && !p.isEliminated;
+      item.className = `speaker-avatar-item ${isSpeaking ? 'active-speaking' : ''} ${p.isEliminated ? 'eliminated' : ''}`;
       item.innerHTML = `
-        <div class="speaker-avatar-circle ${p.isEliminated ? 'is-eliminated' : ''}" style="background: ${p.avatarBg}; ${p.isEliminated ? 'border: 2px solid #ef4444;' : 'border: 2px solid #10b981;'}">
+        <div class="avatar-circle speaker-avatar-circle" style="background: ${p.avatarBg}; ${p.isEliminated ? 'border: 2px solid #ef4444;' : ''}">
           ${p.isEliminated ? '❌' : p.avatar}
         </div>
         <div class="speaker-name-label" style="${p.isEliminated ? 'text-decoration: line-through; color: #ef4444;' : ''}">
           ${p.name}
         </div>
       `;
+
+      if (!p.isEliminated) {
+        item.addEventListener('click', () => {
+          if (this.currentSpeakerIndex !== i) {
+            this.currentSpeakerIndex = i;
+            sound.playClick();
+            this.updateCurrentSpeakerHUD();
+            this.renderSpeakersStrip();
+            this.startSpeakerTimer();
+          }
+        });
+      }
+
       strip.appendChild(item);
     });
   }
@@ -1580,25 +1347,34 @@ class ImposterGame {
 
     this.timerInterval = setInterval(() => {
       if (!this.isPaused) {
-        this.timerRemaining--;
-        this.updateTimerDisplay();
+        if (this.durationSeconds > 0) {
+          this.timerRemaining--;
+          this.updateTimerDisplay();
 
-        if (this.timerRemaining <= 10 && this.timerRemaining > 0) {
-          sound.playTick();
-        }
+          if (this.timerRemaining <= 10 && this.timerRemaining > 0) {
+            sound.playTick();
+          }
 
-        if (this.timerRemaining <= 0) {
-          clearInterval(this.timerInterval);
-          sound.playGong();
-          setTimeout(() => {
-            this.startVotingStage();
-          }, 1000);
+          if (this.timerRemaining <= 0) {
+            clearInterval(this.timerInterval);
+            if (this.speechTimerInterval) clearInterval(this.speechTimerInterval);
+            sound.playGong();
+            setTimeout(() => {
+              this.startVotingStage();
+            }, 1000);
+          }
         }
       }
     }, 1000);
   }
 
   updateTimerDisplay() {
+    if (this.durationSeconds === 0) {
+      const display = document.getElementById('timer-display');
+      if (display) display.textContent = '∞';
+      return;
+    }
+
     const mins = Math.floor(Math.max(0, this.timerRemaining) / 60);
     const secs = Math.max(0, this.timerRemaining) % 60;
     const str = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
@@ -1622,6 +1398,7 @@ class ImposterGame {
 
   startVotingStage() {
     if (this.timerInterval) clearInterval(this.timerInterval);
+    if (this.speechTimerInterval) clearInterval(this.speechTimerInterval);
     this.switchScreen('screen-voting');
     sound.playVote();
 
@@ -1692,14 +1469,10 @@ class ImposterGame {
     } 
     
     // Suspect is INNOCENT (Civilian or good team) -> WRONG VOTE PENALTY!
-    // Deduct -5 points from good team players as penalty for wrong accusation!
+    // Accumulate -5 points penalty for surviving good team players for this match
     this.players.filter(p => p.role.team === 'good' && !p.isEliminated).forEach(p => {
-      if (!this.partyScores[p.name]) {
-        this.partyScores[p.name] = { total: 0, wins: 0, games: 0, avatar: p.avatar, avatarBg: p.avatarBg };
-      }
-      this.partyScores[p.name].total = Math.max(0, this.partyScores[p.name].total - 5);
+      p.penalty = (p.penalty || 0) + 5;
     });
-    localStorage.setItem('gti_party_scores', JSON.stringify(this.partyScores));
 
     const livingInnocents = this.players.filter(p => !p.isImposter && !p.isEliminated);
     const livingImposters = this.players.filter(p => p.isImposter && !p.isEliminated);
@@ -1936,10 +1709,16 @@ class ImposterGame {
         reasons.push(this.lang === 'vi' ? 'Điều tra (+5)' : 'Detective clue (+5)');
       }
 
+      // Multi-round penalty deduction
+      if (p.penalty && p.penalty > 0) {
+        delta -= p.penalty;
+        reasons.push(this.lang === 'vi' ? `Bầu oan (-${p.penalty})` : `Wrong vote (-${p.penalty})`);
+      }
+
       if (!this.partyScores[p.name]) {
         this.partyScores[p.name] = { total: 0, wins: 0, games: 0, avatar: p.avatar, avatarBg: p.avatarBg };
       }
-      this.partyScores[p.name].total += delta;
+      this.partyScores[p.name].total = Math.max(0, this.partyScores[p.name].total + delta);
       this.partyScores[p.name].games += 1;
       if (delta >= 10) this.partyScores[p.name].wins += 1;
       this.partyScores[p.name].avatar = p.avatar;
@@ -1957,24 +1736,46 @@ class ImposterGame {
     });
 
     localStorage.setItem('gti_party_scores', JSON.stringify(this.partyScores));
+    this.lastRoundScores = roundScores;
 
-    // Sort by delta to find MVP of this round
-    roundScores.sort((a, b) => b.delta - a.delta || b.total - a.total);
-    const mvpPlayer = roundScores[0];
-    const mvpTag = document.getElementById('label-mvp-tag');
-    if (mvpTag && mvpPlayer && mvpPlayer.delta > 0) {
-      mvpTag.textContent = `MVP: ${mvpPlayer.name} (+${mvpPlayer.delta}đ)`;
+    // Update match count display
+    const totalMatches = Object.values(this.partyScores).reduce((max, cur) => Math.max(max, cur.games || 0), 0) || 1;
+    const matchCountEl = document.getElementById('val-match-count');
+    if (matchCountEl) {
+      matchCountEl.textContent = `${totalMatches} ${this.lang === 'vi' ? 'ván đã chơi' : 'matches played'}`;
     }
 
-    // Render Round Leaderboard
+    // Render results scoreboard based on active tab
+    this.renderResultsScoreboard();
+    this.updateSetupTournamentBanner();
+    this.saveMatchToHistory();
+  }
+
+  renderResultsScoreboard() {
     const lbContainer = document.getElementById('results-leaderboard-list');
-    if (lbContainer) {
-      lbContainer.innerHTML = '';
-      roundScores.forEach((item, idx) => {
+    const descEl = document.getElementById('label-score-view-desc');
+    const mvpTag = document.getElementById('label-mvp-tag');
+    if (!lbContainer) return;
+
+    lbContainer.innerHTML = '';
+
+    if (this.currentScoreboardTab === 'round') {
+      if (descEl) descEl.textContent = this.lang === 'vi' 
+        ? 'Hiển thị điểm cộng theo đóng góp ván này' 
+        : 'Points earned in this specific match';
+
+      const sortedRound = [...this.lastRoundScores].sort((a, b) => b.delta - a.delta || b.total - a.total);
+      const mvpPlayer = sortedRound[0];
+      if (mvpTag && mvpPlayer && mvpPlayer.delta > 0) {
+        mvpTag.textContent = `MVP: ${mvpPlayer.name} (+${mvpPlayer.delta}đ)`;
+      }
+
+      sortedRound.forEach((item, idx) => {
         const row = document.createElement('div');
         row.className = `leaderboard-row ${idx === 0 && item.delta > 0 ? 'mvp-highlight' : ''}`;
         const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : 'rank-other';
         const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`;
+        const deltaFormatted = item.delta > 0 ? `+${item.delta}` : `${item.delta}`;
 
         row.innerHTML = `
           <div style="display: flex; align-items: center; gap: 10px;">
@@ -1988,15 +1789,98 @@ class ImposterGame {
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 6px;">
-            <span class="score-tag-delta">+${item.delta}</span>
-            <span class="score-tag-total" title="${this.lang === 'vi' ? 'Tổng điểm' : 'Total Score'}">${item.total}đ</span>
+            <span class="score-tag-delta ${item.delta < 0 ? 'negative' : ''}">${deltaFormatted}</span>
+            <span class="score-tag-total" title="${this.lang === 'vi' ? 'Tổng điểm tích lũy' : 'Cumulative Score'}">${item.total}đ</span>
+          </div>
+        `;
+        lbContainer.appendChild(row);
+      });
+    } else {
+      // Cumulative Series Standings
+      if (descEl) descEl.textContent = this.lang === 'vi'
+        ? 'Bảng tổng sắp tích lũy sau tất cả các ván chơi'
+        : 'Tournament standings across all matches';
+
+      const entries = Object.entries(this.partyScores).map(([name, data]) => ({
+        name,
+        ...data
+      }));
+
+      entries.sort((a, b) => b.total - a.total || b.wins - a.wins);
+
+      if (mvpTag && entries[0]) {
+        mvpTag.textContent = `👑 TOP 1: ${entries[0].name} (${entries[0].total}đ)`;
+      }
+
+      entries.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = `leaderboard-row ${idx === 0 ? 'mvp-highlight' : ''}`;
+        const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : 'rank-other';
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`;
+
+        row.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="rank-badge ${rankClass}">${medal}</div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: ${item.avatarBg || '#e0e7ff'}; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+              ${item.avatar || '👤'}
+            </div>
+            <div>
+              <div style="font-family: var(--font-display); font-weight: 700; font-size: 14px;">${item.name}</div>
+              <div style="font-size: 11px; color: var(--text-muted);">${item.wins || 0} ${this.lang === 'vi' ? 'trận thắng' : 'wins'} / ${item.games || 0} ${this.lang === 'vi' ? 'ván' : 'matches'}</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <span class="score-tag-total" style="font-size: 16px; color: #f59e0b;">${item.total}đ</span>
           </div>
         `;
         lbContainer.appendChild(row);
       });
     }
+  }
 
-    this.saveMatchToHistory();
+  updateSetupTournamentBanner() {
+    const banner = document.getElementById('setup-tournament-banner');
+    const stats = document.getElementById('setup-tournament-stats');
+    if (!banner || !stats) return;
+
+    const entries = Object.entries(this.partyScores || {}).filter(([_, data]) => data && (data.games > 0 || data.total > 0));
+    if (entries.length === 0) {
+      stats.textContent = this.lang === 'vi'
+        ? 'Chưa có điểm • Sẵn sàng bắt đầu giải đấu mới!'
+        : 'No scores yet • Ready to start a tournament!';
+      return;
+    }
+
+    entries.sort((a, b) => b[1].total - a[1].total);
+    const topPlayer = entries[0];
+    const totalMatches = Object.values(this.partyScores).reduce((max, cur) => Math.max(max, cur.games || 0), 0) || 1;
+
+    stats.innerHTML = this.lang === 'vi'
+      ? `Đã đấu: <strong style="color: #fff;">${totalMatches} ván</strong> • Dẫn đầu: <strong style="color: #f59e0b;">${topPlayer[0]} (${topPlayer[1].total}đ)</strong>`
+      : `Played: <strong style="color: #fff;">${totalMatches} matches</strong> • Leader: <strong style="color: #f59e0b;">${topPlayer[0]} (${topPlayer[1].total} pts)</strong>`;
+  }
+
+  resetAllScores() {
+    const msg = this.lang === 'vi'
+      ? 'Bạn có chắc chắn muốn xóa và đặt lại toàn bộ điểm số của tất cả người chơi về 0 để bắt đầu giải đấu mới?'
+      : 'Reset all tournament party scores back to 0 to begin a fresh tournament series?';
+
+    if (confirm(msg)) {
+      if (typeof sound !== 'undefined') sound.playClick();
+      this.partyScores = {};
+      localStorage.removeItem('gti_party_scores');
+      if (this.lastRoundScores) {
+        this.lastRoundScores.forEach(x => { x.total = 0; });
+      }
+      
+      const countEl = document.getElementById('val-match-count');
+      if (countEl) countEl.textContent = `0 ${this.lang === 'vi' ? 'ván đã chơi' : 'matches played'}`;
+
+      this.renderResultsScoreboard();
+      this.renderCumulativeLeaderboard();
+      this.updateSetupTournamentBanner();
+      alert(this.lang === 'vi' ? '✅ Đã đặt lại toàn bộ điểm số về 0!' : '✅ All scores reset to 0!');
+    }
   }
 
   renderCumulativeLeaderboard() {
@@ -2039,20 +1923,70 @@ class ImposterGame {
             </div>
           </div>
         </div>
-        <div style="display: flex; align-items: center;">
-          <span class="score-tag-total" style="font-size: 18px; color: #f59e0b;">${item.total} pts</span>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span class="score-tag-total" style="font-size: 16px; color: #f59e0b;">${item.total} pts</span>
+          <button type="button" class="leaderboard-action-btn btn-edit-lb-player" data-player="${item.name}" title="${this.lang === 'vi' ? 'Đổi tên người chơi' : 'Rename player'}">✏️</button>
+          <button type="button" class="leaderboard-action-btn btn-delete-lb-player" data-player="${item.name}" title="${this.lang === 'vi' ? 'Xóa người chơi khỏi BXH' : 'Delete player'}">🗑️</button>
         </div>
       `;
       list.appendChild(row);
+    });
+
+    list.querySelectorAll('.btn-edit-lb-player').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const oldName = e.currentTarget.dataset.player;
+        const newName = prompt(this.lang === 'vi' ? `Nhập tên mới cho "${oldName}":` : `New name for "${oldName}":`, oldName);
+        if (newName && newName.trim() && newName.trim() !== oldName) {
+          const trimmed = newName.trim();
+          this.partyScores[trimmed] = { ...this.partyScores[oldName] };
+          delete this.partyScores[oldName];
+          if (this.playerNames) {
+            const pIdx = this.playerNames.indexOf(oldName);
+            if (pIdx !== -1) this.playerNames[pIdx] = trimmed;
+            localStorage.setItem('gti_player_names', JSON.stringify(this.playerNames));
+          }
+          localStorage.setItem('gti_party_scores', JSON.stringify(this.partyScores));
+          this.renderCumulativeLeaderboard();
+          this.renderResultsScoreboard();
+          this.updateSetupTournamentBanner();
+        }
+      });
+    });
+
+    list.querySelectorAll('.btn-delete-lb-player').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const playerName = e.currentTarget.dataset.player;
+        if (confirm(this.lang === 'vi' ? `Bạn có chắc muốn xóa điểm số của "${playerName}" khỏi giải đấu?` : `Remove "${playerName}" from leaderboard?`)) {
+          delete this.partyScores[playerName];
+          localStorage.setItem('gti_party_scores', JSON.stringify(this.partyScores));
+          this.renderCumulativeLeaderboard();
+          this.renderResultsScoreboard();
+          this.updateSetupTournamentBanner();
+        }
+      });
     });
   }
 
   checkImposterComebackGuess(isGiveup = false) {
     const input = document.getElementById('input-imposter-guess');
-    const guess = input ? input.value.trim().toLowerCase() : '';
-    const target = this.secretWord.toLowerCase();
+    const guess = input ? input.value.trim() : '';
+    const target = this.secretWord || '';
 
-    if (!isGiveup && guess && (target.includes(guess) || guess.includes(target))) {
+    const norm = str => str.toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/[^a-z0-9]/g, '');
+
+    const normTarget = norm(target);
+    const normGuess = norm(guess);
+
+    const isMatch = !isGiveup && normGuess.length > 0 && (
+      normTarget.includes(normGuess) || 
+      normGuess.includes(normTarget)
+    );
+
+    if (isMatch) {
       sound.playWinFanfare();
       this.winningTeam = 'evil';
       this.imposterWonByComeback = true;
@@ -2291,21 +2225,54 @@ class ImposterGame {
       }
     });
 
+    const matchTimes = [60, 120, 180, 240, 300, 480, 600, 0];
     document.getElementById('btn-dec-time')?.addEventListener('click', () => {
       sound.playClick();
-      const currentMin = Math.floor(this.durationSeconds / 60);
-      if (currentMin > 1) {
-        this.durationSeconds = (currentMin - 1) * 60;
+      const current = this.durationSeconds;
+      const idx = matchTimes.indexOf(current);
+      if (idx > 0) {
+        this.durationSeconds = matchTimes[idx - 1];
+        localStorage.setItem('gti_discussion_time', this.durationSeconds);
         this.renderSettingsValues();
       }
     });
     document.getElementById('btn-inc-time')?.addEventListener('click', () => {
       sound.playClick();
-      const currentMin = Math.floor(this.durationSeconds / 60);
-      if (currentMin < 8) {
-        this.durationSeconds = (currentMin + 1) * 60;
+      const current = this.durationSeconds;
+      const idx = matchTimes.indexOf(current);
+      if (idx >= 0 && idx < matchTimes.length - 1) {
+        this.durationSeconds = matchTimes[idx + 1];
+        localStorage.setItem('gti_discussion_time', this.durationSeconds);
         this.renderSettingsValues();
       }
+    });
+
+    const speechTimes = [0, 15, 30, 45, 60, 90];
+    document.getElementById('btn-dec-speech-time')?.addEventListener('click', () => {
+      sound.playClick();
+      const current = this.speechDurationSeconds;
+      const idx = speechTimes.indexOf(current);
+      if (idx > 0) {
+        this.speechDurationSeconds = speechTimes[idx - 1];
+        localStorage.setItem('gti_speech_time', this.speechDurationSeconds);
+        this.renderSettingsValues();
+      }
+    });
+    document.getElementById('btn-inc-speech-time')?.addEventListener('click', () => {
+      sound.playClick();
+      const current = this.speechDurationSeconds;
+      const idx = speechTimes.indexOf(current);
+      if (idx >= 0 && idx < speechTimes.length - 1) {
+        this.speechDurationSeconds = speechTimes[idx + 1];
+        localStorage.setItem('gti_speech_time', this.speechDurationSeconds);
+        this.renderSettingsValues();
+      }
+    });
+
+    document.getElementById('switch-roulette')?.addEventListener('change', (e) => {
+      sound.playToggle();
+      this.rouletteEnabled = e.target.checked;
+      localStorage.setItem('gti_roulette', this.rouletteEnabled);
     });
 
     document.getElementById('btn-cycle-difficulty')?.addEventListener('click', () => {
@@ -2358,7 +2325,14 @@ class ImposterGame {
     });
     document.getElementById('btn-random-names')?.addEventListener('click', () => {
       sound.playClick();
+      const pool = [...RANDOM_NAMES_VI];
+      this.shuffle(pool);
+      this.playerNames = pool.slice(0, this.playerCount);
+      localStorage.setItem('gti_player_names', JSON.stringify(this.playerNames));
       this.generatePlayerInputs();
+    });
+    document.getElementById('btn-add-player')?.addEventListener('click', () => {
+      this.addPlayer();
     });
     document.getElementById('btn-confirm-players')?.addEventListener('click', () => {
       sound.playClick();
@@ -2383,6 +2357,35 @@ class ImposterGame {
       sound.playFlipCard();
       this.currentRevealIndex++;
       this.showRevealStep(this.currentRevealIndex);
+    });
+
+    // Roulette Screen Events
+    document.getElementById('btn-spin-wheel')?.addEventListener('click', () => {
+      this.spinRouletteWheel();
+    });
+    document.getElementById('roulette-canvas')?.addEventListener('click', () => {
+      this.spinRouletteWheel();
+    });
+    document.getElementById('btn-spin-again')?.addEventListener('click', () => {
+      this.spinRouletteWheel();
+    });
+    document.getElementById('btn-skip-roulette')?.addEventListener('click', () => {
+      sound.playClick();
+      if (!this.currentSpeakerIndex || this.players[this.currentSpeakerIndex]?.isEliminated) {
+        const living = this.players.filter(p => !p.isEliminated);
+        const pick = living[Math.floor(Math.random() * (living.length || 1))];
+        this.currentSpeakerIndex = pick ? this.players.indexOf(pick) : 0;
+      }
+      this.startDiscussionStage();
+    });
+    document.getElementById('btn-roulette-proceed')?.addEventListener('click', () => {
+      sound.playClick();
+      this.startDiscussionStage();
+    });
+
+    // Discussion Next Speaker Event
+    document.getElementById('btn-next-speaker')?.addEventListener('click', () => {
+      this.nextSpeaker();
     });
 
     document.getElementById('btn-pause-resume')?.addEventListener('click', () => {
@@ -2482,12 +2485,34 @@ class ImposterGame {
       document.getElementById('modal-leaderboard').classList.remove('open');
     });
     document.getElementById('btn-reset-scores')?.addEventListener('click', () => {
-      if (confirm(this.lang === 'vi' ? 'Bạn có chắc chắn muốn đặt lại toàn bộ điểm số giải đấu?' : 'Reset all tournament party scores?')) {
-        sound.playClick();
-        this.partyScores = {};
-        localStorage.removeItem('gti_party_scores');
-        this.renderCumulativeLeaderboard();
-      }
+      this.resetAllScores();
+    });
+    document.getElementById('btn-reset-scores-screen')?.addEventListener('click', () => {
+      this.resetAllScores();
+    });
+    document.getElementById('btn-setup-reset-scores')?.addEventListener('click', () => {
+      this.resetAllScores();
+    });
+    document.getElementById('btn-setup-view-leaderboard')?.addEventListener('click', () => {
+      if (typeof sound !== 'undefined') sound.playClick();
+      this.renderCumulativeLeaderboard();
+      document.getElementById('modal-leaderboard')?.classList.add('open');
+    });
+
+    // Scoreboard Tabs on Screen 7
+    document.getElementById('btn-tab-round-scores')?.addEventListener('click', () => {
+      sound.playClick();
+      this.currentScoreboardTab = 'round';
+      document.getElementById('btn-tab-round-scores')?.classList.add('active');
+      document.getElementById('btn-tab-cumulative-scores')?.classList.remove('active');
+      this.renderResultsScoreboard();
+    });
+    document.getElementById('btn-tab-cumulative-scores')?.addEventListener('click', () => {
+      sound.playClick();
+      this.currentScoreboardTab = 'cumulative';
+      document.getElementById('btn-tab-cumulative-scores')?.classList.add('active');
+      document.getElementById('btn-tab-round-scores')?.classList.remove('active');
+      this.renderResultsScoreboard();
     });
 
     // Topic Options Events (Specific Context vs Random All)
@@ -2522,25 +2547,465 @@ class ImposterGame {
     document.getElementById('btn-close-rules')?.addEventListener('click', () => {
       document.getElementById('modal-deep-rules')?.classList.remove('open');
     });
+
+    // Custom Word Pairs Modal Events
+    document.getElementById('btn-open-word-pairs')?.addEventListener('click', () => {
+      this.openWordPairsModal();
+    });
+    document.getElementById('btn-setup-add-word-pair')?.addEventListener('click', () => {
+      this.openWordPairsModal();
+    });
+    document.getElementById('btn-modal-open-word-pairs')?.addEventListener('click', () => {
+      document.getElementById('modal-categories')?.classList.remove('open');
+      this.openWordPairsModal();
+    });
+    document.getElementById('btn-close-word-pairs')?.addEventListener('click', () => {
+      document.getElementById('modal-word-pairs')?.classList.remove('open');
+    });
+    document.getElementById('form-add-word-pair')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const civ = document.getElementById('wp-civilian')?.value;
+      const imp = document.getElementById('wp-imposter')?.value;
+      const cat = document.getElementById('wp-category')?.value;
+      this.addCustomWordPair(civ, imp, cat);
+    });
+    document.getElementById('btn-clear-custom-pairs')?.addEventListener('click', () => {
+      this.clearAllCustomWordPairs();
+    });
+
+    // Fixed Roles Modal Events
+    document.getElementById('btn-open-fixed-roles-modal')?.addEventListener('click', () => {
+      this.openFixedRolesModal();
+    });
+    document.getElementById('btn-screen-roles-open-fixed')?.addEventListener('click', () => {
+      this.openFixedRolesModal();
+    });
+    document.getElementById('btn-close-fixed-roles')?.addEventListener('click', () => {
+      document.getElementById('modal-fixed-roles')?.classList.remove('open');
+    });
+    document.getElementById('btn-save-fixed-roles')?.addEventListener('click', () => {
+      this.confirmFixedRolesModal();
+    });
+  }
+
+  // ==========================================================
+  // [SEC 04.4] FIXED ROLES MANAGEMENT (Vai trò cố định kèm số lượng)
+  // ==========================================================
+  syncFixedRolesWithDeck() {
+    const maxSpecial = this.getMaxSpecialAllowed();
+    let total = this.getTotalFixedCount();
+
+    // If total exceeds max special slots, automatically trim
+    while (total > maxSpecial && Object.keys(this.fixedRoles).length > 0) {
+      const keys = Object.keys(this.fixedRoles);
+      const lastKey = keys[keys.length - 1];
+      if (this.fixedRoles[lastKey] > 1) {
+        this.fixedRoles[lastKey]--;
+      } else {
+        delete this.fixedRoles[lastKey];
+      }
+      total = this.getTotalFixedCount();
+    }
+    localStorage.setItem('gti_fixed_roles', JSON.stringify(this.fixedRoles));
+
+    this.roles.forEach(r => {
+      if (r.id === 'civilian') {
+        r.enabled = true;
+        r.count = Math.max(1, this.playerCount - this.imposterCount - total);
+      } else if (r.id === 'imposter') {
+        r.enabled = true;
+        r.count = this.imposterCount;
+      } else {
+        const count = this.fixedRoles[r.id] || 0;
+        r.enabled = count > 0;
+        r.count = count;
+      }
+    });
+
+    this.updateBalanceMeter();
+  }
+
+  saveFixedRoles() {
+    localStorage.setItem('gti_fixed_roles', JSON.stringify(this.fixedRoles));
+  }
+
+  setFixedRoleCount(roleId, count) {
+    if (count <= 0) {
+      delete this.fixedRoles[roleId];
+    } else {
+      this.fixedRoles[roleId] = count;
+      const r = this.roles.find(x => x.id === roleId);
+      if (r) {
+        r.enabled = true;
+        r.count = count;
+      }
+    }
+    localStorage.setItem('gti_fixed_roles', JSON.stringify(this.fixedRoles));
+    this.syncFixedRolesWithDeck();
+    this.renderFixedRolesChips();
+    this.renderSettingsValues();
+    if (document.getElementById('screen-roles')?.classList.contains('active')) {
+      this.renderRolesList(this.currentRoleFilter || 'all');
+    }
+  }
+
+  renderFixedRolesChips() {
+    const container1 = document.getElementById('fixed-roles-chips-list');
+    const container2 = document.getElementById('screen-roles-fixed-chips');
+    const labelSlots1 = document.getElementById('label-fixed-roles-slots');
+    const labelSlots2 = document.getElementById('label-screen-roles-fixed-slots');
+    const filterFixedCountEl = document.getElementById('filter-fixed-count');
+
+    const totalFixed = this.getTotalFixedCount();
+    const maxSpecial = this.getMaxSpecialAllowed();
+    const civLeft = Math.max(1, this.playerCount - this.imposterCount - totalFixed);
+    const activeEntries = Object.entries(this.fixedRoles || {}).filter(([_, count]) => count > 0);
+
+    if (filterFixedCountEl) {
+      filterFixedCountEl.textContent = activeEntries.length;
+    }
+
+    const summaryText = totalFixed > 0
+      ? `Đang cố định: ${totalFixed} / ${maxSpecial} slot (${activeEntries.length} vai trò • Còn ${civLeft} Dân)`
+      : `Chưa cố định vai trò nào (Còn ${civLeft} Dân Thường)`;
+
+    if (labelSlots1) labelSlots1.textContent = totalFixed > 0 ? summaryText : 'Chắc chắn xuất hiện trong ván đấu';
+    if (labelSlots2) labelSlots2.textContent = summaryText;
+
+    const previewEl = document.getElementById('label-roles-preview');
+    if (previewEl) {
+      if (totalFixed > 0) {
+        const names = activeEntries
+          .map(([id]) => this.roles.find(r => r.id === id)?.name_vi)
+          .filter(Boolean);
+        previewEl.innerHTML = `20 vai trò • <strong style="color: #10b981;">📌 ${totalFixed} cố định (${names.slice(0, 2).join(', ')}${names.length > 2 ? '...' : ''})</strong>`;
+      } else {
+        previewEl.textContent = '20 vai trò mặc định & tự tạo';
+      }
+    }
+
+    [container1, container2].forEach(container => {
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (activeEntries.length === 0) {
+        container.innerHTML = `
+          <div class="fixed-roles-empty-hint">
+            Chưa chọn vai trò cố định (toàn bộ phe Dân là Dân Thường). Bấm <strong>➕ Thêm vai trò</strong> để chọn.
+          </div>
+        `;
+        return;
+      }
+
+      activeEntries.forEach(([roleId, count]) => {
+        const r = this.roles.find(x => x.id === roleId);
+        if (!r) return;
+
+        const item = document.createElement('div');
+        item.className = 'fixed-role-badge-item';
+        item.style.borderLeft = `3px solid ${r.color}`;
+
+        const teamLabel = r.team === 'good' ? 'Phe Dân' : r.team === 'evil' ? 'Phe Ác' : 'Trung Lập';
+
+        item.innerHTML = `
+          <div class="fixed-role-badge-info">
+            <span class="fixed-role-badge-icon" style="color: ${r.color}; background: ${r.color}15;">${r.icon}</span>
+            <div class="fixed-role-badge-meta">
+              <span class="fixed-role-badge-name">${r.name_vi}</span>
+              <span class="team-tag ${r.team}" style="font-size: 9px; padding: 1px 5px;">${teamLabel}</span>
+            </div>
+          </div>
+          <div class="fixed-role-stepper-control">
+            <button type="button" class="stepper-btn btn-fixed-dec" data-role-id="${r.id}" title="Giảm số lượng">-</button>
+            <span class="stepper-val fixed-count-val">${count}</span>
+            <button type="button" class="stepper-btn btn-fixed-inc" data-role-id="${r.id}" title="Tăng số lượng">+</button>
+            <button type="button" class="btn-remove-fixed" data-role-id="${r.id}" title="Gỡ vai trò này">✕</button>
+          </div>
+        `;
+
+        item.querySelector('.btn-fixed-inc')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const maxSpecial = this.getMaxSpecialAllowed();
+          if (this.getTotalFixedCount() >= maxSpecial) {
+            alert(`⚠️ Đã hết slot vai trò đặc biệt (${maxSpecial} slot). Hãy tăng số người chơi hoặc giảm vai trò khác!`);
+            return;
+          }
+          if (count >= (r.maxCount || 3)) {
+            alert(`⚠️ Vai trò "${r.name_vi}" chỉ được phép có tối đa ${r.maxCount || 3} người trong ván!`);
+            return;
+          }
+          sound.playClick();
+          this.setFixedRoleCount(r.id, count + 1);
+        });
+
+        item.querySelector('.btn-fixed-dec')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sound.playClick();
+          this.setFixedRoleCount(r.id, count - 1);
+        });
+
+        item.querySelector('.btn-remove-fixed')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sound.playClick();
+          this.setFixedRoleCount(r.id, 0);
+        });
+
+        container.appendChild(item);
+      });
+    });
+  }
+
+  removeFixedRole(roleId) {
+    if (typeof sound !== 'undefined') sound.playClick();
+    this.setFixedRoleCount(roleId, 0);
+  }
+
+  openFixedRolesModal() {
+    if (typeof sound !== 'undefined') sound.playClick();
+    const modal = document.getElementById('modal-fixed-roles');
+    const list = document.getElementById('fixed-roles-modal-list');
+    const counter = document.getElementById('fixed-roles-slots-counter');
+    if (!modal || !list) return;
+
+    list.innerHTML = '';
+
+    const maxSpecial = this.getMaxSpecialAllowed();
+    const updateCounterDisplay = () => {
+      const currentTotal = this.getTotalFixedCount();
+      const civLeft = Math.max(1, this.playerCount - this.imposterCount - currentTotal);
+      if (counter) {
+        counter.textContent = `Đang chọn: ${currentTotal} / ${maxSpecial} slot vai trò đặc biệt (Còn lại: ${civLeft} Dân Thường, ${this.imposterCount} Imposter)`;
+      }
+    };
+    updateCounterDisplay();
+
+    const selectable = this.roles.filter(r => r.id !== 'civilian' && r.id !== 'imposter');
+
+    selectable.forEach(role => {
+      const count = this.fixedRoles[role.id] || 0;
+      const item = document.createElement('div');
+      item.className = `fixed-role-modal-item ${count > 0 ? 'active' : ''}`;
+      
+      const teamLabel = role.team === 'good' ? 'Phe Dân' : role.team === 'evil' ? 'Phe Ác' : 'Trung Lập';
+
+      item.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+          <div style="font-size: 24px; width: 36px; height: 36px; border-radius: 8px; background: ${role.color}20; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            ${role.icon}
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <strong style="color: #fff; font-size: 13px;">${role.name_vi}</strong>
+              <span class="team-tag ${role.team}" style="font-size: 9px; padding: 1px 6px;">${teamLabel}</span>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); line-height: 1.3; margin-top: 2px;">
+              ${role.desc_vi || role.ability_vi}
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+          <div class="fixed-role-stepper-control">
+            <button type="button" class="stepper-btn modal-dec-btn" data-role-id="${role.id}">-</button>
+            <span class="stepper-val modal-count-val" id="modal-val-${role.id}">${count}</span>
+            <button type="button" class="stepper-btn modal-inc-btn" data-role-id="${role.id}">+</button>
+          </div>
+        </div>
+      `;
+
+      const valSpan = item.querySelector(`#modal-val-${role.id}`);
+      const decBtn = item.querySelector('.modal-dec-btn');
+      const incBtn = item.querySelector('.modal-inc-btn');
+
+      incBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const currentCount = this.fixedRoles[role.id] || 0;
+        const maxSpecial = this.getMaxSpecialAllowed();
+        if (this.getTotalFixedCount() >= maxSpecial) {
+          alert(`⚠️ Đã hết slot vai trò đặc biệt (${maxSpecial} slot). Hãy tăng số người chơi hoặc giảm vai trò khác!`);
+          return;
+        }
+        if (currentCount >= (role.maxCount || 3)) {
+          alert(`⚠️ Vai trò "${role.name_vi}" chỉ được phép có tối đa ${role.maxCount || 3} người trong ván!`);
+          return;
+        }
+        sound.playClick();
+        const newCount = currentCount + 1;
+        this.fixedRoles[role.id] = newCount;
+        valSpan.textContent = newCount;
+        item.classList.add('active');
+        updateCounterDisplay();
+      });
+
+      decBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const currentCount = this.fixedRoles[role.id] || 0;
+        if (currentCount > 0) {
+          sound.playClick();
+          const newCount = currentCount - 1;
+          if (newCount === 0) {
+            delete this.fixedRoles[role.id];
+            item.classList.remove('active');
+          } else {
+            this.fixedRoles[role.id] = newCount;
+          }
+          valSpan.textContent = newCount;
+          updateCounterDisplay();
+        }
+      });
+
+      list.appendChild(item);
+    });
+
+    modal.classList.add('open');
+  }
+
+  confirmFixedRolesModal() {
+    if (typeof sound !== 'undefined') sound.playWinFanfare();
+    localStorage.setItem('gti_fixed_roles', JSON.stringify(this.fixedRoles));
+    this.syncFixedRolesWithDeck();
+    this.renderFixedRolesChips();
+    this.renderSettingsValues();
+    if (document.getElementById('screen-roles')?.classList.contains('active')) {
+      this.renderRolesList(this.currentRoleFilter || 'all');
+    }
+    document.getElementById('modal-fixed-roles')?.classList.remove('open');
+  }
+
+  // ==========================================================
+  // [SEC 04.5] CUSTOM WORD PAIRS MANAGEMENT
+  // ==========================================================
+  openWordPairsModal() {
+    if (typeof sound !== 'undefined') sound.playClick();
+    this.renderCustomWordPairsList();
+    const modal = document.getElementById('modal-word-pairs');
+    if (modal) modal.classList.add('open');
+  }
+
+  saveCustomWordPairs() {
+    localStorage.setItem('gti_custom_word_pairs', JSON.stringify(this.customWordPairs));
+  }
+
+  addCustomWordPair(civilian, imposter, category) {
+    const civ = civilian ? civilian.trim() : '';
+    const imp = imposter ? imposter.trim() : '';
+    const cat = category ? category.trim() : 'Cặp từ tự tạo';
+
+    if (!civ || !imp) {
+      alert('Vui lòng nhập đầy đủ Từ Phe Dân và Từ Kẻ Giả Mạo!');
+      return;
+    }
+
+    const newPair = {
+      id: `wp_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      civilian: civ,
+      imposter: imp,
+      category: cat || 'Tự tạo'
+    };
+
+    this.customWordPairs.unshift(newPair);
+    this.saveCustomWordPairs();
+    if (typeof sound !== 'undefined') sound.playWinFanfare();
+
+    this.renderCustomWordPairsList();
+
+    // Reset input fields
+    const civInp = document.getElementById('wp-civilian');
+    const impInp = document.getElementById('wp-imposter');
+    if (civInp) { civInp.value = ''; civInp.focus(); }
+    if (impInp) impInp.value = '';
+  }
+
+  deleteCustomWordPair(id) {
+    if (typeof sound !== 'undefined') sound.playClick();
+    this.customWordPairs = this.customWordPairs.filter(wp => wp.id !== id);
+    this.saveCustomWordPairs();
+    this.renderCustomWordPairsList();
+  }
+
+  clearAllCustomWordPairs() {
+    if (this.customWordPairs.length === 0) return;
+    if (confirm('Bạn có chắc chắn muốn xóa tất cả các cặp từ tự tạo?')) {
+      if (typeof sound !== 'undefined') sound.playClick();
+      this.customWordPairs = [];
+      this.saveCustomWordPairs();
+      this.renderCustomWordPairsList();
+    }
+  }
+
+  renderCustomWordPairsList() {
+    const countEl = document.getElementById('count-custom-pairs');
+    if (countEl) countEl.textContent = this.customWordPairs.length;
+
+    const list = document.getElementById('custom-word-pairs-list');
+    if (!list) return;
+
+    list.innerHTML = '';
+
+    if (this.customWordPairs.length === 0) {
+      list.innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); padding: 24px 10px; font-size: 12px; line-height: 1.6;">
+          <div style="font-size: 24px; margin-bottom: 6px;">📝</div>
+          Chưa có cặp từ tự tạo nào.<br />
+          Hãy nhập <strong>Từ Phe Dân</strong> & <strong>Từ Imposter</strong> ở form phía trên để thêm cặp từ cho phòng chơi của bạn!
+        </div>
+      `;
+      return;
+    }
+
+    this.customWordPairs.forEach(wp => {
+      const item = document.createElement('div');
+      item.className = 'word-pair-item';
+      item.innerHTML = `
+        <div style="flex: 1; min-width: 0;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <span class="wp-civ-tag" title="Từ của phe Dân">👤 ${wp.civilian}</span>
+            <span style="color: var(--text-muted); font-size: 11px;">⟷</span>
+            <span class="wp-imp-tag" title="Từ của Imposter">🎭 ${wp.imposter}</span>
+          </div>
+          <div style="margin-top: 3px;">
+            <span class="wp-cat-pill">🏷️ ${wp.category || 'Tự tạo'}</span>
+          </div>
+        </div>
+        <button type="button" class="btn-delete-wp" data-wp-id="${wp.id}" title="Xóa cặp từ này">🗑️</button>
+      `;
+
+      item.querySelector('.btn-delete-wp')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.deleteCustomWordPair(wp.id);
+      });
+
+      list.appendChild(item);
+    });
   }
 
   openCategoriesPicker() {
     const list = document.getElementById('categories-picker-list');
+    if (!list) return;
     list.innerHTML = '';
 
-    CATEGORIES.forEach(cat => {
+    let allCats = [...CATEGORIES];
+    if (this.customWordPairs && this.customWordPairs.length > 0) {
+      allCats.unshift({
+        id: "custom_user_pairs",
+        name_vi: "✨ Cặp Từ Tự Tạo",
+        icon: "⭐",
+        words: this.customWordPairs
+      });
+    }
+
+    allCats.forEach(cat => {
       const item = document.createElement('div');
       item.className = 'setting-item-row';
       const isSel = cat.id === this.selectedCategoryId;
       if (isSel) item.style.borderColor = 'var(--primary-red)';
 
-      const name = this.lang === 'vi' ? cat.name_vi : cat.name_en;
+      const name = cat.name_vi;
       item.innerHTML = `
         <div style="display: flex; align-items: center; gap: 12px;">
           <span style="font-size: 26px;">${cat.icon}</span>
           <div>
             <h4 style="font-family: var(--font-display); font-weight: 700;">${name}</h4>
-            <p style="font-size: 11px; color: var(--text-muted);">${cat.words.length} ${this.lang === 'vi' ? 'từ khóa phong phú' : 'rich keywords'}</p>
+            <p style="font-size: 11px; color: var(--text-muted);">${cat.words.length} cặp từ vựng</p>
           </div>
         </div>
         ${isSel ? '<span style="color: var(--primary-red); font-size: 18px; font-weight: 800;">✓</span>' : ''}
@@ -2549,14 +3014,22 @@ class ImposterGame {
       item.addEventListener('click', () => {
         sound.playClick();
         this.selectedCategoryId = cat.id;
-        document.getElementById('label-category-name').textContent = name;
-        document.getElementById('modal-categories').classList.remove('open');
+        const catNameEl = document.getElementById('label-category-name');
+        if (catNameEl) catNameEl.textContent = name;
+        const chipIcon = document.getElementById('chip-category-icon');
+        if (chipIcon) chipIcon.textContent = cat.icon;
+        const chipName = document.getElementById('chip-category-name');
+        if (chipName) {
+          const wordsPreview = cat.words.slice(0, 2).map(w => w.civilian || w.vi || w).join(', ');
+          chipName.textContent = `${name} (${wordsPreview}...)`;
+        }
+        document.getElementById('modal-categories')?.classList.remove('open');
       });
 
       list.appendChild(item);
     });
 
-    document.getElementById('modal-categories').classList.add('open');
+    document.getElementById('modal-categories')?.classList.add('open');
   }
 
   saveCustomRole() {
