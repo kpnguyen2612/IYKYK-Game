@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Guess the Imposter - Arcade Social Deduction Party Game</title>
+  
+  <!-- Google Fonts: Outfit & Be Vietnam Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+  
+  <!-- Canvas Confetti CDN with Local Fallback -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="frame-mode">
+
+  <!-- Ambient Light Orbs -->
+  <div class="ambient-glow glow-top"></div>
+  <div class="ambient-glow glow-bottom"></div>
+
+  <!-- App Viewport Wrapper -->
+  <div id="app-viewport">
+
+    <!-- Phone Notch & Dynamic Island Simulation -->
+    <div class="phone-notch">
+      <span id="phone-clock">21:42</span>
+      <div class="notch-island">
+        <span class="notch-dot"></span>
+        <span style="font-size: 10px; color: #ff3b30; font-weight: 800;">IMPOSTER</span>
+      </div>
+      <div style="display: flex; gap: 4px; font-size: 11px;">
+        <span>5G</span>
+        <span>100%</span>
+      </div>
+    </div>
+
+    <!-- Universal Quick Toolbar -->
+    <header class="global-control-bar">
+      <div class="control-group">
+        <button id="btn-toggle-lang" class="ctrl-btn" title="Chuyển ngôn ngữ">
+          <span id="lang-flag">🇻🇳</span> <span id="lang-text">VI</span>
+        </button>
+        <button id="btn-toggle-theme" class="ctrl-btn" title="Chế độ sáng/tối">
+          <span id="theme-icon">🌙</span>
+        </button>
+        <button id="btn-toggle-sound" class="ctrl-btn" title="Bật/Tắt âm thanh">
+          <span id="sound-icon">🔊</span>
+        </button>
+      </div>
+
+      <div class="control-group">
+        <button id="btn-toggle-frame" class="ctrl-btn" title="Khung điện thoại / Toàn màn hình">
+          <span id="frame-icon">📱</span>
+        </button>
+        <!-- Quick Screen Jump for Reviewer Inspection -->
+        <select id="screen-jump-select" class="ctrl-btn screen-selector-btn" title="Kiểm tra màn hình">
+          <option value="screen-setup">1. Cài đặt ván (Setup)</option>
+          <option value="screen-roles">2. Quản lý vai trò (Roles)</option>
+          <option value="screen-players">3. Tên người chơi (Players)</option>
+          <option value="screen-reveal">4. Lật thẻ vai trò (Reveal)</option>
+          <option value="screen-discussion">5. Thảo luận & Đếm ngược (Timer)</option>
+          <option value="screen-voting">6. Bỏ phiếu (Voting)</option>
+          <option value="screen-results">7. Kết quả & MVP (Results)</option>
+          <option value="screen-history">8. Lịch sử ván đấu (History)</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- MAIN SCROLLABLE SCREEN CONTAINER -->
+    <main class="screen-container">
+
+      <!-- ==========================================
+           SCREEN 1: HOME & GAME SETUP
+           ========================================== -->
+      <section id="screen-setup" class="view-screen active">
+        <!-- Hero Header -->
+        <div class="brand-hero-card">
+          <div class="hero-content">
+            <div class="mascot-avatar">🎭</div>
+            <div class="hero-title-box">
+              <span class="hero-badge" data-i18n="party_game">Party Deduction Game</span>
+              <h1>Guess the Imposter</h1>
+              <p class="hero-subtitle" data-i18n="hero_subtitle">Ai là Kẻ Giả Mạo đang ẩn nấp?</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode Toggle Tabs -->
+        <div class="mode-toggle-pill">
+          <button id="mode-tab-pass" class="mode-tab-btn active" data-mode="pass">
+            <span>📱</span> <span data-i18n="mode_pass">Pass the Phone</span>
+          </button>
+          <button id="mode-tab-online" class="mode-tab-btn" data-mode="online">
+            <span>🌐</span> <span data-i18n="mode_online">Play Online</span>
+          </button>
+        </div>
+
+        <!-- Online Lobby Room Alert (Visible when Online mode selected) -->
+        <div id="online-lobby-banner" class="instruction-box" style="display: none; border-left-color: #3b82f6;">
+          <span class="instruction-icon">📡</span>
+          <div class="instruction-text">
+            <strong data-i18n="room_code">Mã phòng:</strong> <span style="font-family: var(--font-display); font-weight: 800; color: #3b82f6;">#IMP-8821</span>
+            <p style="margin-top: 4px; font-size: 11px;" data-i18n="online_desc">Các thiết bị khác truy cập cùng mạng Wi-Fi hoặc quét mã để tham gia.</p>
+          </div>
+        </div>
+
+        <!-- Quick Instructions Guide -->
+        <div class="instruction-box">
+          <span class="instruction-icon">💡</span>
+          <p class="instruction-text" data-i18n="instruction_text">
+            Mỗi người chơi bí mật xem vai trò của mình. Hãy thảo luận, tìm manh mối và đoán xem ai là kẻ giả mạo.
+          </p>
+        </div>
+
+        <!-- Settings List -->
+        <div class="settings-section-title" data-i18n="section_match_settings">Cài đặt ván chơi</div>
+        <div class="settings-card-group">
+
+          <!-- Players Count -->
+          <div class="setting-item-row" id="row-players">
+            <div class="setting-info-left">
+              <div class="setting-icon-box">👥</div>
+              <div class="setting-texts">
+                <h4 data-i18n="setting_players">Số người chơi</h4>
+                <p data-i18n="setting_players_desc">Từ 3 đến 20 người</p>
+              </div>
+            </div>
+            <div class="setting-action-right">
+              <div class="stepper-control">
+                <button class="stepper-btn" id="btn-dec-players">-</button>
+                <span class="stepper-val" id="val-players">6</span>
+                <button class="stepper-btn" id="btn-inc-players">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Imposters Count -->
+          <div class="setting-item-row" id="row-imposters">
+            <div class="setting-info-left">
+              <div class="setting-icon-box" style="color: #ef4444; background: rgba(239, 68, 68, 0.12);">🎭</div>
+              <div class="setting-texts">
+                <h4 data-i18n="setting_imposters">Kẻ Giả Mạo</h4>
+                <p data-i18n="setting_imposters_desc">Số lượng Imposter trong ván</p>
+              </div>
+            </div>
+            <div class="setting-action-right">
+              <div class="stepper-control">
+                <button class="stepper-btn" id="btn-dec-imposters">-</button>
+                <span class="stepper-val" id="val-imposters">1</span>
+                <button class="stepper-btn" id="btn-inc-imposters">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Choose Roles Item -->
+          <div class="setting-item-row" id="btn-open-roles">
+            <div class="setting-info-left">
+              <div class="setting-icon-box" style="color: #8b5cf6; background: rgba(139, 92, 246, 0.12);">🎴</div>
+              <div class="setting-texts">
+                <h4 data-i18n="setting_roles">Vai trò (Roles)</h4>
+                <p id="label-roles-preview" data-i18n="setting_roles_desc">20 vai trò mặc định & tự tạo</p>
+              </div>
+            </div>
+            <div class="setting-action-right">
+              <span class="setting-badge-val" id="badge-roles-count">6 / 6</span>
+              <span class="chevron-icon">›</span>
+            </div>
+          </div>
+
+          <!-- Categories Item -->
+          <div class="setting-item-row" id="btn-open-categories">
+            <div class="setting-info-left">
+              <div class="setting-icon-box" style="color: #06b6d4; background: rgba(6, 182, 212, 0.12);">🏷️</div>
+              <div class="setting-texts">
+                <h4 data-i18n="setting_category">Chủ đề từ khóa</h4>
+                <p id="label-category-name">Ẩm Thực & Đồ Uống</p>
+              </div>
+            </div>
+            <div class="setting-action-right">
+              <span class="chevron-icon">›</span>
+            </div>
+          </div>
+
+          <!-- Hints for Imposter Toggle -->
+          <div class="setting-item-row">
+            <div class="setting-info-left">
+              <div class="setting-icon-box" style="color: #f59e0b; background: rgba(245, 158, 11, 0.12);">💡</div>
+              <div class="setting-texts">
+                <h4 data-i18n="setting_hints">Gợi ý cho Kẻ Giả Mạo</h4>
+                <p data-i18n="setting_hints_desc">Cung cấp manh mối cho Imposter</p>
+              </div>
+            </div>
+            <div class="setting-action-right">
+              <label class="switch-control">
+                <input type="checkbox" id="switch-hints" checked />
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Time Limit Toggle & Duration -->
+          <div class="setting-item-row">
+            <div class="setting-info-left">
+              <div class="setting-icon-box" style="color: #ec4899; background: rgba(236, 72, 153, 0.12);">⏱️</div>
+              <div class="setting-texts">
+                <h4 data-i18n="setting_timelimit">Giới hạn thời gian</h4>
+                <p id="label-duration-desc">3 phút / ván thảo luận</p>
+              </div>
+            </div>
+            <div class="setting-action-right">
+              <div class="stepper-control" id="duration-stepper-box">
+                <button class="stepper-btn" id="btn-dec-time">-</button>
+                <span class="stepper-val" id="val-time">3m</span>
+                <button class="stepper-btn" id="btn-inc-time">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Difficulty -->
+          <div class="setting-item-row" id="btn-cycle-difficulty">
+            <div class="setting-info-left">
+              <div class="setting-icon-box" style="color: #10b981; background: rgba(16, 185, 129, 0.12);">🎯</div>
+              <div class="setting-texts">
+                <h4 data-i18n="setting_difficulty">Độ khó</h4>
+                <p data-i18n="setting_difficulty_desc">Dễ, Bình thường, Khó, Tùy chỉnh</p>
+              </div>
+            </div>
+            <div class="setting-action-right">
+              <span class="setting-badge-val" id="badge-difficulty">Normal</span>
+              <span class="chevron-icon">›</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- START GAME CTA -->
+        <button id="btn-start-game" class="primary-cta-btn">
+          <span>🚀</span>
+          <span data-i18n="btn_start_game">Bắt đầu ván chơi</span>
+        </button>
+      </section>
+
+      <!-- ==========================================
+           SCREEN 2: ROLE SELECTION & BALANCE ENGINE
+           ========================================== -->
+      <section id="screen-roles" class="view-screen">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <button id="btn-back-to-setup" class="ctrl-btn">
+            <span>←</span> <span data-i18n="btn_back">Quay lại</span>
+          </button>
+          <h2 style="font-family: var(--font-display); font-size: 18px; font-weight: 800;" data-i18n="title_choose_roles">Chọn vai trò</h2>
+          <button id="btn-open-custom-role" class="ctrl-btn" style="color: var(--primary-red); border-color: rgba(255,59,48,0.4);">
+            <span>+</span> <span data-i18n="btn_custom_role">Tạo vai trò</span>
+          </button>
+        </div>
+
+        <!-- Role Balance HUD Meter -->
+        <div class="balance-hud-bar">
+          <div class="balance-row-header">
+            <span class="balance-label" data-i18n="balance_label">Tỷ lệ cân bằng vai trò:</span>
+            <span id="role-balance-count-text" class="balance-meter-text balanced">6 / 6 Vai trò</span>
+          </div>
+          <div class="balance-progress-bar">
+            <div id="bar-good" class="progress-fill-good" style="width: 60%;"></div>
+            <div id="bar-neutral" class="progress-fill-neutral" style="width: 20%;"></div>
+            <div id="bar-evil" class="progress-fill-evil" style="width: 20%;"></div>
+          </div>
+          <div id="role-balance-warning-msg" style="font-size: 11px; margin-top: 6px; color: var(--text-muted);">
+            ✓ Bộ vai trò đã khớp chính xác với 6 người chơi.
+          </div>
+          <div class="balance-actions-row">
+            <button id="btn-auto-balance" class="auto-balance-btn">
+              <span>⚡</span> <span data-i18n="btn_auto_balance">Tự động cân bằng (Auto Balance)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Chips -->
+        <div class="role-filter-scroll">
+          <button class="filter-chip active" data-filter="all" data-i18n="filter_all">Tất cả (20+)</button>
+          <button class="filter-chip" data-filter="good" data-i18n="filter_good">Phe Dân (Good)</button>
+          <button class="filter-chip" data-filter="evil" data-i18n="filter_evil">Phe Ác (Evil)</button>
+          <button class="filter-chip" data-filter="neutral" data-i18n="filter_neutral">Trung lập (Neutral)</button>
+          <button class="filter-chip" data-filter="custom" data-i18n="filter_custom">Tự tạo (Custom)</button>
+        </div>
+
+        <!-- 20 Roles Render Container -->
+        <div id="roles-container" class="roles-scroll-list">
+          <!-- Roles will be injected dynamically via roles_data.js -->
+        </div>
+
+        <button id="btn-save-roles-done" class="primary-cta-btn">
+          <span>✓</span> <span data-i18n="btn_save_roles">Lưu cấu hình vai trò</span>
+        </button>
+      </section>
+
+      <!-- ==========================================
+           SCREEN 3: PLAYER NAMES SETUP
+           ========================================== -->
+      <section id="screen-players" class="view-screen">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <button id="btn-back-from-players" class="ctrl-btn">
+            <span>←</span> <span data-i18n="btn_back">Quay lại</span>
+          </button>
+          <h2 style="font-family: var(--font-display); font-size: 18px; font-weight: 800;" data-i18n="title_players">Người chơi</h2>
+          <button id="btn-random-names" class="ctrl-btn" style="color: var(--primary-orange);">
+            <span>🎲</span> <span data-i18n="btn_random_names">Tên ngẫu nhiên</span>
+          </button>
+        </div>
+
+        <div class="instruction-box" style="margin-bottom: 16px;">
+          <span class="instruction-icon">📱</span>
+          <p class="instruction-text" data-i18n="players_instruction">
+            Nhập tên của từng người chơi theo thứ tự ngồi chuyền điện thoại theo vòng tròn.
+          </p>
+        </div>
+
+        <!-- Players Input List -->
+        <div id="player-inputs-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
+          <!-- Dynamically populated -->
+        </div>
+
+        <button id="btn-confirm-players" class="primary-cta-btn">
+          <span>🔒</span> <span data-i18n="btn_deal_roles">Phân vai & Chuyền điện thoại</span>
+        </button>
+      </section>
+
+      <!-- ==========================================
+           SCREEN 4: PASS THE PHONE & ROLE REVEAL
+           ========================================== -->
+      <section id="screen-reveal" class="view-screen">
+        <div class="pass-phone-container">
+          
+          <!-- Phase Indicator Header -->
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <span class="hero-badge" id="reveal-progress-pill">Người chơi 1 / 6</span>
+          </div>
+
+          <!-- Step A: Privacy Curtain Card (Waiting to Hand Phone) -->
+          <div id="reveal-curtain-box" class="privacy-curtain-card">
+            <div class="privacy-lock-icon">🤫</div>
+            <div>
+              <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;" data-i18n="pass_phone_to">Chuyền điện thoại cho:</div>
+              <h2 id="curtain-player-name" class="target-player-title">Bảo Long</h2>
+            </div>
+            <p class="privacy-warning-text" data-i18n="curtain_warning">
+              Đảm bảo những người xung quanh không nhìn thấy màn hình trước khi bấm lật thẻ!
+            </p>
+            <button id="btn-curtain-ready" class="primary-cta-btn" style="min-height: 48px;">
+              <span>👀</span> <span data-i18n="btn_curtain_ready">Tôi đã cầm máy, lật thẻ</span>
+            </button>
+          </div>
+
+          <!-- Step B: 3D Flipping Card (Active Viewing) -->
+          <div id="reveal-card-viewport" class="flip-card-viewport" style="display: none;">
+            <div id="flip-card-inner" class="flip-card-inner">
+              
+              <!-- Front Side: Mystery Obsidian Shield -->
+              <div class="flip-card-front">
+                <div style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff;" id="flip-front-player-name">
+                  Bảo Long
+                </div>
+                <div class="pattern-grid-art">🔒</div>
+                <div class="tap-reveal-hint">
+                  <span>👆</span> <span data-i18n="tap_to_flip">Chạm để mở thẻ bí mật</span>
+                </div>
+              </div>
+
+              <!-- Back Side: Revealed Identity -->
+              <div class="flip-card-back" id="flip-card-back">
+                <div>
+                  <span class="team-tag" id="revealed-team-tag">Phe Dân (Good)</span>
+                  <div class="revealed-role-icon" id="revealed-icon">🔍</div>
+                  <h3 class="revealed-role-name" id="revealed-name">Thám Tử</h3>
+                </div>
+
+                <!-- Secret Keyword Box (Only if permitted) -->
+                <div class="secret-keyword-container" id="keyword-box">
+                  <div class="keyword-label" id="keyword-label" data-i18n="secret_keyword_label">Từ khóa bí mật:</div>
+                  <div class="secret-keyword-text" id="keyword-text">Trà Sữa Trân Châu</div>
+                  <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="keyword-category">
+                    Chủ đề: Ẩm Thực & Đồ Uống
+                  </div>
+                </div>
+
+                <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.45;" id="revealed-ability">
+                  Khả năng: Có thể kiểm tra 1 người chơi để biết họ có phải là Imposter hay không.
+                </div>
+
+                <!-- Hide Role Button -->
+                <button id="btn-hide-role" class="secondary-btn" style="min-height: 44px; width: 100%;">
+                  <span>🙈</span> <span data-i18n="btn_hide_role">Đã nhớ, giấu vai trò</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ==========================================
+           SCREEN 5: DISCUSSION & COUNTDOWN TIMER
+           ========================================== -->
+      <section id="screen-discussion" class="view-screen">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <span class="hero-badge" style="background: rgba(255, 107, 53, 0.2); color: var(--primary-orange);" data-i18n="phase_discussion">
+            Vòng 1: Thảo luận
+          </span>
+          <button id="btn-open-ability-toolbox" class="ctrl-btn" style="color: #3b82f6;">
+            <span>💼</span> <span data-i18n="toolbox_btn">Năng lực bí mật</span>
+          </button>
+        </div>
+
+        <!-- Circular Big Countdown Timer -->
+        <div class="timer-hero-container">
+          <div class="circular-timer-wrapper" id="timer-wrapper">
+            <svg class="circular-timer-svg" viewBox="0 0 220 220">
+              <defs>
+                <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ff3b30" />
+                  <stop offset="100%" stop-color="#ff6b35" />
+                </linearGradient>
+              </defs>
+              <circle class="timer-track-circle" cx="110" cy="110" r="95"></circle>
+              <circle id="timer-progress" class="timer-progress-circle" cx="110" cy="110" r="95" stroke-dasharray="596.9" stroke-dashoffset="0"></circle>
+            </svg>
+            <div class="timer-text-content">
+              <div id="timer-display" class="timer-digits">03:00</div>
+              <div class="timer-phase-caption" id="timer-status-caption" data-i18n="timer_caption">Thời gian còn lại</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HUD Badges -->
+        <div class="discussion-hud-chips">
+          <div class="hud-chip">
+            <span>🏷️</span> <span id="hud-category-name">Ẩm Thực & Đồ Uống</span>
+          </div>
+          <div class="hud-chip">
+            <span>👥</span> <span id="hud-players-count">6 Người sống sót</span>
+          </div>
+          <div class="hud-chip" id="hud-hints-chip">
+            <span>💡</span> <span data-i18n="hint_available">Gợi ý sẵn sàng</span>
+          </div>
+        </div>
+
+        <!-- Rules & Prompt Advice -->
+        <div class="instruction-box" style="margin-bottom: 16px;">
+          <span class="instruction-icon">💬</span>
+          <p class="instruction-text" data-i18n="discussion_tip">
+            Lần lượt từng người đưa ra 1 câu mô tả về từ khóa mà không được nói thẳng tên từ. Kẻ giả mạo hãy cố gắng bắt chước!
+          </p>
+        </div>
+
+        <!-- Timer Controls Grid -->
+        <div class="timer-controls-grid">
+          <button id="btn-pause-resume" class="secondary-btn">
+            <span id="pause-icon">⏸️</span> <span id="pause-text" data-i18n="btn_pause">Tạm dừng</span>
+          </button>
+          <button id="btn-add-30s" class="secondary-btn">
+            <span>+30s</span> <span data-i18n="btn_add_time">+30 Giây</span>
+          </button>
+        </div>
+
+        <button id="btn-go-to-vote" class="primary-cta-btn" style="background: linear-gradient(135deg, #ef4444 0%, #ff3b30 100%);">
+          <span>🗳️</span> <span data-i18n="btn_vote_now">Bỏ phiếu loại Kẻ Giả Mạo</span>
+        </button>
+      </section>
+
+      <!-- ==========================================
+           SCREEN 6: VOTING PHASE
+           ========================================== -->
+      <section id="screen-voting" class="view-screen">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <button id="btn-back-to-timer" class="ctrl-btn">
+            <span>←</span> <span data-i18n="btn_back">Quay lại</span>
+          </button>
+          <h2 style="font-family: var(--font-display); font-size: 18px; font-weight: 800;" data-i18n="title_voting">Bỏ phiếu loại</h2>
+          <span class="hero-badge" id="voting-round-badge">Vòng 1</span>
+        </div>
+
+        <div class="instruction-box" style="margin-bottom: 16px;">
+          <span class="instruction-icon">🎯</span>
+          <p class="instruction-text" data-i18n="voting_instruction">
+            Chọn người chơi mà cả nhóm nghi ngờ là Kẻ Giả Mạo nhiều nhất. Người có nhiều phiếu nhất sẽ bị vạch mặt!
+          </p>
+        </div>
+
+        <!-- Voting Ballot Grid -->
+        <div id="voting-cards-grid" class="voting-grid-list">
+          <!-- Dynamically populated player cards -->
+        </div>
+
+        <!-- Selected Candidate Status -->
+        <div id="selected-suspect-alert" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-medium); border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px; text-align: center; font-size: 13px;">
+          <span data-i18n="suspect_chosen">Nghi phạm được chọn:</span> <strong id="suspect-name" style="color: var(--primary-red);">-</strong>
+        </div>
+
+        <button id="btn-submit-vote" class="primary-cta-btn" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">
+          <span>🔨</span> <span data-i18n="btn_confirm_elimination">Vạch mặt & Công bố kết quả</span>
+        </button>
+      </section>
+
+      <!-- ==========================================
+           SCREEN 7: RESULTS & WINNER SCREEN
+           ========================================== -->
+      <section id="screen-results" class="view-screen">
+        
+        <!-- Big Unmasking Box -->
+        <div class="unmask-reveal-box">
+          <span class="winner-banner-tag" id="result-winner-banner">Phe Dân Làng Chiến Thắng!</span>
+          <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;" data-i18n="imposter_was">Kẻ Giả Mạo thực sự là:</div>
+          <h2 class="unmasked-names" id="result-imposter-names">Minh Anh</h2>
+          <div style="font-size: 14px; color: var(--text-secondary); margin-top: 6px;">
+            <span data-i18n="secret_word_was">Từ khóa bí mật là:</span> <strong style="color: #fff;" id="result-keyword">Trà Sữa Trân Châu</strong>
+          </div>
+        </div>
+
+        <!-- Imposter Comeback Word Guess Minigame -->
+        <div id="imposter-comeback-card" class="instruction-box" style="border-left-color: #ef4444; flex-direction: column; gap: 8px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 20px;">🎲</span>
+            <strong style="color: #ef4444;" data-i18n="comeback_title">Cơ hội lật kèo của Imposter!</strong>
+          </div>
+          <p style="font-size: 12px; color: var(--text-secondary);" data-i18n="comeback_desc">
+            Nếu Imposter bị bỏ phiếu loại nhưng đoán đúng từ khóa bí mật, Imposter sẽ LẬT KÈO CHIẾN THẮNG!
+          </p>
+          <div style="display: flex; gap: 6px; width: 100%; margin-top: 4px;">
+            <input type="text" id="input-imposter-guess" class="form-input" placeholder="Nhập từ khóa đoán..." style="padding: 8px 12px;" />
+            <button id="btn-check-guess" class="ctrl-btn" style="background: var(--primary-red); color: #fff; white-space: nowrap;">
+              <span data-i18n="btn_guess">Đoán</span>
+            </button>
+          </div>
+          <div id="comeback-result-msg" style="font-size: 12px; font-weight: 700; display: none;"></div>
+        </div>
+
+        <!-- All Roles Breakdown List -->
+        <div class="settings-section-title" data-i18n="section_roster">Danh tính toàn bộ người chơi</div>
+        <div id="results-roster-list" class="all-roles-summary-list">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Match Timeline Log -->
+        <div class="settings-section-title" data-i18n="section_timeline">Diễn biến ván đấu</div>
+        <div id="match-timeline-log" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px; font-size: 12px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 24px;">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button id="btn-play-again" class="primary-cta-btn">
+            <span>🔄</span> <span data-i18n="btn_play_again">Chơi lại ván mới</span>
+          </button>
+          <button id="btn-change-roles" class="secondary-btn">
+            <span>⚙️</span> <span data-i18n="btn_change_roles">Thay đổi vai trò</span>
+          </button>
+          <button id="btn-back-to-home" class="secondary-btn">
+            <span>🏠</span> <span data-i18n="btn_back_home">Về trang chủ</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           SCREEN 8: GAME HISTORY
+           ========================================== -->
+      <section id="screen-history" class="view-screen">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <button id="btn-history-back" class="ctrl-btn">
+            <span>←</span> <span data-i18n="btn_back">Quay lại</span>
+          </button>
+          <h2 style="font-family: var(--font-display); font-size: 18px; font-weight: 800;" data-i18n="title_history">Lịch sử ván chơi</h2>
+          <button id="btn-clear-history" class="ctrl-btn" style="color: var(--primary-red);">
+            <span>🗑️</span> <span data-i18n="btn_clear">Xóa</span>
+          </button>
+        </div>
+
+        <div id="history-items-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
+          <!-- Injected dynamically -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==========================================
+       MODALS & BOTTOM SHEETS
+       ========================================== -->
+
+  <!-- Modal 1: Create / Edit Custom Role -->
+  <div id="modal-custom-role" class="modal-overlay">
+    <div class="bottom-sheet-content">
+      <div class="sheet-drag-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title" id="custom-role-sheet-title" data-i18n="modal_custom_role_title">Tạo vai trò mới</h3>
+        <button class="close-sheet-btn" id="btn-close-custom-role">✕</button>
+      </div>
+
+      <form id="form-custom-role">
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_role_name">Tên vai trò</label>
+          <input type="text" id="cr-name" class="form-input" placeholder="Ví dụ: Pháp Sư Thời Gian" required />
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;" class="form-group">
+          <div>
+            <label class="form-label" data-i18n="form_role_icon">Icon / Emoji</label>
+            <input type="text" id="cr-icon" class="form-input" value="🧙‍♂️" maxlength="2" required />
+          </div>
+          <div>
+            <label class="form-label" data-i18n="form_role_color">Màu nhận diện</label>
+            <input type="color" id="cr-color" class="form-input" value="#8b5cf6" style="height: 44px; padding: 4px;" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_role_team">Phe (Team)</label>
+          <select id="cr-team" class="form-select">
+            <option value="good">Phe Dân (Good)</option>
+            <option value="evil">Phe Ác (Evil)</option>
+            <option value="neutral">Trung lập (Neutral)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_role_desc">Mô tả ngắn</label>
+          <input type="text" id="cr-desc" class="form-input" placeholder="Mô tả danh tính nhân vật..." required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_role_ability">Kỹ năng đặc biệt</label>
+          <textarea id="cr-ability" class="form-textarea" rows="2" placeholder="Hành động vai trò này có thể thực hiện trong ván..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_role_win">Điều kiện chiến thắng</label>
+          <input type="text" id="cr-win" class="form-input" placeholder="Làm thế nào để vai trò này chiến thắng..." required />
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface-elevated); padding: 10px 12px; border-radius: var(--radius-md);">
+            <span style="font-size: 12px; font-weight: 600;" data-i18n="form_knows_keyword">Biết từ khóa</span>
+            <label class="switch-control">
+              <input type="checkbox" id="cr-knows-keyword" checked />
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface-elevated); padding: 10px 12px; border-radius: var(--radius-md);">
+            <span style="font-size: 12px; font-weight: 600;" data-i18n="form_gets_hint">Nhận gợi ý</span>
+            <label class="switch-control">
+              <input type="checkbox" id="cr-gets-hint" />
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="primary-cta-btn">
+          <span>💾</span> <span data-i18n="btn_save_role">Lưu vai trò (Save Role)</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Categories Picker -->
+  <div id="modal-categories" class="modal-overlay">
+    <div class="bottom-sheet-content">
+      <div class="sheet-drag-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title" data-i18n="modal_categories_title">Chọn chủ đề từ khóa</h3>
+        <button class="close-sheet-btn" id="btn-close-categories">✕</button>
+      </div>
+
+      <div id="categories-picker-list" style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Secret Ability Toolbox -->
+  <div id="modal-toolbox" class="modal-overlay">
+    <div class="bottom-sheet-content">
+      <div class="sheet-drag-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title" data-i18n="toolbox_title">Hộp công cụ vai trò đặc biệt</h3>
+        <button class="close-sheet-btn" id="btn-close-toolbox">✕</button>
+      </div>
+
+      <div id="toolbox-content" style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- Injected dynamically based on active match roles (Detective, Spy, Fortune Teller, Hacker) -->
+      </div>
+    </div>
+  </div>
+
+  <!-- App Main Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# Dependencies & Temp files
+*.ps1
+*_req.json
+*_res.json
+stitch_tools.json
+stitch_result.json
+test_stitch.mjs
+stitch_exports/
+.DS_Store
+Thumbs.db
