@@ -25,33 +25,72 @@
   <div id="app-viewport">
 
     <header class="global-control-bar">
-      <div class="control-group">
+      <!-- Left Controls -->
+      <div class="control-group control-group-left">
         <button id="btn-open-word-pairs" class="ctrl-btn" title="Quản lý Cặp Từ Vựng" style="color: #ec4899; border-color: rgba(236, 72, 153, 0.4);">
-          <span style="font-size: 13px;">🔤</span> <span style="font-size: 11px; font-weight: 700;">Cặp từ</span>
+          <span style="font-size: 13px;">🔤</span> <span class="btn-label-text" style="font-size: 11px; font-weight: 700;">Cặp từ</span>
         </button>
         <button id="btn-open-rules" class="ctrl-btn" title="Luật chơi & Tính điểm">
-          <span>📜</span> <span id="label-rules-btn" data-i18n="btn_rules">Luật</span>
+          <span>📜</span> <span class="btn-label-text" id="label-rules-btn" data-i18n="btn_rules">Luật</span>
         </button>
         <button id="btn-open-leaderboard" class="ctrl-btn" title="Bảng điểm nhóm">
-          <span>🏆</span> <span id="label-scores-btn">Điểm</span>
+          <span>🏆</span> <span class="btn-label-text" id="label-scores-btn">Điểm</span>
         </button>
       </div>
 
-      <div class="control-group">
-        <!-- Quick Screen Jump for Reviewer Inspection -->
-        <select id="screen-jump-select" class="ctrl-btn screen-selector-btn" title="Kiểm tra màn hình">
-          <option value="screen-setup">1. Cài đặt ván (Setup)</option>
-          <option value="screen-roles">2. Quản lý vai trò (Roles)</option>
-          <option value="screen-players">3. Tên người chơi (Players)</option>
-          <option value="screen-reveal">4. Lật thẻ vai trò (Reveal)</option>
-          <option value="screen-roulette">4.5. Vòng quay nói trước (Wheel)</option>
-          <option value="screen-discussion">5. Thảo luận & Đếm ngược (Timer)</option>
-          <option value="screen-voting">6. Bỏ phiếu (Voting)</option>
-          <option value="screen-comeback">6.5. Cơ hội Lật Kèo (Comeback)</option>
-          <option value="screen-results">7. Kết quả & MVP (Results)</option>
-          <option value="screen-history">8. Lịch sử ván đấu (History)</option>
-        </select>
-        <!-- Icon Setting ở phía trên góc bên phải -->
+      <!-- Center Controls: 6 Vòng chơi chính (Vào giữa thanh mỗi trang) -->
+      <div class="control-group control-group-center">
+        <!-- Dropdown Selector (Center on mobile/tablet) -->
+        <div class="center-stage-dropdown-wrap">
+          <select id="screen-jump-select" class="ctrl-btn screen-selector-btn center-select" title="Chuyển vòng chơi">
+            <optgroup label="🎮 6 Vòng chơi chính">
+              <option value="screen-reveal">4. Lật thẻ vai trò (Reveal)</option>
+              <option value="screen-roulette">4.5. Vòng quay nói trước (Wheel)</option>
+              <option value="screen-discussion">5. Thảo luận & Đếm ngược (Timer)</option>
+              <option value="screen-voting">6. Bỏ phiếu (Voting)</option>
+              <option value="screen-comeback">6.5. Cơ hội Lật Kèo (Comeback)</option>
+              <option value="screen-results">7. Kết quả & MVP (Results)</option>
+            </optgroup>
+            <optgroup label="⚙️ Thiết lập & Lịch sử">
+              <option value="screen-setup">1. Cài đặt ván (Setup)</option>
+              <option value="screen-roles">2. Quản lý vai trò (Roles)</option>
+              <option value="screen-players">3. Tên người chơi (Players)</option>
+              <option value="screen-history">8. Lịch sử ván đấu (History)</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- 6 Match Phases Stepper (Center on desktop/tablet) -->
+        <nav class="center-stage-stepper" aria-label="Tiến trình 6 vòng chơi">
+          <button type="button" class="stage-step-pill" data-target="screen-reveal" title="4. Lật thẻ vai trò (Reveal)">
+            <span class="step-num">4</span>
+            <span class="step-text">Lật thẻ</span>
+          </button>
+          <button type="button" class="stage-step-pill" data-target="screen-roulette" title="4.5. Vòng quay nói trước (Wheel)">
+            <span class="step-num">4.5</span>
+            <span class="step-text">Vòng quay</span>
+          </button>
+          <button type="button" class="stage-step-pill" data-target="screen-discussion" title="5. Thảo luận & Đếm ngược (Timer)">
+            <span class="step-num">5</span>
+            <span class="step-text">Thảo luận</span>
+          </button>
+          <button type="button" class="stage-step-pill" data-target="screen-voting" title="6. Bỏ phiếu (Voting)">
+            <span class="step-num">6</span>
+            <span class="step-text">Bỏ phiếu</span>
+          </button>
+          <button type="button" class="stage-step-pill" data-target="screen-comeback" title="6.5. Cơ hội Lật Kèo (Comeback)">
+            <span class="step-num">6.5</span>
+            <span class="step-text">Lật kèo</span>
+          </button>
+          <button type="button" class="stage-step-pill" data-target="screen-results" title="7. Kết quả & MVP (Results)">
+            <span class="step-num">7</span>
+            <span class="step-text">Kết quả</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Right Controls: Settings Icon ở góc phải -->
+      <div class="control-group control-group-right">
         <button id="btn-open-settings" class="ctrl-btn" title="Cài đặt hệ thống (Âm thanh & Giao diện)" aria-label="Cài đặt">
           <span style="font-size: 15px;">⚙️</span>
         </button>

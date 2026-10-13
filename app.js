@@ -258,6 +258,9 @@ class ImposterGame {
     this.renderFixedRolesChips();
     this.renderSettingsValues();
     this.updateSetupTournamentBanner();
+
+    const initialSelect = document.getElementById('screen-jump-select');
+    if (initialSelect) initialSelect.value = 'screen-setup';
   }
 
   applyTheme() {
@@ -367,6 +370,10 @@ class ImposterGame {
     }
     const select = document.getElementById('screen-jump-select');
     if (select) select.value = screenId;
+
+    document.querySelectorAll('.stage-step-pill').forEach(pill => {
+      pill.classList.toggle('active', pill.dataset.target === screenId);
+    });
 
     if (screenId === 'screen-history') {
       this.renderHistoryScreen();
@@ -3091,6 +3098,14 @@ class ImposterGame {
 
     document.getElementById('screen-jump-select')?.addEventListener('change', (e) => {
       this.switchScreen(e.target.value);
+    });
+
+    document.querySelectorAll('.stage-step-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        sound.playClick();
+        const target = pill.dataset.target;
+        if (target) this.switchScreen(target);
+      });
     });
 
     document.getElementById('mode-tab-pass')?.addEventListener('click', () => {

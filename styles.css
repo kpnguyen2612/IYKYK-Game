@@ -169,18 +169,134 @@ p, span, label, input, textarea, select {
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  background: rgba(var(--bg-surface), 0.7);
+  background: rgba(var(--bg-surface), 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-subtle);
   position: sticky;
   top: 0;
   z-index: 100;
+  gap: 8px;
 }
 .control-group {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+.control-group-left {
+  flex-shrink: 0;
+}
+.control-group-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  gap: 6px;
+}
+.control-group-right {
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+/* Center 6 Stages Navigation Styles */
+.center-stage-dropdown-wrap {
+  display: flex;
+  align-items: center;
+  max-width: 260px;
+  width: auto;
+}
+.screen-selector-btn.center-select {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  cursor: pointer;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  outline: none;
+  transition: var(--transition-bounce);
+}
+.screen-selector-btn.center-select:hover,
+.screen-selector-btn.center-select:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+}
+
+.center-stage-stepper {
+  display: none;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  padding: 3px 5px;
+  gap: 3px;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.center-stage-stepper::-webkit-scrollbar {
+  display: none;
+}
+.stage-step-pill {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+.stage-step-pill:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+.stage-step-pill.active {
+  background: linear-gradient(135deg, #ef4444 0%, #f59e0b 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.4);
+}
+.stage-step-pill .step-num {
+  font-size: 10px;
+  font-weight: 900;
+  opacity: 0.85;
+}
+.stage-step-pill.active .step-num {
+  opacity: 1;
+}
+
+@media (min-width: 860px) {
+  .center-stage-stepper {
+    display: flex;
+  }
+  .center-stage-dropdown-wrap {
+    display: none;
+  }
+}
+@media (max-width: 540px) {
+  .control-group-left .btn-label-text {
+    display: none;
+  }
+  .control-group-left .ctrl-btn {
+    padding: 6px 8px;
+  }
+  .screen-selector-btn.center-select {
+    font-size: 10px;
+    padding: 5px 8px;
+    max-width: 160px;
+  }
 }
 .ctrl-btn {
   background: var(--bg-surface-elevated);
