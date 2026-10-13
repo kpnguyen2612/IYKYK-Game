@@ -35,54 +35,52 @@
         </button>
       </div>
 
-      <!-- Center Controls: 6 Vòng chơi chính (Vào giữa thanh mỗi trang) -->
+      <!-- Center Controls: Thông tin tiến trình trang (Không có số, không phải option) -->
       <div class="control-group control-group-center">
-        <!-- Dropdown Selector (Center on mobile/tablet) -->
-        <div class="center-stage-dropdown-wrap">
-          <select id="screen-jump-select" class="ctrl-btn screen-selector-btn center-select" title="Chuyển vòng chơi">
-            <optgroup label="🎮 6 Vòng chơi chính">
-              <option value="screen-reveal">4. Lật thẻ vai trò (Reveal)</option>
-              <option value="screen-roulette">4.5. Vòng quay nói trước (Wheel)</option>
-              <option value="screen-discussion">5. Thảo luận & Đếm ngược (Timer)</option>
-              <option value="screen-voting">6. Bỏ phiếu (Voting)</option>
-              <option value="screen-comeback">6.5. Cơ hội Lật Kèo (Comeback)</option>
-              <option value="screen-results">7. Kết quả & MVP (Results)</option>
-            </optgroup>
-            <optgroup label="⚙️ Thiết lập & Lịch sử">
-              <option value="screen-setup">1. Cài đặt ván (Setup)</option>
-              <option value="screen-roles">2. Quản lý vai trò (Roles)</option>
-              <option value="screen-players">3. Tên người chơi (Players)</option>
-              <option value="screen-history">8. Lịch sử ván đấu (History)</option>
-            </optgroup>
-          </select>
+        <!-- Mobile Phase Info (< 860px) -->
+        <div class="mobile-stage-info-pill" title="Thông tin giai đoạn ván đấu">
+          <span class="mobile-stage-text" id="label-current-stage-mobile">Cài đặt ván</span>
+          <div class="mobile-stage-dots" aria-label="Tiến trình 6 vòng">
+            <span class="stage-micro-dot" data-screen="screen-reveal" title="Lật thẻ"></span>
+            <span class="stage-micro-dot" data-screen="screen-roulette" title="Vòng quay"></span>
+            <span class="stage-micro-dot" data-screen="screen-discussion" title="Thảo luận"></span>
+            <span class="stage-micro-dot" data-screen="screen-voting" title="Bỏ phiếu"></span>
+            <span class="stage-micro-dot" data-screen="screen-comeback" title="Lật kèo"></span>
+            <span class="stage-micro-dot" data-screen="screen-results" title="Kết quả"></span>
+          </div>
         </div>
 
-        <!-- 6 Match Phases Stepper (Center on desktop/tablet) -->
-        <nav class="center-stage-stepper" aria-label="Tiến trình 6 vòng chơi">
-          <button type="button" class="stage-step-pill" data-target="screen-reveal" title="4. Lật thẻ vai trò (Reveal)">
-            <span class="step-num">4</span>
-            <span class="step-text">Lật thẻ</span>
-          </button>
-          <button type="button" class="stage-step-pill" data-target="screen-roulette" title="4.5. Vòng quay nói trước (Wheel)">
-            <span class="step-num">4.5</span>
-            <span class="step-text">Vòng quay</span>
-          </button>
-          <button type="button" class="stage-step-pill" data-target="screen-discussion" title="5. Thảo luận & Đếm ngược (Timer)">
-            <span class="step-num">5</span>
-            <span class="step-text">Thảo luận</span>
-          </button>
-          <button type="button" class="stage-step-pill" data-target="screen-voting" title="6. Bỏ phiếu (Voting)">
-            <span class="step-num">6</span>
-            <span class="step-text">Bỏ phiếu</span>
-          </button>
-          <button type="button" class="stage-step-pill" data-target="screen-comeback" title="6.5. Cơ hội Lật Kèo (Comeback)">
-            <span class="step-num">6.5</span>
-            <span class="step-text">Lật kèo</span>
-          </button>
-          <button type="button" class="stage-step-pill" data-target="screen-results" title="7. Kết quả & MVP (Results)">
-            <span class="step-num">7</span>
-            <span class="step-text">Kết quả</span>
-          </button>
+        <!-- Desktop Progress Stepper (>= 860px) -->
+        <nav class="top-stage-progress-track" aria-label="Tiến trình các giai đoạn ván đấu">
+          <div class="progress-step-item" data-target="screen-reveal" title="Lật thẻ vai trò">
+            <span class="step-dot"></span>
+            <span class="step-label">Lật thẻ</span>
+          </div>
+          <span class="step-divider">›</span>
+          <div class="progress-step-item" data-target="screen-roulette" title="Vòng quay nói trước">
+            <span class="step-dot"></span>
+            <span class="step-label">Vòng quay</span>
+          </div>
+          <span class="step-divider">›</span>
+          <div class="progress-step-item" data-target="screen-discussion" title="Thảo luận & Đếm ngược">
+            <span class="step-dot"></span>
+            <span class="step-label">Thảo luận</span>
+          </div>
+          <span class="step-divider">›</span>
+          <div class="progress-step-item" data-target="screen-voting" title="Bỏ phiếu loại">
+            <span class="step-dot"></span>
+            <span class="step-label">Bỏ phiếu</span>
+          </div>
+          <span class="step-divider">›</span>
+          <div class="progress-step-item" data-target="screen-comeback" title="Cơ hội lật kèo">
+            <span class="step-dot"></span>
+            <span class="step-label">Lật kèo</span>
+          </div>
+          <span class="step-divider">›</span>
+          <div class="progress-step-item" data-target="screen-results" title="Kết quả & MVP">
+            <span class="step-dot"></span>
+            <span class="step-label">Kết quả</span>
+          </div>
         </nav>
       </div>
 

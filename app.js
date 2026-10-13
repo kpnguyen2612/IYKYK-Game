@@ -258,9 +258,7 @@ class ImposterGame {
     this.renderFixedRolesChips();
     this.renderSettingsValues();
     this.updateSetupTournamentBanner();
-
-    const initialSelect = document.getElementById('screen-jump-select');
-    if (initialSelect) initialSelect.value = 'screen-setup';
+    this.updateStageProgressUI('screen-setup');
   }
 
   applyTheme() {
@@ -368,12 +366,8 @@ class ImposterGame {
       target.classList.add('active');
       target.scrollTop = 0;
     }
-    const select = document.getElementById('screen-jump-select');
-    if (select) select.value = screenId;
 
-    document.querySelectorAll('.stage-step-pill').forEach(pill => {
-      pill.classList.toggle('active', pill.dataset.target === screenId);
-    });
+    this.updateStageProgressUI(screenId);
 
     if (screenId === 'screen-history') {
       this.renderHistoryScreen();
@@ -384,6 +378,36 @@ class ImposterGame {
     if (screenId === 'screen-results') {
       this.renderResultsScoreboard();
     }
+  }
+
+  updateStageProgressUI(screenId) {
+    const stageNames = {
+      'screen-setup': 'Cài đặt ván',
+      'screen-roles': 'Quản lý vai trò',
+      'screen-players': 'Tên người chơi',
+      'screen-reveal': 'Lật thẻ',
+      'screen-roulette': 'Vòng quay',
+      'screen-discussion': 'Thảo luận',
+      'screen-voting': 'Bỏ phiếu',
+      'screen-comeback': 'Lật kèo',
+      'screen-results': 'Kết quả',
+      'screen-history': 'Lịch sử ván'
+    };
+
+    // Update Desktop Stepper
+    document.querySelectorAll('.progress-step-item').forEach(item => {
+      item.classList.toggle('active', item.dataset.target === screenId);
+    });
+
+    // Update Mobile Stage Pill & Micro Dots
+    const mobileLabel = document.getElementById('label-current-stage-mobile');
+    if (mobileLabel) {
+      mobileLabel.textContent = stageNames[screenId] || 'Guess Imposter';
+    }
+
+    document.querySelectorAll('.stage-micro-dot').forEach(dot => {
+      dot.classList.toggle('active', dot.dataset.screen === screenId);
+    });
   }
 
   autoBalanceRoles(players = this.playerCount) {
@@ -3096,14 +3120,18 @@ class ImposterGame {
       if (sound.hapticEnabled) sound.vibrate(40);
     });
 
-    document.getElementById('screen-jump-select')?.addEventListener('change', (e) => {
-      this.switchScreen(e.target.value);
+    document.querySelectorAll('.progress-step-item').forEach(item => {
+      item.addEventListener('click', () => {
+        sound.playClick();
+        const target = item.dataset.target;
+        if (target) this.switchScreen(target);
+      });
     });
 
-    document.querySelectorAll('.stage-step-pill').forEach(pill => {
-      pill.addEventListener('click', () => {
+    document.querySelectorAll('.stage-micro-dot').forEach(dot => {
+      dot.addEventListener('click', () => {
         sound.playClick();
-        const target = pill.dataset.target;
+        const target = dot.dataset.screen;
         if (target) this.switchScreen(target);
       });
     });
