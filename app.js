@@ -828,7 +828,21 @@ const I18N = {
     toolbox_title: "Hộp công cụ vai trò bí mật",
     section_scoreboard: "🏆 Bảng Điểm & Xếp Hạng Party",
     modal_leaderboard_title: "🏆 Bảng Điểm Tích Lũy Party",
-    btn_reset_scores: "Đặt lại điểm số giải đấu"
+    btn_reset_scores: "Đặt lại điểm số giải đấu",
+    btn_rules: "Luật",
+    section_vocab_topic: "Chủ Đề Từ Vựng",
+    badge_topic_options: "2 Tùy chọn",
+    topic_specific_title: "Chọn ngữ cảnh",
+    topic_specific_desc: "Tự chọn danh mục từ vựng quen thuộc",
+    btn_change_topic: "Đổi chủ đề ›",
+    topic_random_title: "Ngẫu nhiên",
+    topic_random_desc: "Hệ thống tự chọn chủ đề bất ngờ mỗi ván",
+    badge_surprise: "Bất ngờ",
+    badge_selected: "Đang chọn",
+    speakers_list: "Lượt phát biểu vòng này:",
+    voting_penalty_rule: "Luật trừ điểm: Nếu trục xuất nhầm DÂN THƯỜNG vô tội, phe Dân sẽ bị trừ -5 điểm và ván chơi tiếp tục sang vòng sau!",
+    btn_tie_vote: "Hòa phiếu / Bỏ qua vòng này",
+    modal_rules_title: "📜 Luật Chơi Sâu Sắc & Hệ Thống Điểm"
   },
   en: {
     party_game: "Party Deduction Game",
@@ -913,7 +927,21 @@ const I18N = {
     toolbox_title: "Secret Role Toolkit",
     section_scoreboard: "🏆 Match Leaderboard & Party Scores",
     modal_leaderboard_title: "🏆 Cumulative Party Leaderboard",
-    btn_reset_scores: "Reset Tournament Scores"
+    btn_reset_scores: "Reset Tournament Scores",
+    btn_rules: "Rules",
+    section_vocab_topic: "Vocabulary Topic",
+    badge_topic_options: "2 Options",
+    topic_specific_title: "Specific Context",
+    topic_specific_desc: "Pick your own familiar keyword categories",
+    btn_change_topic: "Change Topic ›",
+    topic_random_title: "Random All",
+    topic_random_desc: "System picks a surprise topic from all categories every match",
+    badge_surprise: "Surprise",
+    badge_selected: "Active",
+    speakers_list: "Current Round Speakers:",
+    voting_penalty_rule: "Penalty rule: Exiling an innocent CIVILIAN penalizes good team by -5 points and continues to the next round!",
+    btn_tie_vote: "Tie Vote / Skip this Round",
+    modal_rules_title: "📜 Deep Game Rules & Scoring System"
   }
 };
 
@@ -929,6 +957,7 @@ class ImposterGame {
     // Match Configuration
     this.playerCount = 6;
     this.imposterCount = 1;
+    this.categoryMode = localStorage.getItem('gti_category_mode') || 'specific'; // 'specific' | 'random'
     this.selectedCategoryId = 'food_drink';
     this.hintsEnabled = true;
     this.durationSeconds = 180;
@@ -1208,13 +1237,43 @@ class ImposterGame {
     const catName = document.getElementById('label-category-name');
     if (catName) catName.textContent = this.lang === 'vi' ? cat.name_vi : cat.name_en;
 
+    const chipIcon = document.getElementById('chip-category-icon');
+    const chipName = document.getElementById('chip-category-name');
+    if (chipIcon) chipIcon.textContent = cat.icon;
+    if (chipName) {
+      const wordsPreview = cat.words.slice(0, 2).map(w => this.lang === 'vi' ? w.vi : w.en).join(', ');
+      chipName.textContent = `${this.lang === 'vi' ? cat.name_vi : cat.name_en} (${wordsPreview}...)`;
+    }
+
     const timeVal = document.getElementById('val-time');
     if (timeVal) timeVal.textContent = `${Math.floor(this.durationSeconds / 60)}m`;
 
     const diffBadge = document.getElementById('badge-difficulty');
     if (diffBadge) diffBadge.textContent = this.difficulty;
 
+    this.setTopicMode(this.categoryMode || 'specific', false);
     this.updateBalanceMeter();
+  }
+
+  setTopicMode(mode, playSound = true) {
+    this.categoryMode = mode;
+    localStorage.setItem('gti_category_mode', mode);
+
+    const cardSpecific = document.getElementById('opt-topic-specific');
+    const cardRandom = document.getElementById('opt-topic-random');
+    const statusBadge = document.getElementById('badge-specific-status');
+
+    if (mode === 'specific') {
+      cardSpecific?.classList.add('active');
+      cardRandom?.classList.remove('active', 'random-mode');
+      if (statusBadge) statusBadge.textContent = this.lang === 'vi' ? 'Đang chọn' : 'Active';
+    } else {
+      cardSpecific?.classList.remove('active');
+      cardRandom?.classList.add('active', 'random-mode');
+      if (statusBadge) statusBadge.textContent = this.lang === 'vi' ? 'Tự chọn' : 'Specific';
+    }
+
+    if (playSound) sound.playClick();
   }
 
   renderRolesList(filter = 'all') {
@@ -1371,7 +1430,12 @@ class ImposterGame {
     deck.length = this.playerCount;
     this.shuffle(deck);
 
-    const cat = CATEGORIES.find(c => c.id === this.selectedCategoryId) || CATEGORIES[0];
+    let cat;
+    if (this.categoryMode === 'random') {
+      cat = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+    } else {
+      cat = CATEGORIES.find(c => c.id === this.selectedCategoryId) || CATEGORIES[0];
+    }
     this.categoryData = cat;
     const randomWordObj = cat.words[Math.floor(Math.random() * cat.words.length)];
     this.secretWord = this.lang === 'vi' ? randomWordObj.vi : randomWordObj.en;
@@ -1462,12 +1526,38 @@ class ImposterGame {
     this.timerRemaining = this.durationSeconds;
     this.timerTotal = this.durationSeconds;
     this.isPaused = false;
-    this.roundNumber = 1;
+    if (!this.roundNumber) this.roundNumber = 1;
 
     document.getElementById('hud-category-name').textContent = this.lang === 'vi' ? this.categoryData.name_vi : this.categoryData.name_en;
-    document.getElementById('hud-players-count').textContent = `${this.players.length} ${this.lang === 'vi' ? 'Người sống sót' : 'Active Players'}`;
+    
+    const livingPlayers = this.players.filter(p => !p.isEliminated);
+    document.getElementById('hud-players-count').textContent = `${livingPlayers.length} ${this.lang === 'vi' ? 'Người sống sót' : 'Active Players'}`;
 
+    const roundPill = document.getElementById('round-stage-pill');
+    if (roundPill) roundPill.textContent = `${this.lang === 'vi' ? 'Vòng' : 'Round'} ${this.roundNumber}`;
+
+    this.renderSpeakersStrip();
     this.runTimer();
+  }
+
+  renderSpeakersStrip() {
+    const strip = document.getElementById('speakers-avatar-strip');
+    if (!strip) return;
+    strip.innerHTML = '';
+
+    this.players.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'speaker-avatar-item';
+      item.innerHTML = `
+        <div class="speaker-avatar-circle ${p.isEliminated ? 'is-eliminated' : ''}" style="background: ${p.avatarBg}; ${p.isEliminated ? 'border: 2px solid #ef4444;' : 'border: 2px solid #10b981;'}">
+          ${p.isEliminated ? '❌' : p.avatar}
+        </div>
+        <div class="speaker-name-label" style="${p.isEliminated ? 'text-decoration: line-through; color: #ef4444;' : ''}">
+          ${p.name}
+        </div>
+      `;
+      strip.appendChild(item);
+    });
   }
 
   runTimer() {
@@ -1567,26 +1657,105 @@ class ImposterGame {
 
     if (suspect.role.id === 'jester') {
       this.winningTeam = 'jester';
-    } else if (suspect.isImposter) {
+      this.showResultsScreen(suspect);
+      return;
+    } 
+    
+    if (suspect.isImposter) {
       const remainingImposters = this.players.filter(p => p.isImposter && !p.isEliminated);
       if (remainingImposters.length === 0) {
         this.winningTeam = 'good';
+        this.showResultsScreen(suspect);
+        return;
       } else {
-        this.roundNumber++;
-        this.startVotingStage();
+        // Multi-imposter match: 1 down, 1 remaining!
+        this.showRoundIntermission(suspect, true);
         return;
       }
+    } 
+    
+    // Suspect is INNOCENT (Civilian or good team) -> WRONG VOTE PENALTY!
+    // Deduct -5 points from good team players as penalty for wrong accusation!
+    this.players.filter(p => p.role.team === 'good' && !p.isEliminated).forEach(p => {
+      if (!this.partyScores[p.name]) {
+        this.partyScores[p.name] = { total: 0, wins: 0, games: 0, avatar: p.avatar, avatarBg: p.avatarBg };
+      }
+      this.partyScores[p.name].total = Math.max(0, this.partyScores[p.name].total - 5);
+    });
+    localStorage.setItem('gti_party_scores', JSON.stringify(this.partyScores));
+
+    const livingInnocents = this.players.filter(p => !p.isImposter && !p.isEliminated);
+    const livingImposters = this.players.filter(p => p.isImposter && !p.isEliminated);
+
+    if (livingImposters.length >= livingInnocents.length) {
+      // Imposters have equaled or outnumbered innocent players -> Imposters win!
+      this.winningTeam = 'evil';
+      this.showResultsScreen(suspect);
     } else {
-      const activeInnocents = this.players.filter(p => !p.isImposter && !p.isEliminated);
-      const activeImposters = this.players.filter(p => p.isImposter && !p.isEliminated);
-      if (activeImposters.length >= activeInnocents.length) {
-        this.winningTeam = 'evil';
-      } else {
-        this.winningTeam = 'evil';
+      // Game continues! Show Intermission Modal with penalty warning
+      this.showRoundIntermission(suspect, false);
+    }
+  }
+
+  showRoundIntermission(eliminatedPlayer, isImposterCaught) {
+    const modal = document.getElementById('modal-round-intermission');
+    const avatar = document.getElementById('intermission-avatar');
+    const badge = document.getElementById('intermission-badge');
+    const title = document.getElementById('intermission-title');
+    const desc = document.getElementById('intermission-desc');
+    const btnLabel = document.getElementById('label-next-round-btn');
+    
+    const livingInnocents = this.players.filter(p => !p.isImposter && !p.isEliminated).length;
+    const livingImposters = this.players.filter(p => p.isImposter && !p.isEliminated).length;
+
+    document.getElementById('pill-innocents-left').textContent = `👥 ${livingInnocents} ${this.lang === 'vi' ? 'Dân thường còn lại' : 'Civilians left'}`;
+    document.getElementById('pill-imposters-left').textContent = `🎭 ${livingImposters} ${this.lang === 'vi' ? 'Imposter lẩn trốn' : 'Imposter hiding'}`;
+
+    if (avatar) avatar.textContent = eliminatedPlayer.avatar;
+
+    if (isImposterCaught) {
+      if (badge) {
+        badge.textContent = this.lang === 'vi' ? '🎯 BẮT TRÚNG IMPOSTER!' : '🎯 IMPOSTER CAUGHT!';
+        badge.style.background = '#10b981';
+      }
+      if (title) {
+        title.textContent = this.lang === 'vi' ? `Đã loại 1 Kẻ Giả Mạo: ${eliminatedPlayer.name}!` : `Eliminated Imposter: ${eliminatedPlayer.name}!`;
+        title.style.color = '#10b981';
+      }
+      if (desc) {
+        desc.innerHTML = this.lang === 'vi' 
+          ? `Phe Dân được <strong>thưởng +5 điểm</strong>!<br />Tuy nhiên vẫn còn ${livingImposters} Kẻ Giả Mạo khác đang ẩn nấp!`
+          : `Civilians earned <strong>+5 bonus points</strong>!<br />However, ${livingImposters} other Imposter is still hiding!`;
+      }
+    } else {
+      if (badge) {
+        badge.textContent = this.lang === 'vi' ? '❌ OAN SAI!' : '❌ WRONG VOTE!';
+        badge.style.background = '#ef4444';
+      }
+      if (title) {
+        title.textContent = this.lang === 'vi' ? `${eliminatedPlayer.name} là Dân Thường Vô Tội!` : `${eliminatedPlayer.name} is Innocent!`;
+        title.style.color = '#ef4444';
+      }
+      if (desc) {
+        desc.innerHTML = this.lang === 'vi'
+          ? `Phe Dân đã biểu quyết sai và bị <strong style="color: #ef4444;">phạt trừ -5 điểm</strong>!<br />Kẻ Giả Mạo vẫn chưa bị lộ và đang lẩn trốn.`
+          : `Civilians made a wrong vote and received a <strong style="color: #ef4444;">-5 points penalty</strong>!<br />The Imposter is still undercover.`;
       }
     }
 
-    this.showResultsScreen(suspect);
+    if (btnLabel) {
+      btnLabel.textContent = this.lang === 'vi' 
+        ? `Tiến vào Vòng ${this.roundNumber + 1} Thảo Luận`
+        : `Proceed to Round ${this.roundNumber + 1}`;
+    }
+
+    modal.classList.add('open');
+  }
+
+  skipVotingRound() {
+    sound.playToggle();
+    this.roundNumber++;
+    this.startDiscussionStage();
   }
 
   showResultsScreen(eliminatedPlayer) {
@@ -2261,6 +2430,39 @@ class ImposterGame {
         localStorage.removeItem('gti_party_scores');
         this.renderCumulativeLeaderboard();
       }
+    });
+
+    // Topic Options Events (Specific Context vs Random All)
+    document.getElementById('opt-topic-specific')?.addEventListener('click', () => {
+      this.setTopicMode('specific');
+    });
+    document.getElementById('opt-topic-random')?.addEventListener('click', () => {
+      this.setTopicMode('random');
+    });
+    document.getElementById('btn-change-specific-topic')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sound.playClick();
+      this.openCategoriesPicker();
+    });
+
+    // Multi-Round Voting Actions
+    document.getElementById('btn-skip-vote')?.addEventListener('click', () => {
+      this.skipVotingRound();
+    });
+    document.getElementById('btn-next-round-continue')?.addEventListener('click', () => {
+      sound.playClick();
+      document.getElementById('modal-round-intermission')?.classList.remove('open');
+      this.roundNumber++;
+      this.startDiscussionStage();
+    });
+
+    // Deep Rules Modal Events
+    document.getElementById('btn-open-rules')?.addEventListener('click', () => {
+      sound.playClick();
+      document.getElementById('modal-deep-rules')?.classList.add('open');
+    });
+    document.getElementById('btn-close-rules')?.addEventListener('click', () => {
+      document.getElementById('modal-deep-rules')?.classList.remove('open');
     });
   }
 

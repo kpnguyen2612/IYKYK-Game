@@ -52,6 +52,9 @@
       </div>
 
       <div class="control-group">
+        <button id="btn-open-rules" class="ctrl-btn" title="Luật chơi & Tính điểm">
+          <span>📜</span> <span id="label-rules-btn" data-i18n="btn_rules">Luật</span>
+        </button>
         <button id="btn-open-leaderboard" class="ctrl-btn" title="Bảng điểm nhóm">
           <span>🏆</span> <span id="label-scores-btn">Điểm</span>
         </button>
@@ -173,17 +176,60 @@
             </div>
           </div>
 
-          <!-- Categories Item -->
-          <div class="setting-item-row" id="btn-open-categories">
-            <div class="setting-info-left">
-              <div class="setting-icon-box" style="color: #06b6d4; background: rgba(6, 182, 212, 0.12);">🏷️</div>
-              <div class="setting-texts">
-                <h4 data-i18n="setting_category">Chủ đề từ khóa</h4>
-                <p id="label-category-name">Ẩm Thực & Đồ Uống</p>
+          <!-- Vocabulary Topic Options Section (Specific Context vs Random All) -->
+          <div class="settings-section-title" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; margin-bottom: 8px;">
+            <span data-i18n="section_vocab_topic">Chủ Đề Từ Vựng</span>
+            <span class="hero-badge" style="background: rgba(255, 255, 255, 0.08); font-size: 11px; padding: 2px 8px;" data-i18n="badge_topic_options">2 Tùy chọn</span>
+          </div>
+
+          <div class="topic-options-container">
+            <!-- Option 1: Chọn ngữ cảnh cụ thể -->
+            <div class="topic-option-card active" id="opt-topic-specific">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+                <div style="display: flex; align-items: flex-start; gap: 12px; flex: 1;">
+                  <div class="topic-opt-icon" style="background: rgba(139, 92, 246, 0.15); color: #a855f7;">
+                    <span>🧩</span>
+                  </div>
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <strong class="topic-opt-title" data-i18n="topic_specific_title">Chọn ngữ cảnh</strong>
+                      <span class="topic-pill-badge" id="badge-specific-status" data-i18n="badge_selected">Đang chọn</span>
+                    </div>
+                    <div class="topic-opt-desc" data-i18n="topic_specific_desc">Tự chọn danh mục từ vựng quen thuộc</div>
+                  </div>
+                </div>
+                <div class="topic-radio-indicator">
+                  <div class="radio-check-inner">✓</div>
+                </div>
+              </div>
+
+              <!-- Sub-action: Current category chip + change category button -->
+              <div class="topic-sub-chip" id="btn-change-specific-topic">
+                <span id="chip-category-icon">🍜</span>
+                <span id="chip-category-name" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Ẩm Thực & Đồ Uống</span>
+                <span style="color: var(--primary-orange); font-size: 12px; font-weight: 700; white-space: nowrap;" data-i18n="btn_change_topic">Đổi chủ đề ›</span>
               </div>
             </div>
-            <div class="setting-action-right">
-              <span class="chevron-icon">›</span>
+
+            <!-- Option 2: Ngẫu nhiên tất cả -->
+            <div class="topic-option-card" id="opt-topic-random">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+                <div style="display: flex; align-items: flex-start; gap: 12px; flex: 1;">
+                  <div class="topic-opt-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                    <span>🎲</span>
+                  </div>
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <strong class="topic-opt-title" data-i18n="topic_random_title">Ngẫu nhiên</strong>
+                      <span class="topic-pill-badge surprise" data-i18n="badge_surprise">Bất ngờ</span>
+                    </div>
+                    <div class="topic-opt-desc" data-i18n="topic_random_desc">Hệ thống tự chọn chủ đề bất ngờ mỗi ván</div>
+                  </div>
+                </div>
+                <div class="topic-radio-indicator">
+                  <div class="radio-check-inner">✓</div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -451,6 +497,17 @@
           </div>
         </div>
 
+        <!-- Active Speakers Roster for Current Round -->
+        <div class="active-speakers-box" id="discussion-speakers-box" style="margin-bottom: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);" data-i18n="speakers_list">Lượt phát biểu vòng này:</span>
+            <span id="round-stage-pill" class="hero-badge" style="font-size: 11px;">Vòng 1</span>
+          </div>
+          <div id="speakers-avatar-strip" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;">
+            <!-- Living players list injected dynamically -->
+          </div>
+        </div>
+
         <!-- Rules & Prompt Advice -->
         <div class="instruction-box" style="margin-bottom: 16px;">
           <span class="instruction-icon">💬</span>
@@ -503,8 +560,20 @@
           <span data-i18n="suspect_chosen">Nghi phạm được chọn:</span> <strong id="suspect-name" style="color: var(--primary-red);">-</strong>
         </div>
 
+        <!-- Penalty Warning Rule Box -->
+        <div class="penalty-warning-box">
+          <span class="warning-icon">⚠️</span>
+          <div class="warning-text" data-i18n="voting_penalty_rule">
+            <strong>Luật trừ điểm:</strong> Nếu trục xuất nhầm <strong>DÂN THƯỜNG</strong> vô tội, phe Dân sẽ bị <strong>trừ -5 điểm</strong> và ván chơi tiếp tục sang <strong>vòng thảo luận tiếp theo</strong>!
+          </div>
+        </div>
+
         <button id="btn-submit-vote" class="primary-cta-btn" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">
-          <span>🔨</span> <span data-i18n="btn_confirm_elimination">Vạch mặt & Công bố kết quả</span>
+          <span>🔨</span> <span data-i18n="btn_confirm_elimination">Vạch mặt & Trục xuất nghi phạm</span>
+        </button>
+
+        <button id="btn-skip-vote" class="secondary-btn" style="margin-top: 10px; width: 100%;">
+          <span>🤝</span> <span data-i18n="btn_tie_vote">Hòa phiếu / Bỏ qua vòng này</span>
         </button>
       </section>
 
@@ -733,6 +802,126 @@
       <button id="btn-reset-scores" class="secondary-btn" style="color: var(--primary-red); border-color: rgba(239, 68, 68, 0.3);">
         <span>🗑️</span> <span data-i18n="btn_reset_scores">Đặt lại điểm số giải đấu</span>
       </button>
+    </div>
+  </div>
+
+  <!-- Modal 5: Round Elimination Intermission -->
+  <div id="modal-round-intermission" class="modal-overlay">
+    <div class="bottom-sheet-content" style="text-align: center;">
+      <div class="sheet-drag-handle"></div>
+      
+      <div class="round-outcome-avatar-wrap">
+        <div id="intermission-avatar" class="big-outcome-avatar">👤</div>
+        <div class="outcome-badge-wrong" id="intermission-badge">❌ OAN SAI!</div>
+      </div>
+
+      <h3 id="intermission-title" style="font-family: var(--font-display); font-size: 20px; font-weight: 800; margin: 12px 0 6px; color: #ef4444;">
+        Hải Đăng là Dân Thường Vô Tội!
+      </h3>
+      <p id="intermission-desc" style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+        Phe Dân đã biểu quyết sai và bị <strong style="color: #ef4444;">phạt trừ -5 điểm</strong>!<br />
+        Kẻ Giả Mạo vẫn đang ẩn nấp trong số những người còn lại.
+      </p>
+
+      <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+        <span class="status-pill green" id="pill-innocents-left">👥 4 Dân thường</span>
+        <span class="status-pill red" id="pill-imposters-left">🎭 1 Imposter</span>
+      </div>
+
+      <button id="btn-next-round-continue" class="primary-cta-btn" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);">
+        <span>🔥</span> <span id="label-next-round-btn">Tiến vào Vòng 2 Thảo luận</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal 6: Deep Rules & Scoring Breakdown -->
+  <div id="modal-deep-rules" class="modal-overlay">
+    <div class="bottom-sheet-content">
+      <div class="sheet-drag-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title" data-i18n="modal_rules_title">📜 Luật Chơi Sâu Sắc & Hệ Thống Điểm</h3>
+        <button class="close-sheet-btn" id="btn-close-rules">✕</button>
+      </div>
+
+      <div class="rules-scroll-body" style="max-height: 65vh; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 14px;">
+        
+        <!-- Section 1: Gameplay Loop -->
+        <div class="rules-card">
+          <div class="rules-card-header">
+            <span class="rules-card-icon">🔄</span>
+            <h4>Tiến Trình Chơi Nhiều Vòng</h4>
+          </div>
+          <p class="rules-card-desc">
+            Ván chơi diễn ra qua nhiều vòng (Vòng 1, 2, 3...) cho đến khi tìm ra Kẻ Giả Mạo hoặc phe Dân bị loại áp đảo:
+          </p>
+          <ul class="rules-list">
+            <li><strong>Mỗi vòng:</strong> Từng người chơi còn sống đưa ra 1 câu gợi ý ngắn về từ khóa bí mật.</li>
+            <li><strong>Bỏ phiếu:</strong> Hết giờ, cả nhóm biểu quyết trục xuất 1 người khả nghi nhất.</li>
+            <li><strong>Nếu trục xuất nhầm Dân Thường:</strong> Người đó bị loại khỏi ván đấu, phe Dân bị <span class="pts-minus">-5 điểm</span>, và ván đấu chuyển sang <strong>Vòng tiếp theo</strong>!</li>
+          </ul>
+        </div>
+
+        <!-- Section 2: Winning Conditions -->
+        <div class="rules-card">
+          <div class="rules-card-header">
+            <span class="rules-card-icon">🏆</span>
+            <h4>Điều Kiện Thắng Thua</h4>
+          </div>
+          <ul class="rules-list">
+            <li><strong>Phe Dân Thắng:</strong> Trục xuất được toàn bộ Kẻ Giả Mạo (và Imposter không đoán được từ khóa ở màn Lật Kèo).</li>
+            <li><strong>Kẻ Giả Mạo Thắng:</strong> Sống sót cho đến khi số Imposter bằng hoặc nhiều hơn số Dân Thường còn lại (do Dân vote nhầm nhau).</li>
+            <li><strong>Lật Kèo (Comeback):</strong> Nếu bị bắt, Imposter có 1 cơ hội duy nhất gõ đúng từ khóa bí mật để cướp chiến thắng!</li>
+            <li><strong>Kẻ Hề (Jester):</strong> Chiến thắng độc lập ngay lập tức nếu bị cả làng vote trục xuất!</li>
+          </ul>
+        </div>
+
+        <!-- Section 3: Scoring & Penalty Table -->
+        <div class="rules-card">
+          <div class="rules-card-header">
+            <span class="rules-card-icon">⭐</span>
+            <h4>Bảng Điểm Thưởng & Phạt Chi Tiết</h4>
+          </div>
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th>Hành động / Tình huống</th>
+                <th>Điểm số</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>🏆 Dân Thường sống sót thắng ván</td>
+                <td class="pts-plus">+10 điểm</td>
+              </tr>
+              <tr>
+                <td>🎯 Biểu quyết đúng Kẻ Giả Mạo</td>
+                <td class="pts-plus">+5 điểm</td>
+              </tr>
+              <tr>
+                <td>⚠️ <strong>Phe Dân vote nhầm Dân vô tội</strong></td>
+                <td class="pts-minus"><strong>-5 điểm</strong></td>
+              </tr>
+              <tr>
+                <td>💀 Imposter sống sót thắng chung cuộc</td>
+                <td class="pts-plus">+25 điểm</td>
+              </tr>
+              <tr>
+                <td>🔥 Imposter lật kèo đoán đúng từ khóa</td>
+                <td class="pts-plus">+20 điểm</td>
+              </tr>
+              <tr>
+                <td>🃏 Kẻ Hề (Jester) bị vote trục xuất</td>
+                <td class="pts-plus">+30 điểm</td>
+              </tr>
+              <tr>
+                <td>🔍 Thám Tử (Detective) soi trúng Imposter</td>
+                <td class="pts-plus">+5 điểm</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
     </div>
   </div>
 
