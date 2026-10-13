@@ -82,9 +82,16 @@
           <button id="mode-tab-pass" class="mode-tab-btn active" data-mode="pass">
             <span>📱</span> <span data-i18n="mode_pass">Pass the Phone</span>
           </button>
-          <button id="mode-tab-online" class="mode-tab-btn" data-mode="online">
-            <span>🌐</span> <span data-i18n="mode_online">Play Online</span>
-          </button>
+          <div class="mode-tab-online-wrap">
+            <button id="mode-tab-online" class="mode-tab-btn" data-mode="online">
+              <span>🌐</span> <span data-i18n="mode_online">Play Online</span>
+            </button>
+            <div id="online-coming-soon-bubble" class="coming-soon-bubble" role="tooltip">
+              <span class="bubble-sparkle">🚀</span>
+              <span class="bubble-text">Coming Soon!</span>
+              <div class="bubble-arrow"></div>
+            </div>
+          </div>
         </div>
 
         <!-- Online Lobby Room Alert (Visible when Online mode selected) -->

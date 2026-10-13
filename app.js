@@ -3097,15 +3097,46 @@ class ImposterGame {
       sound.playClick();
       this.gameMode = 'pass';
       document.getElementById('mode-tab-pass').classList.add('active');
-      document.getElementById('mode-tab-online').classList.remove('active');
+      document.getElementById('mode-tab-online')?.classList.remove('active');
       document.getElementById('online-lobby-banner').style.display = 'none';
+      document.getElementById('online-coming-soon-bubble')?.classList.remove('show');
     });
-    document.getElementById('mode-tab-online')?.addEventListener('click', () => {
-      sound.playClick();
-      this.gameMode = 'online';
-      document.getElementById('mode-tab-online').classList.add('active');
-      document.getElementById('mode-tab-pass').classList.remove('active');
-      document.getElementById('online-lobby-banner').style.display = 'flex';
+
+    const onlineBtn = document.getElementById('mode-tab-online');
+    const bubble = document.getElementById('online-coming-soon-bubble');
+    let onlineBubbleTimeout = null;
+
+    onlineBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof sound !== 'undefined') {
+        sound.playToggle();
+        sound.vibrate(35);
+      }
+
+      // Add a subtle tactile wiggle animation
+      onlineBtn.classList.remove('shake-subtle');
+      void onlineBtn.offsetWidth;
+      onlineBtn.classList.add('shake-subtle');
+
+      // Pop the Coming Soon speech bubble
+      if (bubble) {
+        bubble.classList.remove('show');
+        void bubble.offsetWidth;
+        bubble.classList.add('show');
+
+        clearTimeout(onlineBubbleTimeout);
+        onlineBubbleTimeout = setTimeout(() => {
+          bubble.classList.remove('show');
+        }, 2500);
+      }
+    });
+
+    // Dismiss bubble on outside tap
+    document.addEventListener('click', (e) => {
+      if (bubble && !onlineBtn?.contains(e.target) && !bubble.contains(e.target)) {
+        bubble.classList.remove('show');
+      }
     });
 
     document.getElementById('btn-dec-players')?.addEventListener('click', () => {
