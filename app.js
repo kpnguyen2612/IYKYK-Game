@@ -146,7 +146,10 @@ class ImposterGame {
     // Special Roles Roll Rate (Tỉ lệ Roll vai trò khác: 25%, 50%, 70%, 85%, 100%)
     this.specialRoleRate = parseInt(localStorage.getItem('gti_special_role_rate') || '85', 10);
     this.doctorShieldedPlayerId = null;
+    this.doctorShieldedPlayerIds = new Set();
     this.bodyguardProtectedPlayerId = null;
+    this.bodyguardProtectedMap = {};
+    this.roundUsedAbilities = new Set();
     this.detectivesExposedImposter = new Set();
 
     // Custom Word Pairs (Cặp từ tự tạo)
@@ -381,33 +384,35 @@ class ImposterGame {
   }
 
   updateStageProgressUI(screenId) {
+    const roundSuffix = (this.roundNumber && this.roundNumber > 1) ? ` • Vòng ${this.roundNumber}` : '';
+
     const stageNames = {
       'screen-setup': 'Cài đặt ván',
       'screen-roles': 'Quản lý vai trò',
       'screen-players': 'Tên người chơi',
       'screen-reveal': 'Lật thẻ',
       'screen-roulette': 'Vòng quay',
-      'screen-discussion': 'Thảo luận',
-      'screen-voting': 'Bỏ phiếu',
+      'screen-discussion': `Thảo luận${roundSuffix}`,
+      'screen-voting': `Bỏ phiếu${roundSuffix}`,
       'screen-comeback': 'Lật kèo',
       'screen-results': 'Kết quả',
       'screen-history': 'Lịch sử ván'
     };
 
-    // Update Desktop Stepper
-    document.querySelectorAll('.progress-step-item').forEach(item => {
-      item.classList.toggle('active', item.dataset.target === screenId);
-    });
+    const isMatchPhase = [
+      'screen-reveal',
+      'screen-roulette',
+      'screen-discussion',
+      'screen-voting',
+      'screen-comeback',
+      'screen-results'
+    ].includes(screenId);
 
-    // Update Mobile Stage Pill & Micro Dots
-    const mobileLabel = document.getElementById('label-current-stage-mobile');
-    if (mobileLabel) {
-      mobileLabel.textContent = stageNames[screenId] || 'Guess Imposter';
+    const titleEl = document.getElementById('header-stage-title');
+    if (titleEl) {
+      titleEl.textContent = stageNames[screenId] || 'Guess the Imposter';
+      titleEl.classList.toggle('match-phase', isMatchPhase);
     }
-
-    document.querySelectorAll('.stage-micro-dot').forEach(dot => {
-      dot.classList.toggle('active', dot.dataset.screen === screenId);
-    });
   }
 
   autoBalanceRoles(players = this.playerCount) {
@@ -1088,8 +1093,11 @@ class ImposterGame {
     this.syncFixedRolesWithDeck();
     const deck = this.buildMatchDeck();
     this.doctorShieldedPlayerId = null;
+    this.doctorShieldedPlayerIds = new Set();
     this.doctorShieldHistory = [];
     this.bodyguardProtectedPlayerId = null;
+    this.bodyguardProtectedMap = {};
+    this.roundUsedAbilities = new Set();
     this.detectivesExposedImposter = new Set();
     this.wrongVoteCount = 0;
     this.imposterGuessResult = null;
@@ -1180,6 +1188,27 @@ class ImposterGame {
 
     if (progressPill) {
       progressPill.textContent = `Người chơi ${index + 1} / ${this.players.length}`;
+    }
+
+    // Update Reveal Counter Under Card: "Đã mở: index/total người"
+    const totalPlayers = this.players.length;
+    const openedCount = index;
+    const remainingCount = totalPlayers - openedCount;
+
+    const counterVal = document.getElementById('reveal-counter-val');
+    if (counterVal) counterVal.textContent = `${openedCount}/${totalPlayers} người`;
+
+    const counterRemaining = document.getElementById('reveal-counter-remaining');
+    if (counterRemaining) counterRemaining.textContent = `(Còn ${remainingCount} người)`;
+
+    const dotsContainer = document.getElementById('reveal-counter-dots');
+    if (dotsContainer) {
+      dotsContainer.innerHTML = '';
+      for (let i = 0; i < totalPlayers; i++) {
+        const dot = document.createElement('span');
+        dot.className = `reveal-dot ${i < openedCount ? 'done' : (i === index ? 'current' : 'pending')}`;
+        dotsContainer.appendChild(dot);
+      }
     }
 
     curtainBox.style.display = 'flex';
@@ -1557,11 +1586,16 @@ class ImposterGame {
   }
 
   startDiscussionStage() {
+    if (!this.roundNumber) this.roundNumber = 1;
+    this.doctorShieldedPlayerId = null;
+    this.doctorShieldedPlayerIds = new Set();
+    this.bodyguardProtectedPlayerId = null;
+    this.bodyguardProtectedMap = {};
+    this.roundUsedAbilities = new Set();
     this.switchScreen('screen-discussion');
     this.timerRemaining = this.durationSeconds;
     this.timerTotal = this.durationSeconds;
     this.isPaused = false;
-    if (!this.roundNumber) this.roundNumber = 1;
 
     document.getElementById('hud-category-name').textContent = this.lang === 'vi' ? this.categoryData.name_vi : this.categoryData.name_en;
     
@@ -1718,14 +1752,37 @@ class ImposterGame {
 
     const suspect = this.players.find(p => p.id === this.selectedSuspectId);
 
-    // Doctor Shield Protection Check
-    if (this.doctorShieldedPlayerId && this.doctorShieldedPlayerId === suspect.id) {
+    // Doctor Shield Protection Check (supports multiple doctors)
+    const isDoctorProtected = (this.doctorShieldedPlayerIds && this.doctorShieldedPlayerIds.has(suspect.id))
+      || (this.doctorShieldedPlayerId && this.doctorShieldedPlayerId === suspect.id);
+
+    if (isDoctorProtected) {
+      if (this.doctorShieldedPlayerIds) this.doctorShieldedPlayerIds.delete(suspect.id);
       this.doctorShieldedPlayerId = null;
       sound.playWinFanfare();
       alert(`💉 BÁC SĨ ĐÃ BẢO VỆ THÀNH CÔNG!\n${suspect.name} đã được tiêm huyết thanh bảo hộ nên KHÔNG bị loại vòng này!\nVán chơi tiếp tục sang vòng sau.`);
       this.roundNumber++;
       this.startDiscussionStage();
       return;
+    }
+
+    // Bodyguard Protection Check (if suspect was protected by a living bodyguard)
+    if (this.bodyguardProtectedMap) {
+      const guardingBodyguardId = Object.keys(this.bodyguardProtectedMap).find(bgId => {
+        const bg = this.players.find(p => p.id === bgId);
+        return bg && !bg.isEliminated && this.bodyguardProtectedMap[bgId] === suspect.id;
+      });
+      if (guardingBodyguardId) {
+        const bodyguard = this.players.find(p => p.id === guardingBodyguardId);
+        sound.playDramaticReveal();
+        alert(`🛡️ VỆ SĨ ĐÃ HY SINH!\n${bodyguard.name} đã liều mình đỡ đòn thay cho ${suspect.name}!\n${suspect.name} được an toàn, ${bodyguard.name} bị loại khỏi ván chơi.`);
+        bodyguard.isEliminated = true;
+        bodyguard.eliminatedInRound = this.roundNumber;
+        delete this.bodyguardProtectedMap[guardingBodyguardId];
+        this.roundNumber++;
+        this.startDiscussionStage();
+        return;
+      }
     }
 
     suspect.isEliminated = true;
@@ -2427,25 +2484,28 @@ class ImposterGame {
 
     // Khởi tạo lại điểm số về 0 cho tất cả người chơi trong giải đấu
     const resetScores = {};
-    if (Array.isArray(this.players) && this.players.length > 0) {
-      this.players.forEach(p => {
-        resetScores[p.name] = {
-          total: 0,
-          wins: 0,
-          games: 0,
-          avatar: p.avatar || '👤',
-          avatarBg: p.avatarBg || '#e0e7ff'
-        };
-      });
-    } else if (this.partyScores && Object.keys(this.partyScores).length > 0) {
+    if (this.partyScores && Object.keys(this.partyScores).length > 0) {
       Object.entries(this.partyScores).forEach(([name, data]) => {
         resetScores[name] = {
           total: 0,
           wins: 0,
           games: 0,
-          avatar: data.avatar || '👤',
-          avatarBg: data.avatarBg || '#e0e7ff'
+          avatar: (data && data.avatar) ? data.avatar : '👤',
+          avatarBg: (data && data.avatarBg) ? data.avatarBg : '#e0e7ff'
         };
+      });
+    }
+    if (Array.isArray(this.players) && this.players.length > 0) {
+      this.players.forEach(p => {
+        if (!resetScores[p.name]) {
+          resetScores[p.name] = {
+            total: 0,
+            wins: 0,
+            games: 0,
+            avatar: p.avatar || '👤',
+            avatarBg: p.avatarBg || '#e0e7ff'
+          };
+        }
       });
     }
 
@@ -2785,8 +2845,8 @@ class ImposterGame {
     const normGuess = norm(guess);
 
     const isMatch = !isGiveup && normGuess.length > 0 && (
-      normTarget.includes(normGuess) || 
-      normGuess.includes(normTarget)
+      normTarget === normGuess || 
+      (normGuess.length >= 3 && (normTarget.includes(normGuess) || normGuess.includes(normTarget)))
     );
 
     if (isMatch) {
@@ -2861,199 +2921,341 @@ class ImposterGame {
     const content = document.getElementById('toolbox-content');
     content.innerHTML = '';
 
-    const activeRoles = new Set(this.players.filter(p => !p.isEliminated).map(p => p.role.id));
+    if (!this.roundUsedAbilities) this.roundUsedAbilities = new Set();
+    if (!this.doctorShieldedPlayerIds) this.doctorShieldedPlayerIds = new Set();
+    if (!this.bodyguardProtectedMap) this.bodyguardProtectedMap = {};
 
-    if (activeRoles.has('detective')) {
+    const alivePlayers = this.players.filter(p => !p.isEliminated);
+
+    const renderEmptyState = () => {
+      content.innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); padding: 28px 16px; font-size: 13px;">
+          <div style="font-size: 34px; margin-bottom: 8px;">✨</div>
+          <strong style="color: var(--text-primary); font-size: 14px;">${this.lang === 'vi' ? 'Đã hoàn tất kỹ năng vai trò' : 'All Role Abilities Used'}</strong>
+          <p style="margin-top: 6px; font-size: 12px; color: var(--text-muted);">
+            ${this.lang === 'vi' ? 'Tất cả vai trò bí mật đã sử dụng kỹ năng trong vòng này hoặc không có vai trò kích hoạt.' : 'All secret role abilities have been used for this round, or no active abilities are in play.'}
+          </p>
+        </div>
+      `;
+    };
+
+    const dismissCard = (cardEl) => {
+      cardEl.classList.add('toolbox-card-dismiss');
+      setTimeout(() => {
+        cardEl.remove();
+        const remainingCards = content.querySelectorAll('.setting-item-row:not(.toolbox-card-dismiss)');
+        if (remainingCards.length === 0) {
+          renderEmptyState();
+        }
+      }, 360);
+    };
+
+    // 1. THÁM TỬ (Detective) - Soi danh tính
+    const aliveDetectives = alivePlayers.filter(p => p.role.id === 'detective');
+    const availableDetectives = aliveDetectives.filter(d => !this.roundUsedAbilities.has(d.id));
+    availableDetectives.forEach((detective, idx) => {
       const item = document.createElement('div');
       item.className = 'setting-item-row';
       item.style.flexDirection = 'column';
       item.style.alignItems = 'flex-start';
-      const aliveDetectives = this.players.filter(p => !p.isEliminated && p.role.id === 'detective');
-      const actorSelectorHtml = aliveDetectives.length > 1
-        ? `<div style="display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 8px;">
-            <span style="font-size: 11px; color: var(--text-muted);">${this.lang === 'vi' ? 'Thám Tử thực hiện:' : 'Detective actor:'}</span>
-            <select id="detective-actor" class="form-select" style="flex: 1; padding: 4px 8px; font-size: 12px;">
-              ${aliveDetectives.map(d => `<option value="${d.id}">${d.name}</option>`).join('')}
-            </select>
-          </div>`
-        : '';
+      item.dataset.playerId = detective.id;
+
+      const titleNum = aliveDetectives.length > 1 ? `#${idx + 1} ` : '';
+      const targets = alivePlayers.filter(p => p.id !== detective.id);
 
       item.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
-          <span style="font-size: 24px;">🔍</span>
-          <div>
-            <strong>${this.lang === 'vi' ? 'Thám Tử - Soi Danh Tính' : 'Detective Inspection'}</strong>
-            <p style="font-size: 11px; color: var(--text-muted);">${this.lang === 'vi' ? 'Chọn 1 người chơi để kiểm tra phe' : 'Inspect 1 player alignment'}</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">🔍</span>
+            <div>
+              <strong>${this.lang === 'vi' ? `Thám Tử ${titleNum}(${detective.name}) – Soi Phe` : `Detective ${titleNum}(${detective.name}) – Scan`}</strong>
+              <p style="font-size: 11px; color: var(--text-muted); margin: 0;">${this.lang === 'vi' ? 'Chọn 1 người chơi để kiểm tra danh tính' : 'Inspect 1 player alignment'}</p>
+            </div>
           </div>
         </div>
-        ${actorSelectorHtml}
         <div style="display: flex; gap: 8px; width: 100%; margin-top: 10px;">
-          <select id="detective-target" class="form-select" style="flex: 1; padding: 6px 10px;">
-            ${this.players.filter(p => !p.isEliminated && p.role.id !== 'detective').map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+          <select id="detective-target-${detective.id}" class="form-select" style="flex: 1; padding: 6px 10px;">
+            ${targets.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
           </select>
-          <button id="btn-detective-scan" class="ctrl-btn" style="background: var(--team-good); color: #fff;">
+          <button id="btn-detective-scan-${detective.id}" class="ctrl-btn" style="background: var(--team-good); color: #fff; min-width: 88px;">
             ${this.lang === 'vi' ? 'Kiểm tra' : 'Inspect'}
           </button>
         </div>
-        <div id="detective-result" style="font-size: 12px; font-weight: 700; margin-top: 6px; display: none;"></div>
       `;
       content.appendChild(item);
 
-      item.querySelector('#btn-detective-scan').addEventListener('click', () => {
+      item.querySelector(`#btn-detective-scan-${detective.id}`).addEventListener('click', () => {
         sound.playDramaticReveal();
-        const targetId = item.querySelector('#detective-target').value;
+        const targetId = item.querySelector(`#detective-target-${detective.id}`).value;
         const target = this.players.find(p => p.id === targetId);
-        const resEl = item.querySelector('#detective-result');
-        resEl.style.display = 'block';
+
+        let resultMsg = '';
         if (target && target.isImposter) {
-          resEl.style.color = '#ef4444';
-          resEl.textContent = this.lang === 'vi' 
-            ? `⚠️ BÁO ĐỘNG: ${target.name} THUỘC PHE ÁC (IMPOSTER)!` 
-            : `⚠️ ALERT: ${target.name} IS EVIL (IMPOSTER)!`;
-          const actorEl = item.querySelector('#detective-actor');
-          const actorId = actorEl ? actorEl.value : (aliveDetectives[0]?.id || null);
           if (!this.detectivesExposedImposter) this.detectivesExposedImposter = new Set();
-          if (actorId) {
-            this.detectivesExposedImposter.add(actorId);
-          } else {
-            aliveDetectives.forEach(d => this.detectivesExposedImposter.add(d.id));
-          }
+          this.detectivesExposedImposter.add(detective.id);
+          resultMsg = this.lang === 'vi' 
+            ? `⚠️ BÁO ĐỘNG:\n${target.name} THUỘC PHE ÁC (IMPOSTER)!` 
+            : `⚠️ ALERT:\n${target.name} IS EVIL (IMPOSTER)!`;
         } else if (target) {
-          resEl.style.color = '#10b981';
-          resEl.textContent = this.lang === 'vi'
-            ? `✓ BÌNH AN: ${target.name} là người vô tội (Phe Dân).`
-            : `✓ CLEAR: ${target.name} is Innocent.`;
+          resultMsg = this.lang === 'vi'
+            ? `✓ BÌNH AN:\n${target.name} là người vô tội (Phe Dân).`
+            : `✓ CLEAR:\n${target.name} is Innocent (Civilian).`;
         }
+
+        this.roundUsedAbilities.add(detective.id);
+        alert(`🔍 ${this.lang === 'vi' ? 'KẾT QUẢ SOI' : 'SCAN RESULT'} (Thám Tử: ${detective.name}):\n\n${resultMsg}`);
+        dismissCard(item);
       });
-    }
+    });
 
-    if (activeRoles.has('spy')) {
-      const item = document.createElement('div');
-      item.className = 'setting-item-row';
-      const firstLetter = this.secretWord ? this.secretWord.charAt(0) : '?';
-      item.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 24px;">🕵️</span>
-          <div>
-            <strong>${this.lang === 'vi' ? 'Gián Điệp - Manh Mối Ẩn' : 'Spy Intel'}</strong>
-            <p style="font-size: 12px; color: var(--team-neutral);">
-              ${this.lang === 'vi' ? `Chữ cái đầu của từ khóa: "${firstLetter}..."` : `First letter of keyword: "${firstLetter}..."`}
-            </p>
-          </div>
-        </div>
-      `;
-      content.appendChild(item);
-    }
-
-    if (activeRoles.has('doctor')) {
+    // 2. BÁC SĨ (Doctor) - Lá chắn bảo hộ
+    const aliveDoctors = alivePlayers.filter(p => p.role.id === 'doctor');
+    const availableDoctors = aliveDoctors.filter(d => !this.roundUsedAbilities.has(d.id));
+    availableDoctors.forEach((doctor, idx) => {
       const item = document.createElement('div');
       item.className = 'setting-item-row';
       item.style.flexDirection = 'column';
       item.style.alignItems = 'flex-start';
+      item.dataset.playerId = doctor.id;
+
+      const titleNum = aliveDoctors.length > 1 ? `#${idx + 1} ` : '';
+
       item.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
-          <span style="font-size: 24px;">💉</span>
-          <div>
-            <strong>${this.lang === 'vi' ? 'Bác Sĩ - Lá Chắn Bảo Hộ' : 'Doctor Protection'}</strong>
-            <p style="font-size: 11px; color: var(--text-muted);">${this.lang === 'vi' ? 'Chọn 1 người để bảo vệ khỏi bị loại vòng này' : 'Protect 1 player from elimination'}</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">💉</span>
+            <div>
+              <strong>${this.lang === 'vi' ? `Bác Sĩ ${titleNum}(${doctor.name}) – Lá Chắn Bảo Hộ` : `Doctor ${titleNum}(${doctor.name}) – Protection`}</strong>
+              <p style="font-size: 11px; color: var(--text-muted); margin: 0;">${this.lang === 'vi' ? 'Chọn 1 người để bảo vệ khỏi bị loại vòng này' : 'Protect 1 player from elimination this round'}</p>
+            </div>
           </div>
         </div>
         <div style="display: flex; gap: 8px; width: 100%; margin-top: 10px;">
-          <select id="doctor-target" class="form-select" style="flex: 1; padding: 6px 10px;">
-            ${this.players.filter(p => !p.isEliminated).map(p => `<option value="${p.id}" ${this.doctorShieldedPlayerId === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
+          <select id="doctor-target-${doctor.id}" class="form-select" style="flex: 1; padding: 6px 10px;">
+            ${alivePlayers.map(p => `<option value="${p.id}">${p.name}${p.id === doctor.id ? (this.lang === 'vi' ? ' (Bản thân)' : ' (Self)') : ''}</option>`).join('')}
           </select>
-          <button id="btn-doctor-shield" class="ctrl-btn" style="background: var(--team-good); color: #fff;">
+          <button id="btn-doctor-shield-${doctor.id}" class="ctrl-btn" style="background: var(--team-good); color: #fff; min-width: 88px;">
             ${this.lang === 'vi' ? 'Bảo vệ' : 'Shield'}
           </button>
         </div>
-        <div id="doctor-result" style="font-size: 12px; font-weight: 700; margin-top: 6px; color: #10b981; display: ${this.doctorShieldedPlayerId ? 'block' : 'none'};">
-          ${this.doctorShieldedPlayerId ? `✓ Đang bảo vệ: ${this.players.find(p => p.id === this.doctorShieldedPlayerId)?.name}` : ''}
-        </div>
       `;
       content.appendChild(item);
 
-      item.querySelector('#btn-doctor-shield')?.addEventListener('click', () => {
+      item.querySelector(`#btn-doctor-shield-${doctor.id}`).addEventListener('click', () => {
         sound.playWinFanfare();
-        const targetId = item.querySelector('#doctor-target').value;
-        this.doctorShieldedPlayerId = targetId;
+        const targetId = item.querySelector(`#doctor-target-${doctor.id}`).value;
+        const target = this.players.find(p => p.id === targetId);
+
+        this.doctorShieldedPlayerIds.add(targetId);
+        this.doctorShieldedPlayerId = targetId; // backward compatibility
         if (!this.doctorShieldHistory) this.doctorShieldHistory = [];
         this.doctorShieldHistory.push(targetId);
-        const target = this.players.find(p => p.id === targetId);
-        const resEl = item.querySelector('#doctor-result');
-        resEl.style.display = 'block';
-        resEl.textContent = `✓ Đã kích hoạt lá chắn bảo hộ cho: ${target?.name}!`;
+        this.roundUsedAbilities.add(doctor.id);
+
+        alert(this.lang === 'vi'
+          ? `💉 Bác Sĩ ${doctor.name} đã kích hoạt lá chắn bảo hộ cho: ${target?.name}!\n(Nếu ${target?.name} bị đa số phiếu loại vòng này, lá chắn sẽ cứu sống)`
+          : `💉 Doctor ${doctor.name} protected: ${target?.name}!`);
+        dismissCard(item);
       });
-    }
+    });
 
-    if (activeRoles.has('seer')) {
+    // 3. VỆ SĨ (Bodyguard) - Hy sinh bảo vệ
+    const aliveBodyguards = alivePlayers.filter(p => p.role.id === 'bodyguard');
+    const availableBodyguards = aliveBodyguards.filter(bg => !this.roundUsedAbilities.has(bg.id));
+    availableBodyguards.forEach((bodyguard, idx) => {
       const item = document.createElement('div');
       item.className = 'setting-item-row';
-      const wordCount = this.secretWord ? this.secretWord.trim().split(/\s+/).length : 0;
-      const charCount = this.secretWord ? this.secretWord.replace(/\s+/g, '').length : 0;
+      item.style.flexDirection = 'column';
+      item.style.alignItems = 'flex-start';
+      item.dataset.playerId = bodyguard.id;
+
+      const titleNum = aliveBodyguards.length > 1 ? `#${idx + 1} ` : '';
+      const targets = alivePlayers.filter(p => p.id !== bodyguard.id);
+
       item.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 24px;">🔮</span>
-          <div>
-            <strong>${this.lang === 'vi' ? 'Nhà Tiên Tri - Cấu Trúc Từ Khóa' : 'Seer Clue'}</strong>
-            <p style="font-size: 12px; color: #a855f7;">
-              Từ khóa bí mật gồm <strong>${wordCount} tiếng</strong> (${charCount} ký tự)
-            </p>
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">🛡️</span>
+            <div>
+              <strong>${this.lang === 'vi' ? `Vệ Sĩ ${titleNum}(${bodyguard.name}) – Thế Mạng` : `Bodyguard ${titleNum}(${bodyguard.name}) – Guard`}</strong>
+              <p style="font-size: 11px; color: var(--text-muted); margin: 0;">${this.lang === 'vi' ? 'Chọn 1 đồng đội: Nếu họ bị vote loại, bạn sẽ hy sinh thay!' : 'Guard 1 player; sacrifice if they are voted out'}</p>
+            </div>
           </div>
+        </div>
+        <div style="display: flex; gap: 8px; width: 100%; margin-top: 10px;">
+          <select id="bodyguard-target-${bodyguard.id}" class="form-select" style="flex: 1; padding: 6px 10px;">
+            ${targets.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+          </select>
+          <button id="btn-bodyguard-guard-${bodyguard.id}" class="ctrl-btn" style="background: var(--team-good); color: #fff; min-width: 88px;">
+            ${this.lang === 'vi' ? 'Bảo vệ' : 'Guard'}
+          </button>
         </div>
       `;
       content.appendChild(item);
-    }
 
-    if (activeRoles.has('mayor')) {
+      item.querySelector(`#btn-bodyguard-guard-${bodyguard.id}`).addEventListener('click', () => {
+        sound.playWinFanfare();
+        const targetId = item.querySelector(`#bodyguard-target-${bodyguard.id}`).value;
+        const target = this.players.find(p => p.id === targetId);
+
+        this.bodyguardProtectedMap[bodyguard.id] = targetId;
+        this.roundUsedAbilities.add(bodyguard.id);
+
+        alert(this.lang === 'vi'
+          ? `🛡️ Vệ Sĩ ${bodyguard.name} đã chọn bảo vệ ${target?.name}!\n(Nếu ${target?.name} bị đa số phiếu vote loại, bạn sẽ hy sinh thế mạng)`
+          : `🛡️ Bodyguard ${bodyguard.name} is guarding ${target?.name}!`);
+        dismissCard(item);
+      });
+    });
+
+    // 4. KẺ PHÁ HOẠI / GÂY RỐI (Saboteur) - Trừ giờ
+    const aliveSaboteurs = alivePlayers.filter(p => p.role.id === 'saboteur');
+    const availableSaboteurs = aliveSaboteurs.filter(s => !this.roundUsedAbilities.has(s.id));
+    availableSaboteurs.forEach((saboteur, idx) => {
       const item = document.createElement('div');
       item.className = 'setting-item-row';
-      item.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 24px;">👑</span>
-          <div>
-            <strong>${this.lang === 'vi' ? 'Thị Trưởng - Quyền Lực Phiếu Bầu' : 'Mayor Power'}</strong>
-            <p style="font-size: 12px; color: #f59e0b;">
-              Lá phiếu biểu quyết của Thị Trưởng tính giá trị gấp đôi (x2 phiếu bầu)!
-            </p>
-          </div>
-        </div>
-      `;
-      content.appendChild(item);
-    }
+      item.dataset.playerId = saboteur.id;
 
-    if (activeRoles.has('saboteur')) {
-      const item = document.createElement('div');
-      item.className = 'setting-item-row';
+      const titleNum = aliveSaboteurs.length > 1 ? `#${idx + 1} ` : '';
+
       item.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
           <div style="display: flex; align-items: center; gap: 10px;">
             <span style="font-size: 24px;">💣</span>
             <div>
-              <strong>${this.lang === 'vi' ? 'Kẻ Phá Hoại - Trừ Giờ' : 'Saboteur - Cut Time'}</strong>
-              <p style="font-size: 11px; color: var(--text-muted);">${this.lang === 'vi' ? 'Rút ngắn 30s của phe Dân' : 'Subtract 30s'}</p>
+              <strong>${this.lang === 'vi' ? `Kẻ Phá Hoại ${titleNum}(${saboteur.name})` : `Saboteur ${titleNum}(${saboteur.name})`}</strong>
+              <p style="font-size: 11px; color: var(--text-muted); margin: 0;">${this.lang === 'vi' ? 'Bí mật rút ngắn 30s của phe Dân' : 'Subtract 30s from timer'}</p>
             </div>
           </div>
-          <button id="btn-sabotage-trigger" class="ctrl-btn" style="background: var(--primary-red); color: #fff;">
+          <button id="btn-sabotage-${saboteur.id}" class="ctrl-btn" style="background: var(--primary-red); color: #fff; min-width: 88px;">
             -30s
           </button>
         </div>
       `;
       content.appendChild(item);
 
-      item.querySelector('#btn-sabotage-trigger').addEventListener('click', () => {
+      item.querySelector(`#btn-sabotage-${saboteur.id}`).addEventListener('click', () => {
         sound.playTick();
         this.timerRemaining = Math.max(5, this.timerRemaining - 30);
         this.updateTimerDisplay();
-        alert(this.lang === 'vi' ? 'Đã kích hoạt phá hoại: Giảm 30 giây!' : 'Sabotage triggered: -30 seconds!');
+        this.roundUsedAbilities.add(saboteur.id);
+
+        alert(this.lang === 'vi'
+          ? `💣 Kẻ Phá Hoại (${saboteur.name}) đã kích hoạt phá hoại: Rút ngắn 30 giây thời gian thảo luận!`
+          : `💣 Sabotage triggered by ${saboteur.name}: -30 seconds!`);
+        dismissCard(item);
+      });
+    });
+
+    // 5. GIÁN ĐIỆP (Spy) - Manh mối ẩn
+    const aliveSpies = alivePlayers.filter(p => p.role.id === 'spy');
+    const availableSpies = aliveSpies.filter(s => !this.roundUsedAbilities.has(s.id));
+    availableSpies.forEach((spy, idx) => {
+      const item = document.createElement('div');
+      item.className = 'setting-item-row';
+      item.dataset.playerId = spy.id;
+
+      const titleNum = aliveSpies.length > 1 ? `#${idx + 1} ` : '';
+
+      item.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">🕵️</span>
+            <div>
+              <strong>${this.lang === 'vi' ? `Gián Điệp ${titleNum}(${spy.name})` : `Spy ${titleNum}(${spy.name})`}</strong>
+              <p style="font-size: 11px; color: var(--team-neutral); margin: 0;">${this.lang === 'vi' ? 'Xem chữ cái đầu tiên của từ khóa' : 'View first letter of keyword'}</p>
+            </div>
+          </div>
+          <button id="btn-spy-${spy.id}" class="ctrl-btn" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-medium); color: var(--text-primary); min-width: 88px;">
+            ${this.lang === 'vi' ? 'Xem gợi ý' : 'View Clue'}
+          </button>
+        </div>
+      `;
+      content.appendChild(item);
+
+      item.querySelector(`#btn-spy-${spy.id}`).addEventListener('click', () => {
+        sound.playClick();
+        const firstLetter = this.secretWord ? this.secretWord.charAt(0) : '?';
+        this.roundUsedAbilities.add(spy.id);
+
+        alert(this.lang === 'vi'
+          ? `🕵️ Manh mối bí mật cho Gián Điệp (${spy.name}):\nChữ cái đầu tiên của từ khóa là "${firstLetter}..."`
+          : `🕵️ Spy intel for ${spy.name}:\nFirst letter of secret word is "${firstLetter}..."`);
+        dismissCard(item);
+      });
+    });
+
+    // 6. NHÀ TIÊN TRI (Seer) - Cấu trúc từ khóa
+    const aliveSeers = alivePlayers.filter(p => p.role.id === 'seer');
+    const availableSeers = aliveSeers.filter(s => !this.roundUsedAbilities.has(s.id));
+    availableSeers.forEach((seer, idx) => {
+      const item = document.createElement('div');
+      item.className = 'setting-item-row';
+      item.dataset.playerId = seer.id;
+
+      const titleNum = aliveSeers.length > 1 ? `#${idx + 1} ` : '';
+
+      item.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">🔮</span>
+            <div>
+              <strong>${this.lang === 'vi' ? `Nhà Tiên Tri ${titleNum}(${seer.name})` : `Seer ${titleNum}(${seer.name})`}</strong>
+              <p style="font-size: 11px; color: #a855f7; margin: 0;">${this.lang === 'vi' ? 'Xem cấu trúc số từ & ký tự' : 'View word count & characters'}</p>
+            </div>
+          </div>
+          <button id="btn-seer-${seer.id}" class="ctrl-btn" style="background: #7c3aed; color: #fff; min-width: 88px;">
+            ${this.lang === 'vi' ? 'Xem cấu trúc' : 'View'}
+          </button>
+        </div>
+      `;
+      content.appendChild(item);
+
+      item.querySelector(`#btn-seer-${seer.id}`).addEventListener('click', () => {
+        sound.playClick();
+        const wordCount = this.secretWord ? this.secretWord.trim().split(/\s+/).length : 0;
+        const charCount = this.secretWord ? this.secretWord.replace(/\s+/g, '').length : 0;
+        this.roundUsedAbilities.add(seer.id);
+
+        alert(this.lang === 'vi'
+          ? `🔮 Tiên Tri (${seer.name}):\nTừ khóa bí mật gồm ${wordCount} tiếng (${charCount} ký tự)`
+          : `🔮 Seer hint (${seer.name}):\nWord has ${wordCount} parts (${charCount} chars)`);
+        dismissCard(item);
+      });
+    });
+
+    // 7. THỊ TRƯỞNG (Mayor) - Thông tin x2 phiếu bầu
+    const aliveMayors = alivePlayers.filter(p => p.role.id === 'mayor');
+    if (aliveMayors.length > 0 && !this.roundUsedAbilities.has('mayor_info')) {
+      const item = document.createElement('div');
+      item.className = 'setting-item-row';
+      item.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">👑</span>
+            <div>
+              <strong>${this.lang === 'vi' ? `Thị Trưởng (${aliveMayors.map(m => m.name).join(', ')})` : `Mayor (${aliveMayors.map(m => m.name).join(', ')})`}</strong>
+              <p style="font-size: 11px; color: #f59e0b; margin: 0;">
+                ${this.lang === 'vi' ? 'Lá phiếu biểu quyết của Thị Trưởng tính giá trị x2 phiếu bầu!' : 'Mayor votes count as x2 votes during voting!'}
+              </p>
+            </div>
+          </div>
+          <button id="btn-mayor-ack" class="ctrl-btn" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-medium); color: var(--text-primary); min-width: 88px;">
+            ${this.lang === 'vi' ? 'Đã hiểu' : 'OK'}
+          </button>
+        </div>
+      `;
+      content.appendChild(item);
+
+      item.querySelector('#btn-mayor-ack').addEventListener('click', () => {
+        sound.playClick();
+        this.roundUsedAbilities.add('mayor_info');
+        dismissCard(item);
       });
     }
 
     if (content.children.length === 0) {
-      content.innerHTML = `
-        <div style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 13px;">
-          ${this.lang === 'vi' ? 'Không có vai trò hành động đặc biệt nào đang kích hoạt trong ván.' : 'No active special role abilities available for this match.'}
-        </div>
-      `;
+      renderEmptyState();
     }
 
     modal.classList.add('open');
@@ -3120,21 +3322,7 @@ class ImposterGame {
       if (sound.hapticEnabled) sound.vibrate(40);
     });
 
-    document.querySelectorAll('.progress-step-item').forEach(item => {
-      item.addEventListener('click', () => {
-        sound.playClick();
-        const target = item.dataset.target;
-        if (target) this.switchScreen(target);
-      });
-    });
-
-    document.querySelectorAll('.stage-micro-dot').forEach(dot => {
-      dot.addEventListener('click', () => {
-        sound.playClick();
-        const target = dot.dataset.screen;
-        if (target) this.switchScreen(target);
-      });
-    });
+    // Mode Tabs
 
     document.getElementById('mode-tab-pass')?.addEventListener('click', () => {
       sound.playClick();
@@ -3724,13 +3912,10 @@ class ImposterGame {
         r.enabled = true;
         r.count = this.imposterCount;
       } else {
-        const count = this.fixedRoles[r.id] || 0;
-        if (count > 0) {
+        const fixedCount = this.fixedRoles[r.id] || 0;
+        if (fixedCount > 0) {
           r.enabled = true;
-          r.count = count;
-        } else {
-          r.enabled = false;
-          r.count = 0;
+          r.count = fixedCount;
         }
       }
     });

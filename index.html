@@ -25,63 +25,18 @@
   <div id="app-viewport">
 
     <header class="global-control-bar">
-      <!-- Left Controls -->
+      <!-- Left Controls: Icon Bảng xếp hạng -->
       <div class="control-group control-group-left">
-        <button id="btn-open-word-pairs" class="ctrl-btn" title="Quản lý Cặp Từ Vựng" style="color: #ec4899; border-color: rgba(236, 72, 153, 0.4);">
-          <span style="font-size: 13px;">🔤</span> <span class="btn-label-text" style="font-size: 11px; font-weight: 700;">Cặp từ</span>
-        </button>
-        <button id="btn-open-leaderboard" class="ctrl-btn" title="Bảng điểm nhóm">
-          <span>🏆</span> <span class="btn-label-text" id="label-scores-btn">Điểm</span>
+        <button id="btn-open-leaderboard" class="ctrl-btn icon-only-btn" title="Bảng xếp hạng & Điểm số" aria-label="Bảng xếp hạng">
+          <span style="font-size: 15px;">🏆</span>
         </button>
       </div>
 
-      <!-- Center Controls: Thông tin tiến trình trang (Không có số, không phải option) -->
+      <!-- Center Controls: Chỉ hiện thông tin giai đoạn/trang hiện tại ở giữa -->
       <div class="control-group control-group-center">
-        <!-- Mobile Phase Info (< 860px) -->
-        <div class="mobile-stage-info-pill" title="Thông tin giai đoạn ván đấu">
-          <span class="mobile-stage-text" id="label-current-stage-mobile">Cài đặt ván</span>
-          <div class="mobile-stage-dots" aria-label="Tiến trình 6 vòng">
-            <span class="stage-micro-dot" data-screen="screen-reveal" title="Lật thẻ"></span>
-            <span class="stage-micro-dot" data-screen="screen-roulette" title="Vòng quay"></span>
-            <span class="stage-micro-dot" data-screen="screen-discussion" title="Thảo luận"></span>
-            <span class="stage-micro-dot" data-screen="screen-voting" title="Bỏ phiếu"></span>
-            <span class="stage-micro-dot" data-screen="screen-comeback" title="Lật kèo"></span>
-            <span class="stage-micro-dot" data-screen="screen-results" title="Kết quả"></span>
-          </div>
+        <div class="header-center-stage">
+          <span id="header-stage-title" class="header-stage-badge">Cài đặt ván</span>
         </div>
-
-        <!-- Desktop Progress Stepper (>= 860px) -->
-        <nav class="top-stage-progress-track" aria-label="Tiến trình các giai đoạn ván đấu">
-          <div class="progress-step-item" data-target="screen-reveal" title="Lật thẻ vai trò">
-            <span class="step-dot"></span>
-            <span class="step-label">Lật thẻ</span>
-          </div>
-          <span class="step-divider">›</span>
-          <div class="progress-step-item" data-target="screen-roulette" title="Vòng quay nói trước">
-            <span class="step-dot"></span>
-            <span class="step-label">Vòng quay</span>
-          </div>
-          <span class="step-divider">›</span>
-          <div class="progress-step-item" data-target="screen-discussion" title="Thảo luận & Đếm ngược">
-            <span class="step-dot"></span>
-            <span class="step-label">Thảo luận</span>
-          </div>
-          <span class="step-divider">›</span>
-          <div class="progress-step-item" data-target="screen-voting" title="Bỏ phiếu loại">
-            <span class="step-dot"></span>
-            <span class="step-label">Bỏ phiếu</span>
-          </div>
-          <span class="step-divider">›</span>
-          <div class="progress-step-item" data-target="screen-comeback" title="Cơ hội lật kèo">
-            <span class="step-dot"></span>
-            <span class="step-label">Lật kèo</span>
-          </div>
-          <span class="step-divider">›</span>
-          <div class="progress-step-item" data-target="screen-results" title="Kết quả & MVP">
-            <span class="step-dot"></span>
-            <span class="step-label">Kết quả</span>
-          </div>
-        </nav>
       </div>
 
       <!-- Right Controls: Luật chơi (?) & Cài đặt (⚙️) ở góc phải -->
@@ -604,6 +559,17 @@
               </div>
 
             </div>
+          </div>
+
+          <!-- Reveal Counter Under Card -->
+          <div id="reveal-counter-bar" class="reveal-counter-bar">
+            <div class="reveal-counter-info">
+              <span class="reveal-counter-text">
+                Đã mở: <strong id="reveal-counter-val">0/6 người</strong>
+              </span>
+              <span class="reveal-counter-remaining" id="reveal-counter-remaining">(Còn 6 người)</span>
+            </div>
+            <div class="reveal-counter-dots" id="reveal-counter-dots"></div>
           </div>
 
         </div>
