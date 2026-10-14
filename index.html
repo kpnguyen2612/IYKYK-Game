@@ -1075,61 +1075,157 @@
     </div>
   </div>
 
-  <!-- Modal 2.5: Custom Word Pairs Management -->
+  <!-- Modal 2.5: Custom Word Pairs & Topic Management -->
   <div id="modal-word-pairs" class="modal-overlay">
     <div class="bottom-sheet-content" style="max-height: 88vh; display: flex; flex-direction: column;">
       <div class="sheet-drag-handle"></div>
       <div class="sheet-header">
-        <h3 class="sheet-title">🔤 Quản Lý Cặp Từ Vựng</h3>
+        <h3 class="sheet-title">🔤 Quản Lý Cặp Từ & Bộ Chủ Đề</h3>
         <button class="close-sheet-btn" id="btn-close-word-pairs">✕</button>
       </div>
 
-      <div class="instruction-box" style="margin-bottom: 14px; background: rgba(236, 72, 153, 0.08); border-left-color: #ec4899;">
-        <span class="instruction-icon">💡</span>
-        <div class="instruction-text" style="font-size: 11px; line-height: 1.45;">
-          <strong>Cơ chế Cặp Từ:</strong> Phe Dân nhận <em>Từ phe Dân</em>. Kẻ Giả Mạo nhận <em>Từ Imposter</em> (gần giống / đối chiếu) để tự tin phát biểu hòa nhập!
-        </div>
-      </div>
-
-      <!-- Form Thêm Cặp Từ -->
-      <form id="form-add-word-pair" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px;">
-        <div style="font-family: var(--font-display); font-weight: 800; font-size: 13px; color: #fff; margin-bottom: 10px;">
-          ➕ Thêm Cặp Từ Mới
-        </div>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-          <div>
-            <label class="form-label" style="color: #10b981; font-size: 11px;">👤 Từ Phe Dân (Từ chính)</label>
-            <input type="text" id="wp-civilian" class="form-input" placeholder="VD: Bún Chả" required />
-          </div>
-          <div>
-            <label class="form-label" style="color: #ef4444; font-size: 11px;">🎭 Từ Imposter (Từ đối chiếu)</label>
-            <input type="text" id="wp-imposter" class="form-input" placeholder="VD: Bún Đậu" required />
-          </div>
-        </div>
-
-        <div style="margin-bottom: 12px;">
-          <label class="form-label" style="font-size: 11px;">🏷️ Chủ đề / Nhóm từ</label>
-          <input type="text" id="wp-category" class="form-input" placeholder="VD: Ẩm Thực, Tự Do..." value="Cặp từ tự tạo" />
-        </div>
-
-        <button type="submit" class="primary-cta-btn" style="min-height: 42px; width: 100%; margin: 0; background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 14px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);">
-          <span>💾 Lưu Cặp Từ</span>
+      <!-- Navigation Tabs: Cặp Từ vs Bộ Chủ Đề -->
+      <div class="modal-tabs-header">
+        <button type="button" id="tab-btn-pairs" class="modal-tab-btn active">
+          <span>📖 Cặp Từ Vựng</span> (<span id="count-tab-pairs">0</span>)
         </button>
-      </form>
-
-      <!-- Danh Sách Cặp Từ Đang Lưu -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <strong style="font-size: 12px; color: var(--text-muted);">
-          Danh sách cặp từ tự tạo (<span id="count-custom-pairs">0</span>):
-        </strong>
-        <button id="btn-clear-custom-pairs" class="ctrl-btn" style="font-size: 10px; padding: 2px 7px; color: var(--primary-red); border-color: rgba(239, 68, 68, 0.3);" title="Xóa tất cả từ tự tạo">
-          Xóa tất cả
+        <button type="button" id="tab-btn-categories" class="modal-tab-btn">
+          <span>🏷️ Bộ Chủ Đề</span> (<span id="count-tab-cats">0</span>)
         </button>
       </div>
 
-      <div id="custom-word-pairs-list" style="overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; max-height: 260px; padding-right: 4px;">
-        <!-- Injected dynamically -->
+      <!-- TAB 1: CẶP TỪ VỰNG -->
+      <div id="tab-content-pairs" style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
+        <!-- Form Thêm / Sửa Cặp Từ -->
+        <form id="form-add-word-pair" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px; margin-bottom: 12px; flex-shrink: 0;">
+          <input type="hidden" id="wp-editing-id" value="" />
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div id="form-wp-title" style="font-family: var(--font-display); font-weight: 800; font-size: 13px; color: #fff;">
+              ➕ Thêm Cặp Từ Mới
+            </div>
+            <span id="badge-edit-mode" style="display: none; font-size: 10px; padding: 2px 8px; border-radius: var(--radius-pill); background: rgba(59, 130, 246, 0.2); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.4); font-weight: 700;">
+              Đang chỉnh sửa
+            </span>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <div>
+              <label class="form-label" style="color: #10b981; font-size: 11px;">👤 Từ Phe Dân (Từ chính)</label>
+              <input type="text" id="wp-civilian" class="form-input" placeholder="VD: Bún Chả" required />
+            </div>
+            <div>
+              <label class="form-label" style="color: #ef4444; font-size: 11px;">🎭 Từ Imposter (Từ đối chiếu)</label>
+              <input type="text" id="wp-imposter" class="form-input" placeholder="VD: Bún Đậu" required />
+            </div>
+          </div>
+
+          <div style="margin-bottom: 10px;">
+            <label class="form-label" style="font-size: 11px;">🏷️ Match Với Chủ Đề (Danh Mục)</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <select id="wp-category-select" class="form-select" style="flex: 1; padding: 6px 10px; font-size: 12.5px;">
+                <!-- Injected dynamically -->
+              </select>
+              <button type="button" id="btn-quick-create-cat" class="ctrl-btn" style="padding: 6px 10px; font-size: 11px; color: #ec4899; border-color: rgba(236, 72, 153, 0.4); white-space: nowrap;" title="Tạo nhanh chủ đề mới">
+                <span>➕ Tạo chủ đề</span>
+              </button>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button type="submit" id="btn-submit-wp" class="primary-cta-btn" style="flex: 1; min-height: 40px; margin: 0; background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 13.5px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);">
+              <span id="btn-submit-wp-text">💾 Lưu Cặp Từ</span>
+            </button>
+            <button type="button" id="btn-cancel-edit-wp" class="ctrl-btn" style="display: none; padding: 0 14px; font-size: 12px; color: var(--text-muted);">
+              ✕ Hủy
+            </button>
+          </div>
+        </form>
+
+        <!-- Search & Category Filter Bar -->
+        <div style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center; flex-shrink: 0;">
+          <input type="text" id="wp-search-input" class="form-input" placeholder="🔍 Tìm cặp từ..." style="flex: 1; padding: 6px 10px; font-size: 12px;" />
+          <select id="wp-filter-category" class="form-select" style="max-width: 170px; padding: 6px 8px; font-size: 12px;">
+            <option value="all">Tất cả chủ đề</option>
+          </select>
+        </div>
+
+        <!-- Header danh sách & Nút xóa -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-shrink: 0;">
+          <strong style="font-size: 11.5px; color: var(--text-muted);">
+            Danh sách cặp từ (<span id="count-custom-pairs">0</span>):
+          </strong>
+          <button id="btn-clear-custom-pairs" class="ctrl-btn" style="font-size: 10px; padding: 2px 7px; color: var(--primary-red); border-color: rgba(239, 68, 68, 0.3);" title="Xóa các cặp từ">
+            Xóa danh sách
+          </button>
+        </div>
+
+        <!-- Danh Sách Cặp Từ Scrollable -->
+        <div id="custom-word-pairs-list" style="overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+
+      <!-- TAB 2: QUẢN LÝ BỘ CHỦ ĐỀ -->
+      <div id="tab-content-categories" style="display: none; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
+        <!-- Form Thêm / Sửa Chủ Đề -->
+        <form id="form-add-category" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px; margin-bottom: 12px; flex-shrink: 0;">
+          <input type="hidden" id="cat-editing-id" value="" />
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div id="form-cat-title" style="font-family: var(--font-display); font-weight: 800; font-size: 13px; color: #fff;">
+              ➕ Tạo Chủ Đề Mới
+            </div>
+            <span id="badge-cat-edit-mode" style="display: none; font-size: 10px; padding: 2px 8px; border-radius: var(--radius-pill); background: rgba(139, 92, 246, 0.2); color: #a855f7; border: 1px solid rgba(139, 92, 246, 0.4); font-weight: 700;">
+              Đang chỉnh sửa
+            </span>
+          </div>
+
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+            <div>
+              <input type="text" id="cat-icon-input" class="form-input" style="width: 52px; text-align: center; font-size: 20px; padding: 6px 2px;" value="⭐" maxlength="3" required title="Emoji biểu tượng" />
+            </div>
+            <div style="flex: 1;">
+              <input type="text" id="cat-name-input" class="form-input" placeholder="Tên chủ đề (VD: IT & Code, Anime, Tuổi Thơ...)" style="padding: 7px 10px; font-size: 12.5px;" required />
+            </div>
+          </div>
+
+          <!-- Quick Emoji Chips -->
+          <div style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 4px;">Chọn nhanh biểu tượng:</div>
+          <div id="cat-emoji-chips" style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;">
+            <span class="cat-emoji-chip" data-emoji="🎮">🎮</span>
+            <span class="cat-emoji-chip" data-emoji="🎵">🎵</span>
+            <span class="cat-emoji-chip" data-emoji="⚽">⚽</span>
+            <span class="cat-emoji-chip" data-emoji="💻">💻</span>
+            <span class="cat-emoji-chip" data-emoji="🎬">🎬</span>
+            <span class="cat-emoji-chip" data-emoji="🍔">🍔</span>
+            <span class="cat-emoji-chip" data-emoji="🏫">🏫</span>
+            <span class="cat-emoji-chip" data-emoji="🚗">🚗</span>
+            <span class="cat-emoji-chip" data-emoji="✈️">✈️</span>
+            <span class="cat-emoji-chip" data-emoji="🎨">🎨</span>
+            <span class="cat-emoji-chip" data-emoji="📚">📚</span>
+            <span class="cat-emoji-chip" data-emoji="💼">💼</span>
+            <span class="cat-emoji-chip" data-emoji="🏖️">🏖️</span>
+            <span class="cat-emoji-chip" data-emoji="🐱">🐱</span>
+            <span class="cat-emoji-chip" data-emoji="🌟">🌟</span>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button type="submit" id="btn-submit-cat" class="primary-cta-btn" style="flex: 1; min-height: 40px; margin: 0; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); font-size: 13.5px; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.25);">
+              <span id="btn-submit-cat-text">➕ Tạo Chủ Đề</span>
+            </button>
+            <button type="button" id="btn-cancel-edit-cat" class="ctrl-btn" style="display: none; padding: 0 14px; font-size: 12px; color: var(--text-muted);">
+              ✕ Hủy
+            </button>
+          </div>
+        </form>
+
+        <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px; flex-shrink: 0;">
+          <strong>Danh sách các chủ đề trong hệ thống:</strong>
+        </div>
+
+        <!-- Danh Sách Chủ Đề Scrollable -->
+        <div id="categories-management-list" style="overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+          <!-- Injected dynamically -->
+        </div>
       </div>
     </div>
   </div>

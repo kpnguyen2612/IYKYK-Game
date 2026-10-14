@@ -2218,6 +2218,106 @@ html[data-theme="light"] .sticky-bottom-action-bar {
   background: rgba(239, 68, 68, 0.25);
   transform: scale(1.08);
 }
+.btn-edit-wp {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+.btn-edit-wp:hover {
+  background: rgba(59, 130, 246, 0.25);
+  transform: scale(1.08);
+}
+
+/* Modal Word Pairs Tabs */
+.modal-tabs-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+.modal-tab-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: transparent;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.modal-tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+.modal-tab-btn.active {
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* Emoji Quick Chips */
+.cat-emoji-chip {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.cat-emoji-chip:hover {
+  background: rgba(255, 255, 255, 0.16);
+  transform: scale(1.15);
+  border-color: var(--border-medium);
+}
+.cat-emoji-chip.active {
+  border-color: var(--primary-orange);
+  background: rgba(255, 107, 53, 0.18);
+  transform: scale(1.12);
+}
+
+/* Category Management Item */
+.cat-manage-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cat-manage-item:hover {
+  background: var(--bg-surface-high);
+  border-color: var(--border-medium);
+}
+
 
 /* ==========================================================
    FIXED ROLES SETUP & MODAL STYLES

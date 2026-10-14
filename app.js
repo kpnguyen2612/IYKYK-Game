@@ -152,10 +152,17 @@ class ImposterGame {
     this.roundUsedAbilities = new Set();
     this.detectivesExposedImposter = new Set();
 
-    // Custom Word Pairs (Cặp từ tự tạo)
+    // Custom Categories & Word Pairs Management
+    this.customCategories = JSON.parse(localStorage.getItem('gti_custom_categories') || '[]');
     this.customWordPairs = JSON.parse(localStorage.getItem('gti_custom_word_pairs') || '[]');
+    this.activeWordPairsTab = 'pairs';
+    this.editingWordPairId = null;
+    this.editingCategoryId = null;
+    this.filterWordPairCategory = 'all';
+    this.searchWordPairKeyword = '';
     this.secretWord = null;
     this.imposterWord = null;
+    this.migrateCustomWordPairs();
 
     // Fixed Guaranteed Roles (Vai trò cố định kèm số lượng)
     this.fixedRoles = this.loadSavedFixedRoles();
@@ -1113,21 +1120,16 @@ class ImposterGame {
     this.isCurrentRoundScoreDiscarded = false;
     this.roundNumber = 1;
 
-    let allCats = [...CATEGORIES];
-    if (this.customWordPairs && this.customWordPairs.length > 0) {
-      allCats.unshift({
-        id: "custom_user_pairs",
-        name_vi: "✨ Cặp Từ Tự Tạo",
-        icon: "⭐",
-        words: this.customWordPairs
-      });
-    }
-
+    const allCats = this.getPlayableCategories();
     let cat;
     if (this.categoryMode === 'random') {
-      cat = allCats[Math.floor(Math.random() * allCats.length)];
+      const candidates = allCats.filter(c => c.words && c.words.length > 0);
+      cat = candidates.length > 0 ? candidates[Math.floor(Math.random() * candidates.length)] : allCats[0];
     } else {
-      cat = allCats.find(c => c.id === this.selectedCategoryId) || allCats[0];
+      cat = allCats.find(c => c.id === this.selectedCategoryId);
+      if (!cat || !cat.words || cat.words.length === 0) {
+        cat = allCats.find(c => c.words && c.words.length > 0) || allCats[0];
+      }
     }
     this.categoryData = cat;
 
@@ -3844,7 +3846,7 @@ class ImposterGame {
       document.getElementById('modal-deep-rules')?.classList.remove('open');
     });
 
-    // Custom Word Pairs Modal Events
+    // Custom Word Pairs & Topic Management Modal Events
     document.getElementById('btn-open-word-pairs')?.addEventListener('click', () => {
       this.openWordPairsModal();
     });
@@ -3858,15 +3860,83 @@ class ImposterGame {
     document.getElementById('btn-close-word-pairs')?.addEventListener('click', () => {
       document.getElementById('modal-word-pairs')?.classList.remove('open');
     });
+
+    // Tab switching in Word Pairs modal
+    document.getElementById('tab-btn-pairs')?.addEventListener('click', () => {
+      this.switchWordPairsTab('pairs');
+    });
+    document.getElementById('tab-btn-categories')?.addEventListener('click', () => {
+      this.switchWordPairsTab('categories');
+    });
+
+    // Quick create category from Word Pair form
+    document.getElementById('btn-quick-create-cat')?.addEventListener('click', () => {
+      this.switchWordPairsTab('categories');
+      document.getElementById('cat-name-input')?.focus();
+    });
+
+    // Word Pair Form Submit (Add or Edit)
     document.getElementById('form-add-word-pair')?.addEventListener('submit', (e) => {
       e.preventDefault();
       const civ = document.getElementById('wp-civilian')?.value;
       const imp = document.getElementById('wp-imposter')?.value;
-      const cat = document.getElementById('wp-category')?.value;
-      this.addCustomWordPair(civ, imp, cat);
+      const catId = document.getElementById('wp-category-select')?.value;
+      const editId = document.getElementById('wp-editing-id')?.value;
+      if (editId) {
+        this.updateCustomWordPair(editId, civ, imp, catId);
+      } else {
+        this.addCustomWordPair(civ, imp, catId);
+      }
     });
+
+    // Cancel Edit Word Pair
+    document.getElementById('btn-cancel-edit-wp')?.addEventListener('click', () => {
+      this.cancelEditWordPair();
+    });
+
+    // Search and Filter Word Pairs
+    document.getElementById('wp-search-input')?.addEventListener('input', (e) => {
+      this.searchWordPairKeyword = e.target.value.trim().toLowerCase();
+      this.renderCustomWordPairsList();
+    });
+    document.getElementById('wp-filter-category')?.addEventListener('change', (e) => {
+      this.filterWordPairCategory = e.target.value;
+      this.renderCustomWordPairsList();
+    });
+
+    // Clear word pairs
     document.getElementById('btn-clear-custom-pairs')?.addEventListener('click', () => {
       this.clearAllCustomWordPairs();
+    });
+
+    // Category Form Submit (Add or Edit)
+    document.getElementById('form-add-category')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('cat-name-input')?.value;
+      const icon = document.getElementById('cat-icon-input')?.value;
+      const editId = document.getElementById('cat-editing-id')?.value;
+      if (editId) {
+        this.updateCustomCategory(editId, name, icon);
+      } else {
+        this.addCustomCategory(name, icon);
+      }
+    });
+
+    // Cancel Edit Category
+    document.getElementById('btn-cancel-edit-cat')?.addEventListener('click', () => {
+      this.cancelEditCategory();
+    });
+
+    // Quick emoji chips
+    document.querySelectorAll('.cat-emoji-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const emoji = chip.dataset.emoji;
+        const iconInput = document.getElementById('cat-icon-input');
+        if (iconInput && emoji) {
+          iconInput.value = emoji;
+          if (typeof sound !== 'undefined') sound.playClick();
+        }
+      });
     });
 
     // Fixed Roles Modal Events
@@ -4170,102 +4240,385 @@ class ImposterGame {
   }
 
   // ==========================================================
-  // [SEC 04.5] CUSTOM WORD PAIRS MANAGEMENT
+  // [SEC 04.5] CUSTOM WORD PAIRS & TOPIC MANAGEMENT
   // ==========================================================
-  openWordPairsModal() {
-    if (typeof sound !== 'undefined') sound.playClick();
-    this.renderCustomWordPairsList();
-    const modal = document.getElementById('modal-word-pairs');
-    if (modal) modal.classList.add('open');
+  migrateCustomWordPairs() {
+    let changed = false;
+    const allCats = this.getAllCategories();
+    this.customWordPairs.forEach(wp => {
+      if (!wp.categoryId) {
+        const matched = allCats.find(c => c.name_vi.toLowerCase() === (wp.category || '').toLowerCase());
+        if (matched) {
+          wp.categoryId = matched.id;
+          wp.categoryName = matched.name_vi;
+        } else {
+          const defaultCustom = this.customCategories[0] || { id: 'cat_custom_general', name_vi: 'Chủ Đề Chung', icon: '⭐', isCustom: true };
+          if (this.customCategories.length === 0) {
+            this.customCategories.push(defaultCustom);
+            this.saveCustomCategories();
+          }
+          wp.categoryId = defaultCustom.id;
+          wp.categoryName = defaultCustom.name_vi;
+        }
+        changed = true;
+      }
+    });
+    if (changed) {
+      this.saveCustomWordPairs();
+    }
+  }
+
+  saveCustomCategories() {
+    localStorage.setItem('gti_custom_categories', JSON.stringify(this.customCategories));
   }
 
   saveCustomWordPairs() {
     localStorage.setItem('gti_custom_word_pairs', JSON.stringify(this.customWordPairs));
   }
 
-  addCustomWordPair(civilian, imposter, category) {
+  getAllCategories() {
+    const defaultCats = CATEGORIES.map(c => ({
+      id: c.id,
+      name_vi: c.name_vi,
+      icon: c.icon,
+      isCustom: false,
+      defaultWords: c.words || []
+    }));
+    return [...defaultCats, ...this.customCategories];
+  }
+
+  getPlayableCategories() {
+    // 1. Built-in categories with user's matched custom pairs merged in
+    const list = CATEGORIES.map(c => {
+      const matchedCustom = this.customWordPairs.filter(wp => wp.categoryId === c.id);
+      return {
+        id: c.id,
+        name_vi: c.name_vi,
+        name_en: c.name_en || c.name_vi,
+        icon: c.icon,
+        isCustom: false,
+        words: [...(c.words || []), ...matchedCustom]
+      };
+    });
+
+    // 2. Custom categories created by the user
+    this.customCategories.forEach(cat => {
+      const catWords = this.customWordPairs.filter(wp => wp.categoryId === cat.id);
+      list.push({
+        id: cat.id,
+        name_vi: cat.name_vi,
+        name_en: cat.name_vi,
+        icon: cat.icon || '⭐',
+        isCustom: true,
+        words: catWords
+      });
+    });
+
+    // 3. Option to play ALL custom pairs together
+    if (this.customWordPairs && this.customWordPairs.length > 0) {
+      list.unshift({
+        id: "custom_user_pairs",
+        name_vi: "✨ Tất Cả Cặp Từ Tự Tạo",
+        name_en: "All Custom Pairs",
+        icon: "⭐",
+        words: this.customWordPairs
+      });
+    }
+
+    return list;
+  }
+
+  openWordPairsModal() {
+    if (typeof sound !== 'undefined') sound.playClick();
+    this.populateCategorySelectors();
+    this.renderCustomWordPairsList();
+    this.renderCategoriesManagementList();
+    this.switchWordPairsTab(this.activeWordPairsTab || 'pairs');
+    const modal = document.getElementById('modal-word-pairs');
+    if (modal) modal.classList.add('open');
+  }
+
+  switchWordPairsTab(tab) {
+    this.activeWordPairsTab = tab;
+    const btnPairs = document.getElementById('tab-btn-pairs');
+    const btnCats = document.getElementById('tab-btn-categories');
+    const contentPairs = document.getElementById('tab-content-pairs');
+    const contentCats = document.getElementById('tab-content-categories');
+
+    if (tab === 'pairs') {
+      btnPairs?.classList.add('active');
+      btnCats?.classList.remove('active');
+      if (contentPairs) contentPairs.style.display = 'flex';
+      if (contentCats) contentCats.style.display = 'none';
+      this.populateCategorySelectors();
+      this.renderCustomWordPairsList();
+    } else {
+      btnCats?.classList.add('active');
+      btnPairs?.classList.remove('active');
+      if (contentCats) contentCats.style.display = 'flex';
+      if (contentPairs) contentPairs.style.display = 'none';
+      this.renderCategoriesManagementList();
+    }
+  }
+
+  populateCategorySelectors() {
+    const allCats = this.getAllCategories();
+    const select = document.getElementById('wp-category-select');
+    const filter = document.getElementById('wp-filter-category');
+
+    if (select) {
+      const currentVal = select.value;
+      select.innerHTML = allCats.map(c => `
+        <option value="${c.id}">${c.icon} ${c.name_vi} ${c.isCustom ? '(Tự tạo)' : ''}</option>
+      `).join('');
+      if (currentVal && allCats.some(c => c.id === currentVal)) {
+        select.value = currentVal;
+      }
+    }
+
+    if (filter) {
+      const currentFilter = this.filterWordPairCategory || 'all';
+      filter.innerHTML = `
+        <option value="all">Tất cả chủ đề (${this.customWordPairs.length})</option>
+        ${allCats.map(c => {
+          const count = this.customWordPairs.filter(wp => wp.categoryId === c.id).length;
+          return `<option value="${c.id}">${c.icon} ${c.name_vi} (${count})</option>`;
+        }).join('')}
+      `;
+      if (currentFilter && (currentFilter === 'all' || allCats.some(c => c.id === currentFilter))) {
+        filter.value = currentFilter;
+      }
+    }
+  }
+
+  // --- WORD PAIRS CRUD ---
+  addCustomWordPair(civilian, imposter, categoryId) {
     const civ = civilian ? civilian.trim() : '';
     const imp = imposter ? imposter.trim() : '';
-    const cat = category ? category.trim() : 'Cặp từ tự tạo';
 
     if (!civ || !imp) {
-      alert('Vui lòng nhập đầy đủ Từ Phe Dân và Từ Kẻ Giả Mạo!');
+      alert('Vui lòng nhập đầy đủ Từ Phe Dân và Từ Imposter!');
       return;
     }
+
+    const allCats = this.getAllCategories();
+    let cat = allCats.find(c => c.id === categoryId) || allCats[0];
 
     const newPair = {
       id: `wp_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
       civilian: civ,
       imposter: imp,
-      category: cat || 'Tự tạo'
+      categoryId: cat.id,
+      categoryName: cat.name_vi
     };
 
     this.customWordPairs.unshift(newPair);
     this.saveCustomWordPairs();
     if (typeof sound !== 'undefined') sound.playWinFanfare();
 
+    this.populateCategorySelectors();
     this.renderCustomWordPairsList();
+    this.renderCategoriesManagementList();
 
-    // Reset input fields
+    // Reset inputs
     const civInp = document.getElementById('wp-civilian');
     const impInp = document.getElementById('wp-imposter');
     if (civInp) { civInp.value = ''; civInp.focus(); }
     if (impInp) impInp.value = '';
   }
 
+  startEditWordPair(id) {
+    const pair = this.customWordPairs.find(wp => wp.id === id);
+    if (!pair) return;
+
+    this.editingWordPairId = id;
+    if (typeof sound !== 'undefined') sound.playClick();
+
+    this.switchWordPairsTab('pairs');
+
+    const editIdInp = document.getElementById('wp-editing-id');
+    const civInp = document.getElementById('wp-civilian');
+    const impInp = document.getElementById('wp-imposter');
+    const catSelect = document.getElementById('wp-category-select');
+    const titleEl = document.getElementById('form-wp-title');
+    const badgeEl = document.getElementById('badge-edit-mode');
+    const submitText = document.getElementById('btn-submit-wp-text');
+    const cancelBtn = document.getElementById('btn-cancel-edit-wp');
+
+    if (editIdInp) editIdInp.value = pair.id;
+    if (civInp) civInp.value = pair.civilian;
+    if (impInp) impInp.value = pair.imposter;
+    if (catSelect) catSelect.value = pair.categoryId || '';
+    if (titleEl) titleEl.textContent = '✏️ Chỉnh Sửa Cặp Từ';
+    if (badgeEl) badgeEl.style.display = 'inline-block';
+    if (submitText) submitText.textContent = '💾 Cập Nhật Cặp Từ';
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+
+    civInp?.focus();
+    document.getElementById('form-add-word-pair')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  cancelEditWordPair() {
+    this.editingWordPairId = null;
+    const editIdInp = document.getElementById('wp-editing-id');
+    const civInp = document.getElementById('wp-civilian');
+    const impInp = document.getElementById('wp-imposter');
+    const titleEl = document.getElementById('form-wp-title');
+    const badgeEl = document.getElementById('badge-edit-mode');
+    const submitText = document.getElementById('btn-submit-wp-text');
+    const cancelBtn = document.getElementById('btn-cancel-edit-wp');
+
+    if (editIdInp) editIdInp.value = '';
+    if (civInp) civInp.value = '';
+    if (impInp) impInp.value = '';
+    if (titleEl) titleEl.textContent = '➕ Thêm Cặp Từ Mới';
+    if (badgeEl) badgeEl.style.display = 'none';
+    if (submitText) submitText.textContent = '💾 Lưu Cặp Từ';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+  }
+
+  updateCustomWordPair(id, civilian, imposter, categoryId) {
+    const pair = this.customWordPairs.find(wp => wp.id === id);
+    if (!pair) return;
+
+    const civ = civilian ? civilian.trim() : '';
+    const imp = imposter ? imposter.trim() : '';
+
+    if (!civ || !imp) {
+      alert('Vui lòng nhập đầy đủ Từ Phe Dân và Từ Imposter!');
+      return;
+    }
+
+    const allCats = this.getAllCategories();
+    const cat = allCats.find(c => c.id === categoryId) || allCats[0];
+
+    pair.civilian = civ;
+    pair.imposter = imp;
+    pair.categoryId = cat.id;
+    pair.categoryName = cat.name_vi;
+
+    this.saveCustomWordPairs();
+    if (typeof sound !== 'undefined') sound.playWinFanfare();
+
+    this.cancelEditWordPair();
+    this.populateCategorySelectors();
+    this.renderCustomWordPairsList();
+    this.renderCategoriesManagementList();
+  }
+
   deleteCustomWordPair(id) {
+    if (!confirm('Bạn có chắc muốn xóa cặp từ này?')) return;
     if (typeof sound !== 'undefined') sound.playClick();
     this.customWordPairs = this.customWordPairs.filter(wp => wp.id !== id);
     this.saveCustomWordPairs();
+    if (this.editingWordPairId === id) this.cancelEditWordPair();
+    this.populateCategorySelectors();
     this.renderCustomWordPairsList();
+    this.renderCategoriesManagementList();
   }
 
   clearAllCustomWordPairs() {
     if (this.customWordPairs.length === 0) return;
-    if (confirm('Bạn có chắc chắn muốn xóa tất cả các cặp từ tự tạo?')) {
+    const filterCatId = this.filterWordPairCategory;
+    const isFiltered = filterCatId && filterCatId !== 'all';
+    const allCats = this.getAllCategories();
+    const catName = isFiltered ? allCats.find(c => c.id === filterCatId)?.name_vi || '' : '';
+
+    const confirmMsg = isFiltered
+      ? `Bạn có chắc muốn xóa tất cả các cặp từ thuộc chủ đề "${catName}"?`
+      : 'Bạn có chắc chắn muốn xóa tất cả các cặp từ tự tạo?';
+
+    if (confirm(confirmMsg)) {
       if (typeof sound !== 'undefined') sound.playClick();
-      this.customWordPairs = [];
+      if (isFiltered) {
+        this.customWordPairs = this.customWordPairs.filter(wp => wp.categoryId !== filterCatId);
+      } else {
+        this.customWordPairs = [];
+      }
       this.saveCustomWordPairs();
+      this.cancelEditWordPair();
+      this.populateCategorySelectors();
       this.renderCustomWordPairsList();
+      this.renderCategoriesManagementList();
     }
   }
 
   renderCustomWordPairsList() {
-    const countEl = document.getElementById('count-custom-pairs');
-    if (countEl) countEl.textContent = this.customWordPairs.length;
-
     const list = document.getElementById('custom-word-pairs-list');
-    if (!list) return;
+    const countTabEl = document.getElementById('count-tab-pairs');
+    const countTotalEl = document.getElementById('count-custom-pairs');
+    const countFilterEl = document.getElementById('count-filtered-pairs');
 
+    if (countTabEl) countTabEl.textContent = this.customWordPairs.length;
+    if (countTotalEl) countTotalEl.textContent = this.customWordPairs.length;
+
+    if (!list) return;
     list.innerHTML = '';
 
-    if (this.customWordPairs.length === 0) {
+    const allCats = this.getAllCategories();
+
+    // Filtering & searching
+    const filterCat = this.filterWordPairCategory || 'all';
+    const keyword = this.searchWordPairKeyword || '';
+
+    const filtered = this.customWordPairs.filter(wp => {
+      const matchCat = (filterCat === 'all' || wp.categoryId === filterCat);
+      const matchKey = !keyword ||
+        wp.civilian.toLowerCase().includes(keyword) ||
+        wp.imposter.toLowerCase().includes(keyword) ||
+        (wp.categoryName || '').toLowerCase().includes(keyword);
+      return matchCat && matchKey;
+    });
+
+    if (countFilterEl) countFilterEl.textContent = filtered.length;
+
+    if (filtered.length === 0) {
+      const emptyMsg = this.customWordPairs.length === 0
+        ? `Chưa có cặp từ tự tạo nào.<br />Hãy nhập <strong>Từ Phe Dân</strong> & <strong>Từ Imposter</strong> ở form phía trên để bắt đầu!`
+        : `Không tìm thấy cặp từ nào phù hợp với bộ lọc hiện tại.`;
+
       list.innerHTML = `
         <div style="text-align: center; color: var(--text-muted); padding: 24px 10px; font-size: 12px; line-height: 1.6;">
-          <div style="font-size: 24px; margin-bottom: 6px;">📝</div>
-          Chưa có cặp từ tự tạo nào.<br />
-          Hãy nhập <strong>Từ Phe Dân</strong> & <strong>Từ Imposter</strong> ở form phía trên để thêm cặp từ cho phòng chơi của bạn!
+          <div style="font-size: 26px; margin-bottom: 6px;">📝</div>
+          ${emptyMsg}
         </div>
       `;
       return;
     }
 
-    this.customWordPairs.forEach(wp => {
+    filtered.forEach(wp => {
+      const cat = allCats.find(c => c.id === wp.categoryId);
+      const catIcon = cat ? cat.icon : '🏷️';
+      const catName = cat ? cat.name_vi : (wp.categoryName || 'Tự tạo');
+
       const item = document.createElement('div');
       item.className = 'word-pair-item';
+      if (this.editingWordPairId === wp.id) {
+        item.style.borderColor = 'var(--primary-orange)';
+        item.style.background = 'rgba(255, 107, 53, 0.08)';
+      }
+
       item.innerHTML = `
         <div style="flex: 1; min-width: 0;">
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <span class="wp-civ-tag" title="Từ của phe Dân">👤 ${wp.civilian}</span>
+            <span class="wp-civ-tag" title="Từ Phe Dân">👤 ${wp.civilian}</span>
             <span style="color: var(--text-muted); font-size: 11px;">⟷</span>
-            <span class="wp-imp-tag" title="Từ của Imposter">🎭 ${wp.imposter}</span>
+            <span class="wp-imp-tag" title="Từ Imposter">🎭 ${wp.imposter}</span>
           </div>
-          <div style="margin-top: 3px;">
-            <span class="wp-cat-pill">🏷️ ${wp.category || 'Tự tạo'}</span>
+          <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+            <span class="wp-cat-pill" title="Chủ đề khớp">${catIcon} ${catName}</span>
           </div>
         </div>
-        <button type="button" class="btn-delete-wp" data-wp-id="${wp.id}" title="Xóa cặp từ này">🗑️</button>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button type="button" class="btn-edit-wp" title="Sửa cặp từ">✏️</button>
+          <button type="button" class="btn-delete-wp" title="Xóa cặp từ">🗑️</button>
+        </div>
       `;
+
+      item.querySelector('.btn-edit-wp')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.startEditWordPair(wp.id);
+      });
 
       item.querySelector('.btn-delete-wp')?.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -4276,20 +4629,260 @@ class ImposterGame {
     });
   }
 
+  // --- CATEGORIES CRUD ---
+  addCustomCategory(name, icon) {
+    const catName = name ? name.trim() : '';
+    if (!catName) {
+      alert('Vui lòng nhập tên chủ đề!');
+      return;
+    }
+
+    const catIcon = icon ? icon.trim() : '⭐';
+    const newCat = {
+      id: `cat_${Date.now()}`,
+      name_vi: catName,
+      icon: catIcon,
+      isCustom: true
+    };
+
+    this.customCategories.push(newCat);
+    this.saveCustomCategories();
+    if (typeof sound !== 'undefined') sound.playWinFanfare();
+
+    this.populateCategorySelectors();
+    this.renderCategoriesManagementList();
+    this.renderCustomWordPairsList();
+
+    // Reset category form
+    const nameInp = document.getElementById('cat-name-input');
+    const iconInp = document.getElementById('cat-icon-input');
+    if (nameInp) { nameInp.value = ''; nameInp.focus(); }
+    if (iconInp) iconInp.value = '⭐';
+  }
+
+  startEditCategory(id) {
+    const cat = this.customCategories.find(c => c.id === id);
+    if (!cat) return;
+
+    this.editingCategoryId = id;
+    if (typeof sound !== 'undefined') sound.playClick();
+
+    const editIdInp = document.getElementById('cat-editing-id');
+    const nameInp = document.getElementById('cat-name-input');
+    const iconInp = document.getElementById('cat-icon-input');
+    const titleEl = document.getElementById('form-cat-title');
+    const badgeEl = document.getElementById('badge-cat-edit-mode');
+    const submitText = document.getElementById('btn-submit-cat-text');
+    const cancelBtn = document.getElementById('btn-cancel-edit-cat');
+
+    if (editIdInp) editIdInp.value = cat.id;
+    if (nameInp) nameInp.value = cat.name_vi;
+    if (iconInp) iconInp.value = cat.icon || '⭐';
+    if (titleEl) titleEl.textContent = '✏️ Chỉnh Sửa Chủ Đề';
+    if (badgeEl) badgeEl.style.display = 'inline-block';
+    if (submitText) submitText.textContent = '💾 Cập Nhật Chủ Đề';
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+
+    nameInp?.focus();
+    document.getElementById('form-add-category')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  cancelEditCategory() {
+    this.editingCategoryId = null;
+    const editIdInp = document.getElementById('cat-editing-id');
+    const nameInp = document.getElementById('cat-name-input');
+    const iconInp = document.getElementById('cat-icon-input');
+    const titleEl = document.getElementById('form-cat-title');
+    const badgeEl = document.getElementById('badge-cat-edit-mode');
+    const submitText = document.getElementById('btn-submit-cat-text');
+    const cancelBtn = document.getElementById('btn-cancel-edit-cat');
+
+    if (editIdInp) editIdInp.value = '';
+    if (nameInp) nameInp.value = '';
+    if (iconInp) iconInp.value = '⭐';
+    if (titleEl) titleEl.textContent = '➕ Tạo Chủ Đề Mới';
+    if (badgeEl) badgeEl.style.display = 'none';
+    if (submitText) submitText.textContent = '➕ Tạo Chủ Đề';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+  }
+
+  updateCustomCategory(id, name, icon) {
+    const cat = this.customCategories.find(c => c.id === id);
+    if (!cat) return;
+
+    const catName = name ? name.trim() : '';
+    if (!catName) {
+      alert('Vui lòng nhập tên chủ đề!');
+      return;
+    }
+
+    const catIcon = icon ? icon.trim() : '⭐';
+    cat.name_vi = catName;
+    cat.icon = catIcon;
+
+    // Update all word pairs matched to this category
+    this.customWordPairs.forEach(wp => {
+      if (wp.categoryId === id) {
+        wp.categoryName = catName;
+      }
+    });
+
+    this.saveCustomCategories();
+    this.saveCustomWordPairs();
+    if (typeof sound !== 'undefined') sound.playWinFanfare();
+
+    this.cancelEditCategory();
+    this.populateCategorySelectors();
+    this.renderCategoriesManagementList();
+    this.renderCustomWordPairsList();
+  }
+
+  deleteCustomCategory(id) {
+    const cat = this.customCategories.find(c => c.id === id);
+    if (!cat) return;
+
+    const wordCount = this.customWordPairs.filter(wp => wp.categoryId === id).length;
+    let confirmMsg = `Bạn có chắc muốn xóa chủ đề "${cat.name_vi}"?`;
+    if (wordCount > 0) {
+      confirmMsg += `\n(Có ${wordCount} cặp từ đang thuộc chủ đề này. Các từ này sẽ được chuyển sang chủ đề chung)`;
+    }
+
+    if (!confirm(confirmMsg)) return;
+
+    if (typeof sound !== 'undefined') sound.playClick();
+
+    // Reassign affected pairs to general category
+    const remainingCats = this.customCategories.filter(c => c.id !== id);
+    const fallbackCat = remainingCats[0] || { id: 'food_drink', name_vi: 'Ẩm Thực & Đồ Uống' };
+    this.customWordPairs.forEach(wp => {
+      if (wp.categoryId === id) {
+        wp.categoryId = fallbackCat.id;
+        wp.categoryName = fallbackCat.name_vi;
+      }
+    });
+
+    this.customCategories = remainingCats;
+    this.saveCustomCategories();
+    this.saveCustomWordPairs();
+
+    if (this.editingCategoryId === id) this.cancelEditCategory();
+
+    this.populateCategorySelectors();
+    this.renderCategoriesManagementList();
+    this.renderCustomWordPairsList();
+  }
+
+  renderCategoriesManagementList() {
+    const list = document.getElementById('categories-management-list');
+    const countTabEl = document.getElementById('count-tab-cats');
+    const allCats = this.getAllCategories();
+    if (countTabEl) countTabEl.textContent = allCats.length;
+
+    if (!list) return;
+    list.innerHTML = '';
+
+    // 1. Custom Categories Section
+    if (this.customCategories.length > 0) {
+      const customHeader = document.createElement('div');
+      customHeader.style.cssText = 'font-size: 11px; font-weight: 800; color: #a855f7; margin-top: 4px; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.05em;';
+      customHeader.textContent = `⭐ Chủ đề tự tạo (${this.customCategories.length})`;
+      list.appendChild(customHeader);
+
+      this.customCategories.forEach(cat => {
+        const wordsCount = this.customWordPairs.filter(wp => wp.categoryId === cat.id).length;
+        const item = document.createElement('div');
+        item.className = 'cat-manage-item';
+        if (this.editingCategoryId === cat.id) {
+          item.style.borderColor = '#a855f7';
+          item.style.background = 'rgba(168, 85, 247, 0.08)';
+        }
+
+        item.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+            <span style="font-size: 24px; flex-shrink: 0;">${cat.icon}</span>
+            <div style="min-width: 0;">
+              <strong style="font-size: 13px; color: #fff; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${cat.name_vi}
+              </strong>
+              <span style="font-size: 11px; color: var(--text-muted);">${wordsCount} cặp từ đã match</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+            <button type="button" class="ctrl-btn btn-add-to-cat" style="padding: 4px 8px; font-size: 11px; color: #10b981; border-color: rgba(16, 185, 129, 0.3);" title="Thêm từ vào chủ đề này">
+              ➕ Thêm từ
+            </button>
+            <button type="button" class="btn-edit-wp" title="Sửa chủ đề">✏️</button>
+            <button type="button" class="btn-delete-wp" title="Xóa chủ đề">🗑️</button>
+          </div>
+        `;
+
+        item.querySelector('.btn-add-to-cat')?.addEventListener('click', () => {
+          this.switchWordPairsTab('pairs');
+          const select = document.getElementById('wp-category-select');
+          if (select) select.value = cat.id;
+          document.getElementById('wp-civilian')?.focus();
+        });
+
+        item.querySelector('.btn-edit-wp')?.addEventListener('click', () => {
+          this.startEditCategory(cat.id);
+        });
+
+        item.querySelector('.btn-delete-wp')?.addEventListener('click', () => {
+          this.deleteCustomCategory(cat.id);
+        });
+
+        list.appendChild(item);
+      });
+    }
+
+    // 2. Default System Categories Section
+    const sysHeader = document.createElement('div');
+    sysHeader.style.cssText = 'font-size: 11px; font-weight: 800; color: var(--text-muted); margin-top: 8px; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.05em;';
+    sysHeader.textContent = `🔒 Chủ đề mặc định hệ thống (${CATEGORIES.length})`;
+    list.appendChild(sysHeader);
+
+    CATEGORIES.forEach(cat => {
+      const matchedCount = this.customWordPairs.filter(wp => wp.categoryId === cat.id).length;
+      const totalWords = (cat.words || []).length + matchedCount;
+
+      const item = document.createElement('div');
+      item.className = 'cat-manage-item';
+      item.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+          <span style="font-size: 24px; flex-shrink: 0;">${cat.icon}</span>
+          <div style="min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <strong style="font-size: 13px; color: #fff;">${cat.name_vi}</strong>
+              <span style="font-size: 9.5px; padding: 1px 6px; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.08); color: var(--text-muted);">Mặc định</span>
+            </div>
+            <span style="font-size: 11px; color: var(--text-muted);">
+              ${cat.words.length} từ gốc ${matchedCount > 0 ? `+ <strong style="color: #10b981;">${matchedCount} từ bạn thêm</strong>` : ''}
+            </span>
+          </div>
+        </div>
+        <button type="button" class="ctrl-btn btn-add-to-cat" style="padding: 4px 8px; font-size: 11px; color: #10b981; border-color: rgba(16, 185, 129, 0.3);" title="Thêm từ vào chủ đề này">
+          ➕ Thêm từ
+        </button>
+      `;
+
+      item.querySelector('.btn-add-to-cat')?.addEventListener('click', () => {
+        this.switchWordPairsTab('pairs');
+        const select = document.getElementById('wp-category-select');
+        if (select) select.value = cat.id;
+        document.getElementById('wp-civilian')?.focus();
+      });
+
+      list.appendChild(item);
+    });
+  }
+
+  // Categories Picker for Game Setup
   openCategoriesPicker() {
     const list = document.getElementById('categories-picker-list');
     if (!list) return;
     list.innerHTML = '';
 
-    let allCats = [...CATEGORIES];
-    if (this.customWordPairs && this.customWordPairs.length > 0) {
-      allCats.unshift({
-        id: "custom_user_pairs",
-        name_vi: "✨ Cặp Từ Tự Tạo",
-        icon: "⭐",
-        words: this.customWordPairs
-      });
-    }
+    const allCats = this.getPlayableCategories();
 
     allCats.forEach(cat => {
       const item = document.createElement('div');
@@ -4298,12 +4891,19 @@ class ImposterGame {
       if (isSel) item.style.borderColor = 'var(--primary-red)';
 
       const name = cat.name_vi;
+      const wordCount = (cat.words || []).length;
+
       item.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
           <span style="font-size: 26px;">${cat.icon}</span>
           <div>
-            <h4 style="font-family: var(--font-display); font-weight: 700;">${name}</h4>
-            <p style="font-size: 11px; color: var(--text-muted);">${cat.words.length} cặp từ vựng</p>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <h4 style="font-family: var(--font-display); font-weight: 700; font-size: 14px;">${name}</h4>
+              ${cat.isCustom ? '<span style="font-size: 9.5px; padding: 1px 6px; border-radius: var(--radius-pill); background: rgba(168, 85, 247, 0.18); color: #a855f7; font-weight: 700;">Tự tạo</span>' : ''}
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+              ${wordCount > 0 ? `${wordCount} cặp từ vựng` : '<span style="color: #ef4444;">Chưa có từ vựng (Bấm để thêm)</span>'}
+            </p>
           </div>
         </div>
         ${isSel ? '<span style="color: var(--primary-red); font-size: 18px; font-weight: 800;">✓</span>' : ''}
@@ -4311,6 +4911,16 @@ class ImposterGame {
 
       item.addEventListener('click', () => {
         sound.playClick();
+        if (wordCount === 0) {
+          alert(`Chủ đề "${name}" chưa có cặp từ nào! Hệ thống sẽ mở bảng thêm từ để bạn thêm từ vào chủ đề này.`);
+          document.getElementById('modal-categories')?.classList.remove('open');
+          this.openWordPairsModal();
+          this.switchWordPairsTab('pairs');
+          const select = document.getElementById('wp-category-select');
+          if (select) select.value = cat.id;
+          return;
+        }
+
         this.selectedCategoryId = cat.id;
         const catNameEl = document.getElementById('label-category-name');
         if (catNameEl) catNameEl.textContent = name;
