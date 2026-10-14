@@ -52,7 +52,7 @@ Mỗi màn hình được bọc trong thẻ `<section id="screen-..." class="vie
 
 1. **`#screen-setup` (Screen 1 - Cài đặt ván chơi)**: 
    - Banner giải đấu tích lũy (`#setup-tournament-banner`).
-   - Chọn số người chơi, số Imposter, độ khó.
+   - Chọn số người chơi, số Imposter.
    - Thẻ Tùy chọn chủ đề: `#opt-topic-specific` & `#opt-topic-random`.
    - **Tùy chọn trải nghiệm**: Vòng quay nói trước (`#switch-roulette`), Thời gian thảo luận (`#val-time`), Thời gian phát biểu mỗi người (`#val-speech-time`).
    - **Vai trò cố định (`#card-fixed-roles`)**: Hiển thị vai trò chắc chắn xuất hiện kèm bộ chọn số lượng `- [count] +`, nút xóa nhanh và mở modal cấu hình.

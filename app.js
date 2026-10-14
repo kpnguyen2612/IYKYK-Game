@@ -27,8 +27,7 @@ const I18N = {
     setting_hints: "Gợi ý cho Imposter",
     setting_hints_desc: "Cung cấp manh mối cho kẻ giả mạo",
     setting_timelimit: "Giới hạn thời gian",
-    setting_difficulty: "Độ khó",
-    setting_difficulty_desc: "Dễ, Bình thường, Khó, Tùy chỉnh",
+
     btn_start_game: "Bắt đầu thiết lập người chơi",
     btn_back: "Quay lại",
     title_choose_roles: "Quản lý vai trò",
@@ -140,7 +139,6 @@ class ImposterGame {
     this.durationSeconds = parseInt(localStorage.getItem('gti_discussion_time') || '180', 10);
     this.speechDurationSeconds = parseInt(localStorage.getItem('gti_speech_time') || '30', 10);
     this.rouletteEnabled = localStorage.getItem('gti_roulette') !== 'false';
-    this.difficulty = 'Normal';
     this.gameMode = 'pass';
 
     // Special Roles Roll Rate (Tỉ lệ Roll vai trò khác: 25%, 50%, 70%, 85%, 100%)
@@ -588,8 +586,6 @@ class ImposterGame {
       rouletteSwitch.checked = this.rouletteEnabled;
     }
 
-    const diffBadge = document.getElementById('badge-difficulty');
-    if (diffBadge) diffBadge.textContent = this.difficulty;
 
     this.setTopicMode(this.categoryMode || 'specific', false);
     this.updateBalanceMeter();
@@ -3460,13 +3456,6 @@ class ImposterGame {
       localStorage.setItem('gti_roulette', this.rouletteEnabled);
     });
 
-    document.getElementById('btn-cycle-difficulty')?.addEventListener('click', () => {
-      sound.playClick();
-      const diffs = ['Easy', 'Normal', 'Hard', 'Custom'];
-      const nextIdx = (diffs.indexOf(this.difficulty) + 1) % diffs.length;
-      this.difficulty = diffs[nextIdx];
-      this.renderSettingsValues();
-    });
 
     document.getElementById('switch-hints')?.addEventListener('change', (e) => {
       sound.playToggle();
