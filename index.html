@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Guess the Imposter - Arcade Social Deduction Party Game</title>
+  <title>Kẻ Giả Mạo - Game Suy Luận Party</title>
   
   <!-- Google Fonts: Lexend (Display Headlines), Be Vietnam Pro (Body & UI), JetBrains Mono (Numbers & Timers) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -62,8 +62,8 @@
           <div class="hero-content">
             <div class="mascot-avatar">🎭</div>
             <div class="hero-title-box">
-              <span class="hero-badge" data-i18n="party_game">Party Deduction Game</span>
-              <h1>Guess the Imposter</h1>
+              <span class="hero-badge" data-i18n="party_game">Game Suy Luận Party</span>
+              <h1>Kẻ Giả Mạo</h1>
               <p class="hero-subtitle" data-i18n="hero_subtitle">Ai là Kẻ Giả Mạo đang ẩn nấp?</p>
             </div>
           </div>
@@ -72,15 +72,15 @@
         <!-- Mode Toggle Tabs -->
         <div class="mode-toggle-pill">
           <button id="mode-tab-pass" class="mode-tab-btn active" data-mode="pass">
-            <span>📱</span> <span data-i18n="mode_pass">Pass the Phone</span>
+            <span>📱</span> <span data-i18n="mode_pass">Chuyền Máy (Offline)</span>
           </button>
           <div class="mode-tab-online-wrap">
             <button id="mode-tab-online" class="mode-tab-btn" data-mode="online">
-              <span>🌐</span> <span data-i18n="mode_online">Play Online</span>
+              <span>🌐</span> <span data-i18n="mode_online">Chơi Online (Phòng)</span>
             </button>
             <div id="online-coming-soon-bubble" class="coming-soon-bubble" role="tooltip">
               <span class="bubble-sparkle">🚀</span>
-              <span class="bubble-text">Coming Soon!</span>
+              <span class="bubble-text">Sắp ra mắt!</span>
               <div class="bubble-arrow"></div>
             </div>
           </div>
@@ -170,7 +170,7 @@
             <div class="setting-info-left">
               <div class="setting-icon-box" style="color: #8b5cf6; background: rgba(139, 92, 246, 0.12);">🎴</div>
               <div class="setting-texts">
-                <h4 data-i18n="setting_roles">Tất cả vai trò (Roles)</h4>
+                <h4 data-i18n="setting_roles">Tất cả vai trò</h4>
                 <p id="label-roles-preview" data-i18n="setting_roles_desc">20 vai trò mặc định & tự tạo</p>
               </div>
             </div>
@@ -396,7 +396,7 @@
           </div>
           <div class="balance-actions-row" style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button id="btn-auto-balance" class="auto-balance-btn" style="flex: 1;">
-              <span>⚡</span> <span data-i18n="btn_auto_balance">Tự động cân bằng (Auto Balance)</span>
+              <span>⚡</span> <span data-i18n="btn_auto_balance">Tự động cân bằng</span>
             </button>
             <button type="button" id="btn-enable-all-roles" class="ctrl-btn" style="color: #ec4899; border-color: rgba(236, 72, 153, 0.4); font-size: 11px; padding: 6px 12px; font-weight: 700;">
               <span>🎲</span> <span>Bật tất cả vai trò vào vòng quay</span>
@@ -427,10 +427,10 @@
         <div class="role-filter-scroll">
           <button class="filter-chip active" data-filter="all" data-i18n="filter_all">Tất cả (20+)</button>
           <button class="filter-chip" data-filter="fixed" style="border-color: rgba(16, 185, 129, 0.4); color: #10b981;">📌 Cố định (<span id="filter-fixed-count">0</span>)</button>
-          <button class="filter-chip" data-filter="good" data-i18n="filter_good">Phe Dân (Good)</button>
-          <button class="filter-chip" data-filter="evil" data-i18n="filter_evil">Phe Ác (Evil)</button>
-          <button class="filter-chip" data-filter="neutral" data-i18n="filter_neutral">Trung lập (Neutral)</button>
-          <button class="filter-chip" data-filter="custom" data-i18n="filter_custom">Tự tạo (Custom)</button>
+          <button class="filter-chip" data-filter="good" data-i18n="filter_good">Phe Dân</button>
+          <button class="filter-chip" data-filter="evil" data-i18n="filter_evil">Phe Ác</button>
+          <button class="filter-chip" data-filter="neutral" data-i18n="filter_neutral">Trung Lập</button>
+          <button class="filter-chip" data-filter="custom" data-i18n="filter_custom">Tự tạo</button>
         </div>
 
         <!-- 20 Roles Render Container -->
@@ -457,9 +457,6 @@
           <div style="display: flex; gap: 6px;">
             <button id="btn-pick-roster" class="ctrl-btn" style="color: #ec4899; border-color: rgba(236, 72, 153, 0.4);" title="Chọn những người chơi từ các ván trước để tiếp tục tính điểm">
               <span>👥</span> <span data-i18n="btn_pick_roster">Chọn từ BXH</span>
-            </button>
-            <button id="btn-random-names" class="ctrl-btn" style="color: var(--primary-orange);">
-              <span>🎲</span> <span data-i18n="btn_random_names">Tên ngẫu nhiên</span>
             </button>
           </div>
         </div>
@@ -507,7 +504,7 @@
             <div class="privacy-lock-icon">🤫</div>
             <div>
               <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;" data-i18n="pass_phone_to">Chuyền điện thoại cho:</div>
-              <h2 id="curtain-player-name" class="target-player-title">Bảo Long</h2>
+              <h2 id="curtain-player-name" class="target-player-title">Player 1</h2>
             </div>
             <p class="privacy-warning-text" data-i18n="curtain_warning">
               Đảm bảo những người xung quanh không nhìn thấy màn hình trước khi bấm lật thẻ!
@@ -524,7 +521,7 @@
               <!-- Front Side: Mystery Obsidian Shield -->
               <div class="flip-card-front">
                 <div style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff;" id="flip-front-player-name">
-                  Bảo Long
+                  Player 1
                 </div>
                 <div class="pattern-grid-art">🔒</div>
                 <div class="tap-reveal-hint">
@@ -535,7 +532,7 @@
               <!-- Back Side: Revealed Identity -->
               <div class="flip-card-back" id="flip-card-back">
                 <div>
-                  <span class="team-tag" id="revealed-team-tag">Phe Dân (Good)</span>
+                  <span class="team-tag" id="revealed-team-tag">Phe Dân</span>
                   <div class="revealed-role-icon" id="revealed-icon">🔍</div>
                   <h3 class="revealed-role-name" id="revealed-name">Thám Tử</h3>
                 </div>
@@ -627,7 +624,7 @@
               🦁
             </div>
             <div id="roulette-winner-name" style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff;">
-              Bảo Long
+              Player 1
             </div>
           </div>
           <div style="font-size: 12px; color: var(--text-secondary);">
@@ -677,7 +674,7 @@
             Chuyền điện thoại cho:
           </div>
           <div id="night-curtain-player-name" style="font-family: var(--font-display); font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 10px;">
-            Bảo Long
+            Player 1
           </div>
           <div style="font-size: 12px; color: var(--text-muted); max-width: 280px; margin: 0 auto 20px; line-height: 1.4;">
             🔒 Chỉ một mình người chơi này được nhìn màn hình! Những người chơi khác vui lòng giữ im lặng và không nhìn máy.
@@ -694,7 +691,7 @@
             <div style="display: flex; align-items: center; gap: 10px;">
               <div id="night-player-avatar" style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; background: #fee2e2;">🦁</div>
               <div>
-                <strong id="night-player-name" style="font-size: 14px; color: #fff;">Bảo Long</strong>
+                <strong id="night-player-name" style="font-size: 14px; color: #fff;">Player 1</strong>
                 <div id="night-player-role-badge" style="font-size: 11px; font-weight: 600; color: #3b82f6;">🔍 Thám Tử</div>
               </div>
             </div>
@@ -790,7 +787,7 @@
               </div>
               <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                 <div style="font-size: 10px; color: var(--text-muted); font-weight: 600;">Đang phát biểu:</div>
-                <strong id="speaker-active-name" style="font-size: 13px; color: #fff;">Bảo Long</strong>
+                <strong id="speaker-active-name" style="font-size: 13px; color: #fff;">Player 1</strong>
               </div>
             </div>
 
@@ -880,16 +877,46 @@
            (Separate screen where secret word is NOT displayed)
            ========================================== -->
       <section id="screen-comeback" class="view-screen">
-        <div class="unmask-reveal-box" style="border: 1px solid rgba(239, 68, 68, 0.4); margin-bottom: 20px;">
-          <span class="hero-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; font-size: 11px; padding: 4px 12px; margin-bottom: 12px;" data-i18n="badge_comeback_stage">🎲 CƠ HỘI LẬT KÈO CUỐI CÙNG</span>
+        <div class="unmask-reveal-box" style="border: 1px solid rgba(239, 68, 68, 0.4); margin-bottom: 16px;">
+          <span class="hero-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; font-size: 11px; padding: 4px 12px; margin-bottom: 10px;" data-i18n="badge_comeback_stage">🎲 CƠ HỘI LẬT KÈO CUỐI CÙNG</span>
           <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;" data-i18n="imposter_unmasked_title">Đã bắt được Kẻ Giả Mạo:</div>
-          <h2 class="unmasked-names" id="comeback-imposter-name" style="color: var(--primary-red); margin: 6px 0 12px;">Tuấn Kiệt</h2>
-          <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
-            Cả làng đã đồng thuận trục xuất bạn. Tuy nhiên, nếu bạn suy luận và đoán đúng <strong>Từ Khóa Bí Mật</strong> của phe Dân, bạn sẽ giành chiến thắng lật kèo!
+          <h2 class="unmasked-names" id="comeback-imposter-name" style="color: var(--primary-red); margin: 6px 0 10px;">Tuấn Kiệt</h2>
+          <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
+            Cả làng đã đồng thuận trục xuất bạn. Bạn có quyền lựa chọn <strong>Đoán từ</strong> để lật ngược thế cờ hoặc <strong>Không đoán</strong> để bảo toàn điểm!
+          </div>
+
+          <!-- Scoring Rules Quick Reference -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: left; font-size: 11px;">
+            <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 10px; padding: 8px 10px;">
+              <strong style="color: #10b981; display: flex; align-items: center; gap: 4px;">✅ Đoán Đúng:</strong>
+              <div style="font-weight: 800; color: #34d399; font-size: 13px; margin: 2px 0;">+20 điểm</div>
+              <div style="color: var(--text-muted); font-size: 10px; line-height: 1.3;">Không bị phạt bị bắt & không phạt lộ vòng 1. Cướp trọn chiến thắng ván!</div>
+            </div>
+            <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 10px; padding: 8px 10px;">
+              <strong style="color: #ef4444; display: flex; align-items: center; gap: 4px;">❌ Đoán Sai:</strong>
+              <div style="font-weight: 800; color: #f87171; font-size: 13px; margin: 2px 0;">Phạt thêm -10đ</div>
+              <div style="color: var(--text-muted); font-size: 10px; line-height: 1.3;">Tổng -20đ (Nếu bị bắt ở Vòng 1: phạt thêm -5đ thành -25đ).</div>
+            </div>
+          </div>
+          <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 10px; margin-top: 8px; font-size: 11px; color: var(--text-secondary); text-align: left;">
+            <strong>🏳️ Không đoán từ (hoặc hết 30s):</strong> Không bị phạt đoán sai. Chỉ chịu điểm phạt cố định khi bị bắt (-10đ; nếu lộ sớm vòng 1 là -15đ).
           </div>
         </div>
 
-        <div class="instruction-box" style="border-left-color: var(--primary-orange); margin-bottom: 20px;">
+        <!-- 30-Second Countdown Timer Box -->
+        <div id="comeback-countdown-box" style="background: radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.18) 0%, rgba(15, 17, 23, 0.85) 100%); border: 1px solid rgba(239, 68, 68, 0.45); border-radius: var(--radius-lg); padding: 14px; text-align: center; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.2);">
+          <div style="font-size: 11px; font-weight: 700; color: #fca5a5; text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px;">
+            <span>⏱️</span> THỜI GIAN SUY NGHĨ ĐOÁN TỪ
+          </div>
+          <div id="comeback-timer-display" style="font-family: var(--font-mono, monospace); font-size: 44px; font-weight: 900; color: #ef4444; line-height: 1.1; text-shadow: 0 0 24px rgba(239, 68, 68, 0.5);">
+            30<span style="font-size: 18px; font-weight: 600; margin-left: 2px;">s</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+            Hết 30 giây sẽ tự động tính là <strong>Không đoán</strong> (chấp nhận thua, không bị phạt đoán sai).
+          </div>
+        </div>
+
+        <div class="instruction-box" style="border-left-color: var(--primary-orange); margin-bottom: 16px;">
           <span class="instruction-icon">📱</span>
           <p class="instruction-text" data-i18n="comeback_pass_phone">
             <strong>Chuyền điện thoại cho Kẻ Giả Mạo!</strong> Những người chơi khác tuyệt đối không được xem hoặc gợi ý từ khóa.
@@ -902,12 +929,12 @@
           </label>
           <input type="text" id="input-imposter-guess" class="form-input" placeholder="Gõ từ khóa bạn suy luận được..." style="font-size: 15px; padding: 14px; margin-bottom: 14px; text-align: center; font-weight: 700;" autocomplete="off" />
 
-          <button id="btn-check-guess" class="primary-cta-btn" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); margin-bottom: 10px;">
-            <span>🔥</span> <span data-i18n="btn_confirm_comeback">Xác nhận đoán từ & Lật kèo</span>
+          <button id="btn-check-guess" class="primary-cta-btn" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); margin-bottom: 10px; width: 100%; font-size: 14px;">
+            <span>🔥</span> <span data-i18n="btn_confirm_comeback">Xác nhận đoán từ (+20đ nếu đúng, -10đ nếu sai)</span>
           </button>
 
-          <button id="btn-giveup-guess" class="secondary-btn" style="width: 100%;">
-            <span>🏳️</span> <span data-i18n="btn_giveup">Không đoán được (Chấp nhận thua)</span>
+          <button id="btn-giveup-guess" class="secondary-btn" style="width: 100%; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); font-size: 13px;">
+            <span>🏳️</span> <span data-i18n="btn_giveup">Không đoán từ (Bảo toàn điểm, không bị trừ 10đ)</span>
           </button>
         </div>
       </section>
@@ -998,9 +1025,9 @@
           </button>
 
           <!-- Center: Play Again (Prominent Vibrant CTA) -->
-          <button id="btn-play-again" class="results-action-btn results-play-again-btn" title="Chơi lại ván mới" aria-label="Chơi lại ván mới">
+          <button id="btn-play-again" class="results-action-btn results-play-again-btn" title="Tiếp tục chơi" aria-label="Tiếp tục chơi">
             <span class="btn-icon">🔄</span>
-            <span class="btn-text" data-i18n="btn_play_again">Chơi lại ván mới</span>
+            <span class="btn-text" data-i18n="btn_play_again">Tiếp tục chơi</span>
           </button>
 
           <!-- Right: Discard Match Scores (Button Thùng Rác - Không tính điểm số) -->
@@ -1064,11 +1091,11 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" data-i18n="form_role_team">Phe (Team)</label>
+          <label class="form-label" data-i18n="form_role_team">Phe đồng minh</label>
           <select id="cr-team" class="form-select">
-            <option value="good">Phe Dân (Good)</option>
-            <option value="evil">Phe Ác (Evil)</option>
-            <option value="neutral">Trung lập (Neutral)</option>
+            <option value="good">Phe Dân</option>
+            <option value="evil">Phe Ác</option>
+            <option value="neutral">Trung Lập</option>
           </select>
         </div>
 
@@ -1142,7 +1169,7 @@
       <div class="instruction-box" style="margin-bottom: 12px; background: rgba(16, 185, 129, 0.08); border-left-color: #10b981;">
         <span class="instruction-icon">💡</span>
         <div class="instruction-text" style="font-size: 11px; line-height: 1.45;" id="fixed-roles-instruction-text">
-          Chọn các vai trò đặc biệt bạn muốn <strong>chắc chắn xuất hiện</strong> trong ván chơi. Số lượng Dân Thường sẽ tự động bù vào các slot còn lại.
+          Chọn các vai trò đặc biệt bạn muốn <strong>chắc chắn xuất hiện</strong> trong ván chơi. Giới hạn slot theo số người chơi: <strong>1-4 người: 1 vai trò</strong>, <strong>5-7 người: 2 slot</strong>, <strong>8-11 người: 3 vai trò</strong>, <strong>12-15 người: 4 vai trò</strong> và <strong>16-20 người: 5 vai trò</strong>. Số lượng Dân Thường sẽ tự động bù vào các slot còn lại.
         </div>
       </div>
 
@@ -1345,8 +1372,8 @@
         <div class="instruction-text" style="font-size: 11px;">
           <strong>Hệ thống điểm giải đấu:</strong><br />
           • Thắng ván: +10đ (Phe Dân) / +10đ ~ +30đ (Imposter)<br />
-          • Imposter lật kèo đoán đúng từ: +12đ ~ +25đ<br />
-          • Bỏ phiếu chuẩn / Bắt Imposter: +5đ • Kẻ Hề (Jester): +30đ<br />
+          • Imposter lật kèo đoán đúng từ: +15đ ~ +25đ<br />
+          • Bỏ phiếu chuẩn / Bắt Imposter: +5đ • Kẻ Ngu: +25đ • Gián Điệp: +25đ<br />
           • Điểm phạt (Âm điểm): -5đ khi vote nhầm Dân, -15đ khi Imposter bị bắt ngay Vòng 1, -5đ khi Thua trận.
         </div>
       </div>
@@ -1482,17 +1509,17 @@
             <div style="font-family: var(--font-display); font-weight: 700; font-size: 14px;">Giao diện nền</div>
             <div style="font-size: 11.5px; color: var(--text-muted);">Tùy chỉnh chế độ hiển thị tối hoặc sáng</div>
           </div>
-          <span id="label-current-theme-badge" class="hero-badge" style="font-size: 11px;">Dark Mode</span>
+          <span id="label-current-theme-badge" class="hero-badge" style="font-size: 11px;">Chế độ Tối</span>
         </div>
         
         <div class="theme-selector-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
           <button type="button" id="btn-theme-dark" class="theme-option-btn active">
             <span style="font-size: 22px;">🌙</span>
-            <span style="font-weight: 700; font-size: 13px;">Chế độ Tối (Dark)</span>
+            <span style="font-weight: 700; font-size: 13px;">Chế độ Tối</span>
           </button>
           <button type="button" id="btn-theme-light" class="theme-option-btn">
             <span style="font-size: 22px;">☀️</span>
-            <span style="font-weight: 700; font-size: 13px;">Chế độ Sáng (Light)</span>
+            <span style="font-weight: 700; font-size: 13px;">Chế độ Sáng</span>
           </button>
         </div>
       </div>
@@ -1637,7 +1664,7 @@
             <li><strong>Phe Dân Thắng:</strong> Trục xuất được toàn bộ Kẻ Giả Mạo (và Imposter không đoán được từ khóa ở màn Lật Kèo).</li>
             <li><strong>Kẻ Giả Mạo Thắng:</strong> Sống sót cho đến khi số Imposter bằng hoặc nhiều hơn số Dân Thường còn lại (do Dân vote nhầm nhau).</li>
             <li><strong>Lật Kèo (Comeback):</strong> Nếu bị bắt, Imposter có 1 cơ hội duy nhất gõ đúng từ khóa bí mật để cướp chiến thắng!</li>
-            <li><strong>Kẻ Hề (Jester):</strong> Chiến thắng độc lập ngay lập tức nếu bị cả làng vote trục xuất!</li>
+            <li><strong>Kẻ Ngu (Jester):</strong> Phe Trung Lập biết từ khóa bí mật, chiến thắng độc lập ngay lập tức nếu bị cả làng vote trục xuất (+25đ)!</li>
           </ul>
         </div>
 
@@ -1645,68 +1672,172 @@
         <div class="rules-card">
           <div class="rules-card-header">
             <span class="rules-card-icon">⭐</span>
-            <h4>Bảng Điểm Thưởng & Phạt Chi Tiết</h4>
+            <h4>Bảng Điểm Thưởng & Phạt Toàn Diện Cho Tất Cả Vai Trò</h4>
           </div>
-          <table class="rules-table">
+
+          <div style="margin-bottom: 14px; font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+            Điểm số được tính toán tự động sau mỗi ván và cộng dồn vào Bảng Xếp Hạng Party. Dưới đây là quy chuẩn điểm thưởng (+) và điểm phạt (-) của toàn bộ các vai trò:
+          </div>
+
+          <!-- Group A: Imposter & Comeback Rules -->
+          <div style="font-size: 12px; font-weight: 800; color: #ef4444; margin: 12px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+            <span>🎭</span> Kẻ Giả Mạo & Cơ Chế Lật Kèo (Comeback)
+          </div>
+          <table class="rules-table" style="margin-bottom: 16px;">
             <thead>
               <tr>
-                <th>Hành động / Tình huống</th>
-                <th>Điểm số</th>
+                <th>Tình huống / Hành động</th>
+                <th style="width: 140px;">Điểm số</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>🏆 Dân Thường sống sót thắng ván</td>
+                <td>👑 <strong>Imposter sống sót thắng ván</strong><br><span style="font-size: 10px; color: var(--text-muted);">Ẩn mình thành công đến hết ván</span></td>
+                <td class="pts-plus">+15 điểm<br><span style="font-size: 10px; color: #10b981;">(+2đ / lần lừa Dân vote oan)</span></td>
+              </tr>
+              <tr>
+                <td>🔥 <strong>Imposter Lật Kèo đoán đúng từ khóa</strong><br><span style="font-size: 10px; color: var(--text-muted);">Thời gian suy nghĩ: 30s. Miễn trừ mọi hình phạt bị bắt hay lộ vòng 1!</span></td>
+                <td class="pts-plus" style="color: #f59e0b; font-weight: 800; font-size: 13px;">+20 điểm</td>
+              </tr>
+              <tr>
+                <td>🔒 <strong>Imposter bị bắt (Cố định)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Bị cả làng bỏ phiếu trục xuất</span></td>
+                <td class="pts-minus">-10 điểm</td>
+              </tr>
+              <tr>
+                <td>🏳️ <strong>Imposter Không Đoán Từ</strong><br><span style="font-size: 10px; color: var(--text-muted);">Bấm không đoán hoặc hết 30s suy nghĩ (không bị phạt đoán sai)</span></td>
+                <td style="color: var(--text-secondary); font-size: 11px; font-weight: 600;">0đ phạt thêm<br><span style="font-size: 10px; color: var(--text-muted);">(Chỉ chịu -10đ bị bắt)</span></td>
+              </tr>
+              <tr>
+                <td>❌ <strong>Imposter Bị Bắt & Đoán Sai Từ</strong><br><span style="font-size: 10px; color: var(--text-muted);">Bị phạt thêm vì đoán trật từ khóa phe Dân</span></td>
+                <td class="pts-minus">-10đ phạt thêm<br><span style="font-size: 10px; color: #ef4444; font-weight: 700;">(Tổng -20 điểm)</span></td>
+              </tr>
+              <tr>
+                <td>⚡ <strong>Imposter bị bắt ngay Vòng 1</strong><br><span style="font-size: 10px; color: var(--text-muted);">Bị lộ quá sớm ở vòng đầu tiên (áp dụng khi bị bắt)</span></td>
+                <td class="pts-minus">-5đ giảm thêm<br><span style="font-size: 10px; color: #ef4444;">(-15đ nếu không đoán, -25đ nếu đoán sai)</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Group B: Civilians & Good Team -->
+          <div style="font-size: 12px; font-weight: 800; color: #10b981; margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+            <span>👥</span> Phe Dân Làng
+          </div>
+          <table class="rules-table" style="margin-bottom: 16px;">
+            <thead>
+              <tr>
+                <th>Tình huống / Hành động</th>
+                <th style="width: 140px;">Điểm số</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>🏆 <strong>Phe Dân Thường chiến thắng</strong><br><span style="font-size: 10px; color: var(--text-muted);">Tất cả người chơi phe Dân khi thắng ván</span></td>
                 <td class="pts-plus">+10 điểm</td>
               </tr>
               <tr>
-                <td>🎯 Biểu quyết đúng Kẻ Giả Mạo</td>
-                <td class="pts-plus">+5 điểm</td>
+                <td>🎯 <strong>Phe Dân còn sống vote đúng Imposter</strong><br><span style="font-size: 10px; color: var(--text-muted);">Dân còn sống bỏ phiếu bắt Kẻ Giả Mạo</span></td>
+                <td class="pts-plus">+5 điểm<br><span style="font-size: 10px; color: #10b981; font-weight: 700;">(Tổng +15 điểm)</span></td>
               </tr>
               <tr>
-                <td>💀 <strong>Dân Thường thua trận trước Imposter</strong></td>
+                <td>💀 <strong>Dân Thường thua trận trước Imposter</strong><br><span style="font-size: 10px; color: var(--text-muted);">Để Imposter sống sót áp đảo số lượng Dân</span></td>
                 <td class="pts-minus">-5 điểm</td>
               </tr>
               <tr>
-                <td>💥 <strong>Để Imposter Lật Kèo đoán trúng từ</strong></td>
-                <td class="pts-minus">-3 điểm<br><span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(Gợi ý quá lộ liễu)</span></td>
+                <td>💥 <strong>Để Imposter Lật Kèo đoán trúng từ</strong><br><span style="font-size: 10px; color: var(--text-muted);">Gợi ý quá lộ liễu khiến Imposter đoán được từ</span></td>
+                <td class="pts-minus">-3 điểm</td>
               </tr>
               <tr>
-                <td>⚠️ <strong>Phe Dân vote nhầm Dân vô tội</strong></td>
-                <td class="pts-minus">-5 điểm<br><span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(Tập thể hoặc người chỉ tay)</span></td>
-              </tr>
-              <tr>
-                <td>👑 <strong>Imposter sống sót thắng chung cuộc</strong></td>
-                <td class="pts-plus">+3đ / Dân<br><span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(Min 10đ, Max 30đ)</span></td>
-              </tr>
-              <tr>
-                <td>🔥 <strong>Imposter lật kèo đoán đúng từ khóa</strong></td>
-                <td class="pts-plus">+2.5đ / Dân<br><span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(Min 12đ, Max 25đ)</span></td>
-              </tr>
-              <tr>
-                <td>🔒 <strong>Imposter bị bắt ngay Vòng 1</strong></td>
-                <td class="pts-minus">-15 điểm<br><span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(Bị lộ quá sớm)</span></td>
-              </tr>
-              <tr>
-                <td>🩸 <strong>Imposter bị bắt & đoán sai từ</strong></td>
-                <td class="pts-minus">-3 điểm<br><span style="font-size: 10px; color: #10b981; font-weight: normal;">(+2đ / vòng trụ vững)</span></td>
-              </tr>
-              <tr>
-                <td>🃏 <strong>Kẻ Hề (Jester) bị vote trục xuất</strong></td>
-                <td class="pts-plus">+30 điểm</td>
-              </tr>
-              <tr>
-                <td>🪤 <strong>Người chơi mắc bẫy Kẻ Hề</strong></td>
-                <td class="pts-minus">-5 điểm<br><span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(Bị Kẻ Hề dắt mũi)</span></td>
-              </tr>
-              <tr>
-                <td>🏃 <strong>Kẻ Sống Sót (Survivor) bị loại</strong></td>
+                <td>⚠️ <strong>Phe Dân vote nhầm Dân vô tội</strong><br><span style="font-size: 10px; color: var(--text-muted);">Tất cả Dân còn sống bị phạt -5đ (không tính dân đã chết)</span></td>
                 <td class="pts-minus">-5 điểm</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Group C: Special Roles -->
+          <div style="font-size: 12px; font-weight: 800; color: #8b5cf6; margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+            <span>🔮</span> Toàn Bộ Vai Trò Đặc Biệt
+          </div>
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th>Vai trò & Kỹ năng</th>
+                <th style="width: 140px;">Điểm thưởng / phạt</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>🔍 <strong>Thám Tử (Detective)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Ban đêm soi trúng Kẻ Giả Mạo / phe Ác</span></td>
+                <td class="pts-plus">+5 điểm<br><span style="font-size: 10px; color: var(--text-muted);">(Hưởng thêm điểm thắng/thua phe Dân)</span></td>
+              </tr>
+              <tr>
+                <td>💉 <strong>Bác Sĩ (Doctor)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Ban đêm cứu sống thành công đồng đội bị loại</span></td>
+                <td class="pts-plus">+10 điểm<br><span style="font-size: 10px; color: var(--text-muted);">(Hưởng thêm điểm thắng/thua phe Dân)</span></td>
+              </tr>
+              <tr>
+                <td>🛡️ <strong>Vệ Sĩ (Bodyguard)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Hy sinh hoặc bảo vệ thành công đồng đội</span></td>
+                <td class="pts-plus">+10 điểm<br><span style="font-size: 10px; color: var(--text-muted);">(Hưởng thêm điểm thắng/thua phe Dân)</span></td>
+              </tr>
+              <tr>
+                <td>⚖️ <strong>Thẩm Phán (Judge)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Dùng quyền phủ quyết cứu Dân vô tội</span></td>
+                <td class="pts-plus">+5 điểm<br><span style="font-size: 10px; color: var(--text-muted);">(Hưởng thêm điểm thắng/thua phe Dân)</span></td>
+              </tr>
+              <tr>
+                <td>🤪 <strong>Kẻ Ngu (Jester) bị vote loại</strong><br><span style="font-size: 10px; color: var(--text-muted);">Biết từ khóa, lừa cả làng thành công (Thắng độc lập)</span></td>
+                <td class="pts-plus" style="color: #ec4899; font-weight: 800; font-size: 13px;">+25 điểm<br><span style="font-size: 10px; color: #ef4444;">(Tất cả người khác: -5đ)</span></td>
+              </tr>
+              <tr>
+                <td>🤪 <strong>Kẻ Ngu không bị vote loại</strong><br><span style="font-size: 10px; color: var(--text-muted);">Thất bại mục tiêu bị vote loại (vote đúng/sai 0đ)</span></td>
+                <td style="color: var(--text-secondary); font-size: 11px; font-weight: 600;">0 điểm<br><span style="font-size: 10px; color: var(--text-muted);">(Không mất điểm)</span></td>
+              </tr>
+              <tr>
+                <td>🕵️ <strong>Gián Điệp (Spy)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Nhận từ của Imposter, vote đúng/sai 0đ</span></td>
+                <td><span class="pts-plus">+25 điểm</span> (Thắng ván)<br><span class="pts-minus">-10 điểm</span> (Nếu bị chết)</td>
+              </tr>
+              <tr>
+                <td>🧙‍♀️ <strong>Phù Thủy (Witch)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Sống sót cùng phe chiến thắng cuối ván</span></td>
+                <td><span class="pts-plus">+15 điểm</span> (Sống sót)<br><span class="pts-minus">-5 điểm</span> (Bị loại)</td>
+              </tr>
+              <tr>
+                <td>🎭 <strong>Điệp Viên Hai Mang (Double Agent)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Giúp Imposter thắng hoặc là người sống cuối cùng</span></td>
+                <td><span class="pts-plus">+15 điểm</span> (Thắng)<br><span class="pts-minus">-5 điểm</span> (Thất bại)</td>
+              </tr>
+              <tr>
+                <td>🗡️ <strong>Phe Ác (Phản Bội, Gây Rối, Tắc Kè Hoa)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Đồng minh của Kẻ Giả Mạo</span></td>
+                <td><span class="pts-plus">+15 điểm</span> (Phe thắng)<br><span class="pts-minus">-10 điểm</span> (Bị bắt/thua)</td>
+              </tr>
+              <tr>
+                <td>🍺 <strong>Kẻ Say Rượu, Thị Trưởng, Tiên Tri, Bà Đồng...</strong><br><span style="font-size: 10px; color: var(--text-muted);">Các vai trò hỗ trợ phe Dân Làng</span></td>
+                <td><span class="pts-plus">+10 điểm</span> (Thắng ván)<br><span class="pts-minus">-5 điểm</span> (Thua trận)</td>
               </tr>
             </tbody>
           </table>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: High-End In-App Action Result Notice (Replaces native browser alert) -->
+  <div id="modal-action-notice" class="modal-overlay" style="z-index: 300;">
+    <div class="bottom-sheet-content action-notice-sheet">
+      <div class="sheet-drag-handle"></div>
+      <div class="action-notice-card">
+        <div class="action-notice-icon-box" id="action-notice-icon">🔍</div>
+        <h3 class="action-notice-title" id="action-notice-title">KẾT QUẢ SOI DANH TÍNH</h3>
+        <div class="action-notice-target-badge" id="action-notice-target">Mục tiêu: Gia Huy</div>
+        
+        <div class="action-notice-body-box good" id="action-notice-body-box">
+          <div class="action-notice-heading" id="action-notice-heading">✓ BÌNH AN</div>
+          <div class="action-notice-sub" id="action-notice-sub">Gia Huy là người vô tội (Phe Dân).</div>
+        </div>
+        
+        <div class="action-notice-note" id="action-notice-note">
+          🔒 Kết quả này chỉ hiển thị riêng tư cho bạn trên điện thoại.
+        </div>
+        
+        <button type="button" id="btn-close-action-notice" class="primary-cta-btn" style="width: 100%; min-height: 48px; margin-top: 10px;">
+          <span>✓</span> <span>Đã hiểu & Ghi nhớ</span>
+        </button>
       </div>
     </div>
   </div>

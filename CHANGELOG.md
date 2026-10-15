@@ -11,6 +11,73 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ---
 
+## [2026-10-16] - Cải Tổ Logic Trò Chơi: Kẻ Ngu, Gián Điệp, Imposter Luôn Biết Chủ Đề & Nút "Tiếp tục chơi"
+
+### 🔄 1. Cập Nhật Ngữ Cảnh Nút Thao Tác: "Tiếp Tục Chơi" (Play Again CTA)
+- Đổi nhãn nút chính màu cam/đỏ gradient tại màn hình kết quả ván từ **"Chơi lại ván mới"** thành **"Tiếp tục chơi"** (`btn_play_again`), đồng bộ trên giao diện `index.html`, từ điển controller `app.js` và tài liệu kiến trúc `ARCHITECTURE.md`.
+
+### 🎭 2. Kẻ Giả Mạo (Imposter) Luôn Biết Chủ Đề
+- Chuẩn hóa hiển thị khi lật thẻ: Imposter **luôn luôn biết chủ đề** (`Chủ đề: [Tên chủ đề]`) trong mọi trường hợp, bất kể bật hay tắt từ gợi ý phụ (`hintsEnabled`), giúp Imposter tự tin dẫn dắt và trà trộn.
+
+### 🕵️ 3. Xóa Bỏ Kẻ Sống Sót, Thay Thế Bằng Gián Điệp (Spy)
+- **Định vị vai trò**: Phe Ác (`team: 'evil'`), đồng minh đắc lực của Imposter.
+- **Từ khóa**: Nhận từ của Imposter (`this.imposterWord`) để cùng trà trộn và nói khớp ý với Imposter.
+- **Biểu quyết**: Bỏ phiếu vote đúng hay sai đều **không tăng giảm điểm** (0đ vote).
+- **Hệ thống điểm**:
+  - Phe Ác thắng ván: **+25 điểm**.
+  - Bị trục xuất / chết: **-10 điểm**.
+- **Xử lý khi bị trục xuất**: Khi Gián Điệp bị cả làng vote loại, thông báo vạch mặt Gián Điệp hiển thị, Gián Điệp bị trừ 10 điểm; ván chơi tiếp tục nếu Kẻ Giả Mạo chính vẫn còn sống (không kích hoạt màn đoán lật kèo).
+- **Hộp công cụ ban ngày & Đêm**: Cung cấp chức năng "Xem lại từ của Imposter".
+- **Xóa bỏ triệt để**: Xóa toàn bộ logic, định nghĩa và hiển thị của Kẻ Sống Sót (`survivor`) trên toàn bộ ứng dụng.
+
+### 🤪 4. Đổi Thằng Hề Thành Kẻ Ngu (Jester)
+- **Định vị vai trò**: Phe Trung Lập (`team: 'neutral'`), tên gọi **Kẻ Ngu**, icon `🤪`.
+- **Từ khóa**: **Biết từ khóa bí mật** (`knowsKeyword: true`, hiển thị `this.secretWord` khi lật thẻ).
+- **Mục tiêu**: Lừa cả làng nghi ngờ mình là Imposter để bị bỏ phiếu trục xuất.
+- **Biểu quyết**: Vote đúng hay sai đều **không tăng giảm điểm** (0đ vote).
+- **Hệ thống điểm**:
+  - Bị cả làng vote loại: **Chiến thắng độc lập nhận +25 điểm** (tất cả người chơi khác bị lừa trừ -5 điểm).
+  - Không bị vote loại (thất bại): **Không bị trừ điểm (0 điểm)**, không bị phạt -5đ như trước.
+
+### 📖 5. Đồng Bộ Bảng Luật Chơi & Điểm Số
+- Cập nhật chi tiết Bảng Luật Chơi Chi Tiết (`#modal-deep-rules`) và Box Gợi Ý BXH: ghi nhận chuẩn mực điểm số của Kẻ Ngu (+25đ / 0đ) và Gián Điệp (+25đ / -10đ / 0đ vote).
+
+### 📌 6. Thiết Kế Lại Các Mốc Giới Hạn Slot Vai Trò Cố Định (Fixed Role Slots)
+- Cập nhật logic `getMaxSpecialAllowed` và `getRecommendedSpecialCount` chuẩn xác theo các mốc số lượng người chơi:
+  - **1 - 4 người chơi**: Tối đa **1 vai trò cố định** (1 slot).
+  - **5 - 7 người chơi**: Tối đa **2 slot vai trò cố định** (2 slot).
+  - **8 - 11 người chơi**: Tối đa **3 vai trò cố định** (3 slot).
+  - **12 - 15 người chơi**: Tối đa **4 vai trò cố định** (4 slot).
+  - **16 - 20 người chơi**: Tối đa **5 vai trò cố định** (5 slot).
+- Đồng bộ hóa mượt mà: khi người chơi thay đổi số lượng người trong phòng (stepper tăng/giảm hoặc thêm/xóa người chơi), hệ thống tự động cập nhật slot, trim các vai trò cố định dư thừa nếu số người chơi giảm xuống, và hiển thị tức thì trên banner và Modal Chọn Vai Trò Cố Định.
+
+---
+
+## [2026-10-16] - Cải Tổ Cấu Trúc Toàn Diện: 100% Thuần Việt Hóa Ứng Dụng (Loại Bỏ Song Ngữ)
+
+### 🇻🇳 1. Xóa Bỏ Hoàn Toàn 100% Tính Năng & Mã Nguồn Song Ngữ (English)
+- **Cải tổ cấu trúc mã nguồn `app.js`**:
+  - Loại bỏ hoàn toàn hơn 210 biểu thức điều kiện song ngữ `this.lang === 'vi' ? ... : ...` trên toàn bộ controller `app.js`.
+  - Loại bỏ biến `this.lang`, thay thế bằng các chuỗi văn bản Tiếng Việt chuẩn mực, gãy gọn, trực tiếp.
+  - Xóa bỏ các trường tiếng Anh thừa (`name_en`, `desc_en`, `ability_en`, `win_en`) trong logic tạo vai trò custom và danh mục từ khóa.
+  - Loại bỏ biến nháp `textEn` và thống nhất đơn vị điểm số hiển thị sang `đ` hoặc `điểm` (thay thế hoàn toàn `pts`).
+  - Xóa bỏ các icon/ký tự thừa trong từ điển `I18N` (`section_scoreboard`, `btn_custom_role`, `btn_auto_balance`), khắc phục triệt để lỗi trùng lặp 2 icon cạnh nhau (`🏆 🏆`, `+ +`, `⚡ ⚡`).
+- **Giao diện HTML (`index.html`)**:
+  - Dịch và chuẩn hóa 100% tiêu đề, nhãn phụ, menu, bộ lọc:
+    - Tiêu đề app: `<title>Kẻ Giả Mạo - Game Suy Luận Party</title>`
+    - Hero Badge: `Game Suy Luận Party`, `Kẻ Giả Mạo`
+    - Tùy chọn chế độ chơi: `Chuyền Máy (Offline)`, `Chơi Online (Phòng)` kèm badge `Sắp ra mắt!`
+    - Bộ lọc vai trò: `Tất cả`, `Cố định`, `Phe Dân`, `Phe Ác`, `Trung Lập`, `Tự tạo`
+    - Thẻ lật danh tính: `Phe Dân`, `Phe Ác`, `Trung Lập`
+    - Cài đặt hệ thống: `Chế độ Tối`, `Chế độ Sáng`
+- **Khắc phục lỗi cú pháp `data_categories.js`**:
+  - Bổ sung dấu `},` bị thiếu tại dòng 53 (`bánh rán` - `bánh xèo`).
+  - Xóa bỏ dấu ngoặc mở `{` dư thừa tại dòng 114, đảm bảo danh mục tải trơn tru, không có lỗi console.
+- **Tên người chơi mặc định**:
+  - Chuẩn hóa tên người chơi mặc định thành `Người chơi 1`, `Người chơi 2`, ..., `Người chơi 6` (thay vì `Player 1`).
+
+---
+
 ## [2026-10-15] - Cập Nhật Bộ Từ Thuần Việt, Tinh Chỉnh Vai Trò & Tối Ưu Lật Kèo
 
 ### 📚 1. Thay Thế Toàn Bộ 7 Chủ Đề & 365 Cặp Từ Thuần Việt Mới
@@ -36,8 +103,64 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 - **Backnote**:
   - Cải tiến hàm kiểm tra từ đoán `checkImposterComebackGuess`: Khắc phục triệt để lỗi khớp chuỗi con lỏng lẻo trước đây (tránh tình trạng chỉ nhập lượng từ như `"con"`, `"bánh"`, `"cơm"` mà vẫn trúng từ).
   - Cho phép nhận diện linh hoạt giữa từ có dấu và không dấu, hỗ trợ nhập từ ngữ cốt lõi (ví dụ từ `"con mèo"` thì gõ `"mèo"` hoặc `"con mèo"` đều hợp lệ).
-  - Giữ nguyên và chuẩn hóa cơ chế tính điểm: Imposter lật kèo nhận `+2.5đ x số Dân` (từ 12đ đến 25đ); Dân làng bị trừ `-8đ` (-5đ thua ván + -3đ làm lộ từ khóa).
+  - Chuẩn hóa cơ chế tính điểm: Nâng sàn tối thiểu lên `15đ` (từ 15đ đến 25đ: `+2.5đ x số Dân`, chạm sàn ghi rõ `sàn tối thiểu 15đ`); Dân làng bị trừ `-8đ` (-5đ thua ván + -3đ làm lộ từ khóa).
   - Bổ sung ghi nhận chi tiết cơ hội lật kèo vào Nhật ký diễn biến trận đấu (`#match-timeline-log`) để bảng điểm cuối ván minh bạch, rõ ràng.
+
+### 📱 4. Xóa Bỏ Hộp Thoại Alert Trình Duyệt & Xây Dựng Hệ Thống Thông Báo Chuyên Biệt Cho Mobile
+- **Vấn đề trên điện thoại**:
+  - Khi chơi chuyền máy trên trình duyệt di động (Vercel, Safari, Chrome điện thoại), các hành động ban đêm (Thám Tử soi, Bà Đồng gọi hồn, Tin Tặc hack dữ liệu, Bác Sĩ bảo vệ, Phù Thủy...) sử dụng hàm `alert()` mặc định của trình duyệt.
+  - Hộp thoại `alert()` dễ bị trình duyệt chặn, bấm nhầm nút đóng nhanh và ngay khi đóng thì nội dung thẻ hành động bị xóa sạch (chỉ hiện thông báo chung chung "Đã hoàn tất hành động"), khiến người chơi mất hoàn toàn thông tin vừa soi được.
+- **Giải pháp Đột Phá (Dual-Layer Action Results)**:
+  - **Hệ Thống Modal Thông Báo In-App (`#modal-action-notice`)**: Thay thế toàn bộ `alert()` bằng giao diện Bottom Sheet Obsidian Arcade cực nét, có icon động, huy hiệu tên mục tiêu, banner phân loại màu sắc sắc nét (`good` xanh lá cho phe Dân / `evil` đỏ rực cho phe Ác / `info` xanh tím) cùng âm thanh hiệu ứng tương ứng.
+  - **Khung Kết Quả Thường Trực Trên Thẻ Đêm (`.night-action-result-box`)**: Sau khi đóng modal, kết quả hành động vẫn được găm cố định ngay trên thẻ màn hình của người chơi. Người cầm máy có thể xem và ghi nhớ kỹ càng trước khi bấm *"🙈 Nhắm mắt & Chuyền cho người kế tiếp"*.
+  - **Làm Sạch Toàn Bộ `alert()` Hệ Thống**: Chuyển đổi các cảnh báo trong Hộp công cụ Quản trò (Toolbox), kết quả bảo vệ/cứu mạng/phủ quyết khi Bỏ phiếu (Voting) và giới hạn slot vai trò ở màn Cài đặt sang `showActionNotice` và thông báo trôi `showToast()` mượt mà.
+
+### ⏱️ 5. Tái Cấu Trúc Cơ Chế Lật Kèo Imposter (30s Suy Nghĩ, Phạt Đoán Sai & Đồng Bộ Điểm Toàn Bộ Vai Trò)
+- **Cơ chế Lật Kèo của Kẻ Giả Mạo khi bị bắt**:
+  - **Bộ đếm thời gian suy nghĩ 30 giây (`30s`)**: Tích hợp visual countdown timer neon đỏ (`#comeback-countdown-box`, `#comeback-timer-display`) trên `#screen-comeback`. Tự động đếm ngược 30s với hiệu ứng âm thanh cảnh báo 5 giây cuối. Khi hết 30s, hệ thống tự động tính là **Không đoán từ** (chấp nhận thua, không bị phạt đoán sai).
+  - **Quyền lựa chọn đoán hoặc không đoán**:
+    - **Nút Xác nhận đoán từ**: Yêu cầu nhập từ khóa suy luận được trước khi xác nhận. Nếu đoán đúng: **+20 điểm** (cướp chiến thắng ván, miễn trừ 100% hình phạt bị bắt hay lộ vòng 1; phe Dân bị phạt -8đ gồm -5đ thua ván + -3đ làm lộ từ khóa). Nếu đoán sai: **phạt thêm -10 điểm** (tổng phạt `-20đ` nếu bị bắt vòng 2+; `-25đ` nếu bị bắt ngay Vòng 1).
+    - **Nút Không đoán từ**: Imposter chủ động bảo toàn điểm số, không bị phạt khoản đoán sai (chỉ chịu mức phạt cố định khi bị bắt: `-10đ` nếu vòng 2+; `-15đ` nếu vòng 1).
+  - **Hình phạt lộ quá sớm ở Vòng 1**: Bị bắt ở Vòng 1 luôn bị giảm thêm `-5 điểm`.
+- **Đồng bộ hóa 100% thông tin vai trò logic với luật chơi & mã tính điểm**:
+  - **Bảng Điểm Thưởng & Phạt Toàn Diện (`#modal-deep-rules`)**: Tái cấu trúc Section 3 thành 3 nhóm bảng chi tiết, minh bạch:
+    1. *Kẻ Giả Mạo & Lật Kèo*: Thắng sống sót (+15đ, lừa Dân +2đ/lần), Lật kèo đúng (+20đ), Bị bắt cố định (-10đ), Bị bắt Vòng 1 (-5đ giảm thêm), Đoán sai (-10đ phạt thêm), Không đoán (0đ phạt thêm).
+    2. *Phe Dân Làng*: Thắng sống sót (+10đ), Thắng khi đã bị loại (+5đ), Bắt Imposter (+5đ), Thua Imposter (-5đ), Để lộ từ khóa (-3đ), Vote nhầm Dân (-5đ).
+    3. *Toàn Bộ Vai Trò Đặc Biệt*: Thám Tử soi trúng (+5đ), Bác Sĩ cứu sống (+10đ), Vệ Sĩ hy sinh (+10đ), Thẩm Phán phủ quyết (+5đ), Kẻ Hề bị vote loại (+30đ Jackpot / người khác -5đ), Kẻ Hề không bị loại (-5đ), Kẻ Sống Sót (+15đ / -5đ), Phù Thủy (+15đ / -5đ), Điệp Viên Hai Mang (+15đ / -5đ), Phe Ác thắng (+15đ / thua -10đ).
+  - **Thẻ vai trò (`data_roles.js`)**: Cập nhật toàn bộ trường `ability_vi` và `win_vi` của cả 20 vai trò mặc định để ghi rõ từng mốc điểm thưởng (+) và điểm phạt (-).
+  - **Mã nguồn tính điểm (`app.js`)**: Tinh chỉnh `calculateScores` trong `showResultsScreen`, đồng bộ `this.playerCount = names.length` trong `startMatchSession` và ưu tiên kiểm tra nhánh phe Ác trước phe Dân để đảm bảo tính điểm chính xác tuyệt đối.
+
+### 🏷️ 6. Loại Bỏ Tính Năng Tạo Tên Ngẫu Nhiên & Cố Định Tên Ban Đầu Mặc Định (Player + Số Thứ Tự)
+- **Yêu cầu & Mục tiêu**:
+  - Xóa bỏ hoàn toàn tính năng và danh sách tên ngẫu nhiên hiện tại để tránh việc tự động gán các tên không mong muốn.
+  - Thiết lập tên mặc định cố định ban đầu theo cú pháp chuẩn: `Player + số thứ tự tạo` (`Player 1`, `Player 2`, `Player 3`, ...).
+- **Các thay đổi chi tiết**:
+  - **`data_categories.js`**: Xóa bỏ hoàn toàn mảng `RANDOM_NAMES_VI` chứa danh sách tên cũ ("Bảo Long", "Minh Anh", "Thỏ Ngọc", ...) và loại bỏ `window.RANDOM_NAMES_VI`.
+  - **`index.html`**:
+    - Xóa nút "🎲 Tên ngẫu nhiên" (`#btn-random-names`) trên thanh công cụ của màn hình Quản lý Người chơi (`#screen-players`).
+    - Thay thế toàn bộ các placeholder tên người chơi mẫu tĩnh cũ ("Bảo Long") trong thẻ che màn hình (`#curtain-player-name`), thẻ lật (`#flip-front-player-name`), vòng quay may mắn (`#roulette-winner-name`), ban đêm (`#night-curtain-player-name`, `#night-player-name`) và thanh phát biểu (`#speaker-active-name`) thành `Player 1`.
+  - **`app.js`**:
+    - Xóa nút xúc xắc đơn lẻ (`.btn-random-single-name`) cạnh từng dòng input nhập tên người chơi, giúp thanh nhập tên mở rộng gọn gàng và thẩm mỹ hơn.
+    - Xóa hoàn toàn phương thức `randomizeSinglePlayer(index)` và trình lắng nghe sự kiện `#btn-random-names`.
+    - Cập nhật hàm `loadSavedPlayerNames()`: Tự động phát hiện và dọn dẹp các tên cũ thuộc danh sách random trước đây trong `localStorage`, khởi tạo danh sách mặc định cố định từ `Player 1` đến `Player N`.
+    - Cập nhật `generatePlayerInputs()` & `addPlayer()`: Khi tạo thêm người chơi bằng nút "➕ Thêm người chơi", tên mới tự động được đặt cố định là `Player ${this.playerNames.length + 1}` (ví dụ: `Player 7`, `Player 8`, ...).
+    - Cập nhật hàm xem trước `ensureSamplePlayersForReview()` để sử dụng danh sách chuẩn `['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5', 'Player 6']`.
+
+### ⚖️ 7. Chuẩn Hóa Điểm Dân Thường Thắng (+10đ), Dân Còn Sống Vote Đúng (+5đ), Vote Sai (-5đ Không Tính Dân Đã Chết) & Kẻ Hề (+30đ, Tất Cả -5đ)
+- **Yêu cầu & Quy tắc cập nhật**:
+  1. **Phe Dân Thường thắng**: Tất cả người chơi phe Dân (dù còn sống hay đã bị loại) đều nhận **+10 điểm**.
+  2. **Phe Dân còn sống vote đúng bắt Imposter**: Toàn bộ Dân CÒN SỐNG nhận thêm **+5 điểm** (Tổng: 10 + 5 = **+15 điểm**). Dân đã chết không nhận thêm khoản này (vẫn bảo toàn **+10 điểm**).
+  3. **Phe Dân vote sai**: Tất cả Dân CÒN SỐNG bị trừ **-5 điểm** (không tính dân đã chết; nạn nhân vô tội vừa bị vote loại cũng không bị phạt).
+  4. **Kẻ Hề (Jester) thắng**: Kẻ Hề nhận trọn vẹn **+30 điểm** Jackpot, và **TẤT CẢ** người chơi khác trong phòng (kể cả phe Dân, phe Ác hay vai trò đặc biệt) đều bị trừ **-5 điểm**; không ai nhận thêm bất kỳ điểm thưởng nào khác.
+- **Các thay đổi trong mã nguồn**:
+  - **`app.js`**:
+    - Trong `showResultsScreen()`: Cập nhật nhánh `this.winningTeam === 'good'` để cộng đồng đều `+10đ` cho toàn bộ phe Dân, và chỉ cộng thêm `+5đ` vote đúng cho Dân còn sống (`!p.isEliminated && hasCaughtImposter`).
+    - Trong nhánh `this.winningTeam === 'jester'`: Cố định chính xác Kẻ Hề `delta = 30` và tất cả người khác `delta = -5`; đồng thời đóng gói toàn bộ Part 2 (các vai trò đặc biệt như Survivor, Witch...) không kích hoạt khi Kẻ Hề thắng để bảo đảm tất cả đều nhận đúng -5đ.
+    - Trong cơ chế trừ điểm vote sai: Chỉ áp dụng trừ điểm cho người chơi còn sống (`!p.isEliminated && p.penalty > 0`).
+  - **`index.html`**:
+    - Cập nhật bảng điểm luật chơi (`#modal-deep-rules`): Hiển thị rõ ràng "Phe Dân Thường chiến thắng: Tất cả +10đ", "Phe Dân còn sống vote đúng Imposter: +5đ (Tổng +15đ)", và "Phe Dân vote nhầm Dân vô tội: Tất cả Dân còn sống bị phạt -5đ (không tính dân đã chết)".
+  - **`data_roles.js`**:
+    - Đồng bộ mô tả `ability_vi` và `win_vi` của Dân Thường và tất cả các vai trò phe Dân (Thám Tử, Bác Sĩ, Gián Điệp, Thị Trưởng, Kẻ Câm Lặng, Vệ Sĩ, Nhà Tiên Tri, Bà Đồng, Tin Tặc, Thẩm Phán).
 
 ---
 

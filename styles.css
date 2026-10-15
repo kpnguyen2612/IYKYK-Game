@@ -1407,6 +1407,13 @@ html[data-theme="light"] .sticky-bottom-action-bar {
   box-shadow: 0 12px 36px rgba(239, 68, 68, 0.35);
   animation: zoomIn 0.5s ease-out;
 }
+#comeback-countdown-box {
+  transition: all 0.3s ease;
+}
+#comeback-timer-display {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
 .winner-banner-tag {
   display: inline-block;
   background: var(--gradient-brand);
@@ -3030,6 +3037,121 @@ html[data-theme="light"] .sticky-bottom-action-bar {
   opacity: 0.55;
   filter: grayscale(0.5);
   cursor: not-allowed;
+}
+
+/* ==========================================================
+   ACTION NOTICE MODAL & IN-CARD RESULT BANNERS
+   Optimized for Mobile Pass-and-Play & Secret Actions
+   ========================================================== */
+.action-notice-sheet {
+  background: var(--bg-surface);
+  border-top: 2px solid var(--accent-amber);
+  text-align: center;
+  padding: 22px 18px 28px;
+}
+.action-notice-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.action-notice-icon-box {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+}
+.action-notice-title {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+.action-notice-target-badge {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+}
+.action-notice-body-box {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  padding: 16px 14px;
+  text-align: center;
+  margin: 4px 0;
+  border: 1.5px solid var(--border-medium);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+.action-notice-body-box.evil {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.22) 0%, rgba(185, 28, 28, 0.15) 100%);
+  border-color: rgba(239, 68, 68, 0.65);
+  color: #fca5a5;
+}
+.action-notice-body-box.good {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.15) 100%);
+  border-color: rgba(16, 185, 129, 0.65);
+  color: #86efac;
+}
+.action-notice-body-box.warning {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.15) 100%);
+  border-color: rgba(245, 158, 11, 0.65);
+  color: #fde68a;
+}
+.action-notice-body-box.info {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(79, 70, 229, 0.15) 100%);
+  border-color: rgba(99, 102, 241, 0.65);
+  color: #c7d2fe;
+}
+.action-notice-heading {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.action-notice-sub {
+  font-size: 13px;
+  line-height: 1.5;
+  color: inherit;
+}
+.action-notice-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* In-Card Night Action Result Banner */
+.night-action-result-box {
+  border-radius: var(--radius-lg);
+  padding: 16px 14px;
+  text-align: center;
+  border: 1.5px solid var(--border-medium);
+  animation: fadeIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.night-action-result-box.good {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.12) 100%);
+  border-color: rgba(16, 185, 129, 0.65);
+}
+.night-action-result-box.evil {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.15) 100%);
+  border-color: rgba(239, 68, 68, 0.7);
+}
+.night-action-result-box.info {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.12) 100%);
+  border-color: rgba(99, 102, 241, 0.65);
 }
 
 
