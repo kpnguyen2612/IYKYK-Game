@@ -104,11 +104,11 @@
         </div>
 
         <!-- Party Tournament Series Banner -->
-        <div id="setup-tournament-banner" class="instruction-box" style="border-left-color: #f59e0b; background: rgba(245, 158, 11, 0.08); display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div id="setup-tournament-banner" class="instruction-box">
           <div style="display: flex; align-items: center; gap: 10px;">
             <span style="font-size: 22px;">🏆</span>
             <div>
-              <div style="font-family: var(--font-display); font-weight: 800; color: #f59e0b; font-size: 13px;">Giải đấu Party tích lũy</div>
+              <div class="tournament-banner-title">Giải đấu Party tích lũy</div>
               <p id="setup-tournament-stats" style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
                 Đang lưu điểm tự động qua các vòng & ván chơi
               </p>
@@ -186,7 +186,7 @@
               <div class="fixed-roles-title-wrap">
                 <div class="setting-icon-box small" style="color: #10b981; background: rgba(16, 185, 129, 0.12); width: 32px; height: 32px; font-size: 15px;">📌</div>
                 <div>
-                  <h4 style="font-family: var(--font-display); font-weight: 700; font-size: 13px; color: #fff; margin: 0;">Vai trò cố định</h4>
+                  <h4 style="font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--text-primary); margin: 0;">Vai trò cố định</h4>
                   <p id="label-fixed-roles-slots" style="font-size: 10px; color: var(--text-muted); margin: 2px 0 0;">Chắc chắn xuất hiện trong ván đấu</p>
                 </div>
               </div>
@@ -236,7 +236,7 @@
               <!-- Sub-action: Current category chip + change category button -->
               <div class="topic-sub-chip" id="btn-change-specific-topic">
                 <span id="chip-category-icon">🍜</span>
-                <span id="chip-category-name" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Ẩm Thực & Đồ Uống</span>
+                <span id="chip-category-name" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Đồ ăn</span>
                 <span style="color: var(--primary-orange); font-size: 12px; font-weight: 700; white-space: nowrap;" data-i18n="btn_change_topic">Đổi chủ đề ›</span>
               </div>
             </div>
@@ -338,6 +338,23 @@
               </label>
             </div>
           </div>
+
+          <!-- 5. Chế độ Ban Đêm bí mật Toggle -->
+          <div class="setting-item-row" id="row-night-phase">
+            <div class="setting-info-left">
+              <div class="setting-icon-box" style="color: #a78bfa; background: rgba(139, 92, 246, 0.15);">🌙</div>
+              <div class="setting-texts">
+                <h4>Chế độ Ban Đêm bí mật</h4>
+                <p>Chuyền máy đầu mỗi vòng để dùng kỹ năng kín đáo</p>
+              </div>
+            </div>
+            <div class="setting-action-right">
+              <label class="switch-control">
+                <input type="checkbox" id="switch-night-phase" checked />
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+          </div>
         </div>
 
         <!-- STICKY BOTTOM ACTION BAR -->
@@ -393,7 +410,7 @@
             <div class="fixed-roles-title-wrap">
               <div class="setting-icon-box small" style="color: #10b981; background: rgba(16, 185, 129, 0.15); width: 30px; height: 30px; font-size: 14px;">📌</div>
               <div>
-                <h4 style="font-family: var(--font-display); font-weight: 700; font-size: 13px; color: #fff; margin: 0;">Vai trò cố định trong ván</h4>
+                <h4 style="font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--text-primary); margin: 0;">Vai trò cố định trong ván</h4>
                 <p id="label-screen-roles-fixed-slots" style="font-size: 10px; color: var(--text-muted); margin: 2px 0 0;">Chắc chắn xuất hiện khi phát bài</p>
               </div>
             </div>
@@ -622,6 +639,91 @@
         <button id="btn-roulette-proceed" class="primary-cta-btn" style="min-height: 50px;">
           <span>💬</span> <span data-i18n="btn_start_discussion">Bắt đầu vòng thảo luận ›</span>
         </button>
+      </section>
+
+      <!-- ==========================================
+           SCREEN 4.8: PASS-THE-PHONE NIGHT PHASE
+           ========================================== -->
+      <section id="screen-night" class="view-screen">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <span class="hero-badge" style="background: rgba(139, 92, 246, 0.2); color: #a78bfa; font-weight: 800;" id="night-round-pill">
+            🌙 BAN ĐÊM BÍ MẬT
+          </span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="hero-badge" style="background: rgba(255, 255, 255, 0.08); color: var(--text-muted);" id="night-progress-pill">
+              Người chơi 1 / 6
+            </span>
+            <button id="btn-skip-night-phase" class="ctrl-btn" style="background: rgba(255, 255, 255, 0.06); color: var(--text-muted); border: 1px solid var(--border-subtle); padding: 4px 8px; font-size: 11px; border-radius: 999px;">
+              Bỏ qua đêm ›
+            </button>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 14px;">
+          <h2 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; margin-bottom: 4px; color: #c4b5fd;">
+            Đêm Tĩnh Lặng Buông Xuống
+          </h2>
+          <p style="font-size: 12px; color: var(--text-secondary);">
+            Chuyền máy riêng tư cho từng người chơi để kích hoạt năng lực bí mật!
+          </p>
+        </div>
+
+        <!-- Night Curtain Box (Privacy Guard) -->
+        <div id="night-curtain-box" style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%); border: 1.5px solid rgba(139, 92, 246, 0.35); border-radius: var(--radius-lg); padding: 24px 16px; text-align: center; margin-bottom: 20px; box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.3);">
+          <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(139, 92, 246, 0.2); border: 2px solid #8b5cf6; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 12px;">
+            🌙
+          </div>
+          <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; color: #a78bfa; font-weight: 700; margin-bottom: 4px;">
+            Chuyền điện thoại cho:
+          </div>
+          <div id="night-curtain-player-name" style="font-family: var(--font-display); font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 10px;">
+            Bảo Long
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); max-width: 280px; margin: 0 auto 20px; line-height: 1.4;">
+            🔒 Chỉ một mình người chơi này được nhìn màn hình! Những người chơi khác vui lòng giữ im lặng và không nhìn máy.
+          </div>
+          <button id="btn-open-night-action" class="primary-cta-btn" style="background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%); min-height: 48px; width: 100%;">
+            <span>👁️</span> <span>Mở mắt hành động</span>
+          </button>
+        </div>
+
+        <!-- Night Action Viewport (Revealed when player taps Open) -->
+        <div id="night-action-viewport" style="display: none; flex-direction: column; gap: 14px; margin-bottom: 20px;">
+          <!-- Player Identity Banner -->
+          <div id="night-player-banner" style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface-elevated); border: 1px solid var(--border-medium); border-radius: var(--radius-md); padding: 10px 14px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div id="night-player-avatar" style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; background: #fee2e2;">🦁</div>
+              <div>
+                <strong id="night-player-name" style="font-size: 14px; color: #fff;">Bảo Long</strong>
+                <div id="night-player-role-badge" style="font-size: 11px; font-weight: 600; color: #3b82f6;">🔍 Thám Tử</div>
+              </div>
+            </div>
+            <span class="team-tag" id="night-player-team-tag">Phe Dân</span>
+          </div>
+
+          <!-- Dynamic Action Card Content for this specific player's role -->
+          <div id="night-role-action-card" style="background: var(--bg-surface-elevated); border: 1.5px solid var(--border-medium); border-radius: var(--radius-lg); padding: 16px;">
+            <!-- Injected dynamically -->
+          </div>
+
+          <button id="btn-night-done" class="primary-cta-btn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); min-height: 48px; width: 100%;">
+            <span>😴</span> <span>Nhắm mắt & Chuyền cho người kế tiếp</span>
+          </button>
+        </div>
+
+        <!-- Night Dawn Morning Card (When all done) -->
+        <div id="night-dawn-card" style="display: none; background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(255, 107, 53, 0.15) 100%); border: 1.5px solid rgba(245, 158, 11, 0.6); border-radius: var(--radius-lg); padding: 24px 16px; text-align: center; margin-bottom: 20px;">
+          <div style="font-size: 40px; margin-bottom: 8px;">☀️</div>
+          <h3 style="font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #fbbf24; margin-bottom: 6px;">
+            Trời Đã Sáng!
+          </h3>
+          <p style="font-size: 13px; color: var(--text-secondary); max-width: 290px; margin: 0 auto 18px; line-height: 1.4;">
+            Đêm đen đã kết thúc. Toàn bộ người chơi cùng mở mắt và bắt đầu phiên thảo luận!
+          </p>
+          <button id="btn-dawn-proceed" class="primary-cta-btn" style="background: linear-gradient(135deg, #f59e0b 0%, #ff6b35 100%); min-height: 50px; width: 100%;">
+            <span>💬</span> <span>Bắt đầu phiên thảo luận ›</span>
+          </button>
+        </div>
       </section>
 
       <!-- ==========================================
@@ -1241,11 +1343,11 @@
       <div class="instruction-box" style="margin-bottom: 16px;">
         <span class="instruction-icon">⭐</span>
         <div class="instruction-text" style="font-size: 11px;">
-          <strong>Cách tính điểm:</strong><br />
-          • Thắng ván: +10đ (Phe Dân) / +25đ (Imposter)<br />
-          • Imposter lật kèo đoán đúng từ: +20đ<br />
-          • Bỏ phiếu chuẩn / Bắt Imposter: +5đ<br />
-          • Kẻ Hề (Jester) bị loại: +30đ jackpot!
+          <strong>Hệ thống điểm giải đấu:</strong><br />
+          • Thắng ván: +10đ (Phe Dân) / +10đ ~ +30đ (Imposter)<br />
+          • Imposter lật kèo đoán đúng từ: +12đ ~ +25đ<br />
+          • Bỏ phiếu chuẩn / Bắt Imposter: +5đ • Kẻ Hề (Jester): +30đ<br />
+          • Điểm phạt (Âm điểm): -5đ khi vote nhầm Dân, -15đ khi Imposter bị bắt ngay Vòng 1, -5đ khi Thua trận.
         </div>
       </div>
 
@@ -1425,6 +1527,18 @@
           </div>
           <label class="toggle-switch">
             <input type="checkbox" id="switch-haptic" checked />
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <!-- Night Phase Toggle in Settings -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+          <div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">Chế độ Ban Đêm bí mật (Night Phase)</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Chuyền máy đầu mỗi vòng để dùng kỹ năng kín đáo</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="switch-night-phase-modal" checked />
             <span class="slider round"></span>
           </label>
         </div>

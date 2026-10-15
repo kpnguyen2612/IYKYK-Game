@@ -513,6 +513,64 @@ p, span, label, input, textarea, select {
   color: var(--text-secondary);
 }
 
+/* Party Tournament Series Banner */
+#setup-tournament-banner {
+  border-left: 4px solid var(--accent-amber);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-left-width: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+html[data-theme="light"] #setup-tournament-banner {
+  background: #fffbeb;
+  border-color: #fde68a;
+  border-left-color: #d97706;
+}
+
+.tournament-banner-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: #f59e0b;
+  font-size: 13px;
+}
+
+html[data-theme="light"] .tournament-banner-title {
+  color: #b45309;
+}
+
+.tournament-stat-matches {
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+.tournament-stat-leader {
+  color: #f59e0b;
+  font-weight: 800;
+}
+
+html[data-theme="light"] .tournament-stat-leader {
+  color: #b45309;
+}
+
+html[data-theme="light"] #btn-setup-view-leaderboard {
+  border-color: rgba(217, 119, 6, 0.5) !important;
+  color: #b45309 !important;
+  background: #ffffff !important;
+}
+
+html[data-theme="light"] #btn-setup-reset-scores {
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #dc2626 !important;
+  background: #ffffff !important;
+}
+
 /* ==========================================================
    SETTINGS LIST & ACCORDIONS
    ========================================================== */
@@ -2878,6 +2936,15 @@ html[data-theme="light"] .sticky-bottom-action-bar {
   border-radius: var(--radius-pill);
   font-family: var(--font-mono);
   animation: fadeInBadge 0.25s ease;
+}
+.player-score-link-badge.negative {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+.leaderboard-row.negative-score-row {
+  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.04);
 }
 @keyframes fadeInBadge {
   from { opacity: 0; transform: scale(0.92); }

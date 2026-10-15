@@ -139,16 +139,27 @@ class ImposterGame {
     this.durationSeconds = parseInt(localStorage.getItem('gti_discussion_time') || '180', 10);
     this.speechDurationSeconds = parseInt(localStorage.getItem('gti_speech_time') || '30', 10);
     this.rouletteEnabled = localStorage.getItem('gti_roulette') !== 'false';
+    this.nightPhaseEnabled = localStorage.getItem('gti_night_phase') !== 'false';
+    this.currentNightIndex = 0;
     this.gameMode = 'pass';
 
     // Special Roles Roll Rate (Tỉ lệ Roll vai trò khác: 25%, 50%, 70%, 85%, 100%)
     this.specialRoleRate = parseInt(localStorage.getItem('gti_special_role_rate') || '85', 10);
     this.doctorShieldedPlayerId = null;
     this.doctorShieldedPlayerIds = new Set();
+    this.doctorSuccessfulSaves = new Set();
     this.bodyguardProtectedPlayerId = null;
     this.bodyguardProtectedMap = {};
+    this.bodyguardSacrifices = new Set();
     this.roundUsedAbilities = new Set();
     this.detectivesExposedImposter = new Set();
+    this.judgeVetoUsed = false;
+    this.judgeVetoSavedPlayerId = null;
+    this.witchSavedPlayerId = null;
+    this.witchUsedSavePotion = false;
+    this.witchUsedPoisonPotion = false;
+    this.firstEliminatedPlayer = null;
+    this.allEliminatedPlayers = [];
 
     // Custom Categories & Word Pairs Management
     this.customCategories = JSON.parse(localStorage.getItem('gti_custom_categories') || '[]');
@@ -397,6 +408,7 @@ class ImposterGame {
       'screen-players': 'Tên người chơi',
       'screen-reveal': 'Lật thẻ',
       'screen-roulette': 'Vòng quay',
+      'screen-night': `Ban đêm${roundSuffix}`,
       'screen-discussion': `Thảo luận${roundSuffix}`,
       'screen-voting': `Bỏ phiếu${roundSuffix}`,
       'screen-comeback': 'Lật kèo',
@@ -407,6 +419,7 @@ class ImposterGame {
     const isMatchPhase = [
       'screen-reveal',
       'screen-roulette',
+      'screen-night',
       'screen-discussion',
       'screen-voting',
       'screen-comeback',
@@ -555,8 +568,8 @@ class ImposterGame {
     const chipName = document.getElementById('chip-category-name');
     if (chipIcon) chipIcon.textContent = cat.icon;
     if (chipName) {
-      const wordsPreview = cat.words.slice(0, 2).map(w => this.lang === 'vi' ? w.vi : w.en).join(', ');
-      chipName.textContent = `${this.lang === 'vi' ? cat.name_vi : cat.name_en} (${wordsPreview}...)`;
+      const wordsPreview = cat.words.slice(0, 2).map(w => w.civilian || w.vi || w).join(', ');
+      chipName.textContent = `${this.lang === 'vi' ? cat.name_vi : (cat.name_en || cat.name_vi)} (${wordsPreview}...)`;
     }
 
     const timeVal = document.getElementById('val-time');
@@ -584,6 +597,15 @@ class ImposterGame {
     const rouletteSwitch = document.getElementById('switch-roulette');
     if (rouletteSwitch) {
       rouletteSwitch.checked = this.rouletteEnabled;
+    }
+
+    const nightSwitch = document.getElementById('switch-night-phase');
+    if (nightSwitch) {
+      nightSwitch.checked = this.nightPhaseEnabled;
+    }
+    const nightModalSwitch = document.getElementById('switch-night-phase-modal');
+    if (nightModalSwitch) {
+      nightModalSwitch.checked = this.nightPhaseEnabled;
     }
 
 
@@ -647,10 +669,10 @@ class ImposterGame {
       card.className = `role-card-item ${role.enabled ? 'enabled' : ''}`;
       card.style.setProperty('--role-color', role.color);
 
-      const title = this.lang === 'vi' ? role.name_vi : role.name_en;
-      const desc = this.lang === 'vi' ? role.desc_vi : role.desc_en;
-      const ability = this.lang === 'vi' ? role.ability_vi : role.ability_en;
-      const winCond = this.lang === 'vi' ? role.win_vi : role.win_en;
+      const title = role.name_vi || role.name_en;
+      const desc = role.desc_vi || role.desc_en;
+      const ability = role.ability_vi || role.ability_en;
+      const winCond = role.win_vi || role.win_en;
       const teamLabel = role.team === 'good' ? (this.lang === 'vi' ? 'Phe Dân' : 'Good')
                       : role.team === 'evil' ? (this.lang === 'vi' ? 'Phe Ác' : 'Evil')
                       : (this.lang === 'vi' ? 'Trung lập' : 'Neutral');
@@ -876,8 +898,8 @@ class ImposterGame {
               <span style="font-size: 11px; color: var(--text-muted); font-weight: 700;">
                 ${this.lang === 'vi' ? 'Người chơi' : 'Player'} ${i + 1}
               </span>
-              <span class="player-score-link-badge" id="score-link-${i}" style="${existingRecord ? '' : 'display: none;'}" title="${this.lang === 'vi' ? 'Đã liên kết hồ sơ điểm giải đấu' : 'Linked tournament profile'}">
-                ${existingRecord ? `🏆 ${recTotal} pts` : ''}
+              <span class="player-score-link-badge ${recTotal < 0 ? 'negative' : ''}" id="score-link-${i}" style="${existingRecord ? '' : 'display: none;'}" title="${recTotal < 0 ? (this.lang === 'vi' ? 'Điểm tích lũy âm' : 'Negative score') : (this.lang === 'vi' ? 'Đã liên kết hồ sơ điểm giải đấu' : 'Linked tournament profile')}">
+                ${existingRecord ? `${recTotal < 0 ? '🔻' : '🏆'} ${recTotal} pts` : ''}
               </span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px; margin-top: 3px;">
@@ -909,7 +931,8 @@ class ImposterGame {
           const rec = typeof raw === 'object' && raw !== null ? raw : { total: Number(raw) || 0 };
           const recTotal = rec.total ?? rec.score ?? rec.points ?? 0;
           if (badgeEl) {
-            badgeEl.textContent = `🏆 ${recTotal} pts`;
+            badgeEl.textContent = `${recTotal < 0 ? '🔻' : '🏆'} ${recTotal} pts`;
+            badgeEl.className = `player-score-link-badge ${recTotal < 0 ? 'negative' : ''}`;
             badgeEl.style.display = 'inline-flex';
           }
           if (rec.avatar) {
@@ -1098,10 +1121,19 @@ class ImposterGame {
     this.doctorShieldedPlayerId = null;
     this.doctorShieldedPlayerIds = new Set();
     this.doctorShieldHistory = [];
+    this.doctorSuccessfulSaves = new Set();
     this.bodyguardProtectedPlayerId = null;
     this.bodyguardProtectedMap = {};
+    this.bodyguardSacrifices = new Set();
     this.roundUsedAbilities = new Set();
     this.detectivesExposedImposter = new Set();
+    this.judgeVetoUsed = false;
+    this.judgeVetoSavedPlayerId = null;
+    this.witchSavedPlayerId = null;
+    this.witchUsedSavePotion = false;
+    this.witchUsedPoisonPotion = false;
+    this.firstEliminatedPlayer = null;
+    this.allEliminatedPlayers = [];
     this.wrongVoteCount = 0;
     this.imposterGuessResult = null;
     this.imposterGuessText = '';
@@ -1173,7 +1205,7 @@ class ImposterGame {
         const pick = living[Math.floor(Math.random() * (living.length || 1))];
         this.currentSpeakerIndex = pick ? this.players.indexOf(pick) : 0;
         sound.playWinFanfare();
-        this.startDiscussionStage();
+        this.prepareRoundStart();
       }
       return;
     }
@@ -1274,6 +1306,41 @@ class ImposterGame {
       const wordCount = this.secretWord.trim().split(/\s+/).length;
       const charCount = this.secretWord.replace(/\s+/g, '').length;
       keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 🔮 Thấu thị: Cụm từ gồm ${wordCount} tiếng (${charCount} ký tự)`;
+    } else if (player.role.id === 'mime') {
+      keywordLabel.textContent = 'Từ khóa bí mật (Bạn là Kẻ Câm Lặng 🤐):';
+      keywordText.className = 'secret-keyword-text';
+      keywordText.textContent = this.secretWord;
+      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 🤐 Nghiêm cấm nói quá 1 từ mỗi lượt phát biểu! Hãy dùng cử chỉ/hành động!`;
+    } else if (player.role.id === 'witch') {
+      keywordLabel.textContent = 'Từ khóa bí mật (Bạn là Phù Thủy 🧙‍♀️):';
+      keywordText.className = 'secret-keyword-text';
+      keywordText.textContent = this.secretWord;
+      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 🧙‍♀️ Sở hữu 1 Bình Cứu (hóa giải vote) và 1 Bình Độc (loại người) trong Hộp công cụ!`;
+    } else if (player.role.id === 'judge') {
+      keywordLabel.textContent = 'Từ khóa bí mật (Bạn là Thẩm Phán ⚖️):';
+      keywordText.className = 'secret-keyword-text';
+      keywordText.textContent = this.secretWord;
+      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • ⚖️ Nắm giữ quyền Phủ Quyết (Veto) 1 lần duy nhất để hủy kết quả trục xuất oan sai!`;
+    } else if (player.role.id === 'hacker') {
+      keywordLabel.textContent = 'Từ khóa bí mật (Bạn là Tin Tặc 💻):';
+      keywordText.className = 'secret-keyword-text';
+      keywordText.textContent = this.secretWord;
+      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 💻 Mở Hộp công cụ để hack dữ liệu giải mã vai trò người khác!`;
+    } else if (player.role.id === 'medium') {
+      keywordLabel.textContent = 'Từ khóa bí mật (Bạn là Bà Đồng 🕯️):';
+      keywordText.className = 'secret-keyword-text';
+      keywordText.textContent = this.secretWord;
+      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 🕯️ Khi có người bị loại, Bà Đồng có thể thỉnh cầu linh hồn họ trong Hộp công cụ!`;
+    } else if (player.role.id === 'saboteur') {
+      keywordLabel.textContent = 'BẠN LÀ KẺ PHÁ HOẠI (PHE ÁC 🧨)!';
+      keywordText.className = 'secret-keyword-text imposter';
+      if (this.hintsEnabled && this.imposterWord) {
+        keywordText.textContent = `Gợi ý của bạn: ${this.imposterWord}`;
+        keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • Mở Hộp công cụ để bí mật trừ 30s tranh luận của phe Dân!`;
+      } else {
+        keywordText.textContent = `Chủ đề: ${this.categoryData.name_vi}`;
+        keywordCat.textContent = 'Bạn không biết từ. Hãy mở Hộp công cụ trừ 30s tranh luận để gây hoảng loạn!';
+      }
     } else if (player.role.knowsKeyword) {
       keywordLabel.textContent = 'Từ khóa bí mật:';
       keywordText.className = 'secret-keyword-text';
@@ -1530,7 +1597,13 @@ class ImposterGame {
       avatarEl.textContent = current.avatar;
       avatarEl.style.background = current.avatarBg || '#fee2e2';
     }
-    if (nameEl) nameEl.textContent = current.name;
+    if (nameEl) {
+      if (current.role.id === 'mime') {
+        nameEl.innerHTML = `${current.name} <span class="hero-badge" style="background: rgba(107, 114, 128, 0.4); color: #e5e7eb; font-size: 10px; margin-left: 6px; padding: 2px 6px;">🤐 Kẻ Câm Lặng (Tối đa 1 từ)</span>`;
+      } else {
+        nameEl.textContent = current.name;
+      }
+    }
 
     this.speechTimerRemaining = this.speechDurationSeconds;
     if (timerVal) {
@@ -1583,13 +1656,465 @@ class ImposterGame {
     this.startSpeakerTimer();
   }
 
-  startDiscussionStage() {
+  hasActiveNightRoles() {
+    const activeNightRoleIds = new Set([
+      'detective', 'doctor', 'bodyguard', 'saboteur',
+      'spy', 'seer', 'medium', 'hacker', 'witch', 'chameleon'
+    ]);
+    return this.players.some(p => !p.isEliminated && activeNightRoleIds.has(p.role.id));
+  }
+
+  prepareRoundStart() {
     if (!this.roundNumber) this.roundNumber = 1;
+
+    // Reset round abilities at round start
     this.doctorShieldedPlayerId = null;
     this.doctorShieldedPlayerIds = new Set();
     this.bodyguardProtectedPlayerId = null;
     this.bodyguardProtectedMap = {};
     this.roundUsedAbilities = new Set();
+
+    // If Night Phase is enabled AND active night roles exist in this match
+    if (this.nightPhaseEnabled && this.hasActiveNightRoles()) {
+      this.startNightPhase();
+    } else {
+      this.startDiscussionStage();
+    }
+  }
+
+  startNightPhase() {
+    this.currentNightIndex = 0;
+    const roundPill = document.getElementById('night-round-pill');
+    if (roundPill) {
+      roundPill.textContent = this.lang === 'vi' 
+        ? `🌙 BAN ĐÊM VÒNG ${this.roundNumber}` 
+        : `🌙 NIGHT PHASE ROUND ${this.roundNumber}`;
+    }
+
+    this.switchScreen('screen-night');
+    sound.playDramaticReveal();
+    this.showNightStep(this.currentNightIndex);
+  }
+
+  showNightStep(index) {
+    const livingPlayers = this.players.filter(p => !p.isEliminated);
+    const curtainBox = document.getElementById('night-curtain-box');
+    const actionViewport = document.getElementById('night-action-viewport');
+    const dawnCard = document.getElementById('night-dawn-card');
+    const progressPill = document.getElementById('night-progress-pill');
+
+    if (index >= livingPlayers.length) {
+      // All living players have finished their night turns!
+      if (curtainBox) curtainBox.style.display = 'none';
+      if (actionViewport) actionViewport.style.display = 'none';
+      if (dawnCard) dawnCard.style.display = 'block';
+      if (progressPill) {
+        progressPill.textContent = this.lang === 'vi' ? 'Hoàn tất ban đêm' : 'Night complete';
+      }
+      sound.playWinFanfare();
+      return;
+    }
+
+    const player = livingPlayers[index];
+    if (curtainBox) curtainBox.style.display = 'block';
+    if (actionViewport) actionViewport.style.display = 'none';
+    if (dawnCard) dawnCard.style.display = 'none';
+
+    if (progressPill) {
+      progressPill.textContent = `${this.lang === 'vi' ? 'Người chơi' : 'Player'} ${index + 1} / ${livingPlayers.length}`;
+    }
+
+    const curtainName = document.getElementById('night-curtain-player-name');
+    if (curtainName) curtainName.textContent = player.name;
+
+    this.renderNightPlayerAction(player);
+  }
+
+  renderNightPlayerAction(player) {
+    const avatar = document.getElementById('night-player-avatar');
+    const name = document.getElementById('night-player-name');
+    const roleBadge = document.getElementById('night-player-role-badge');
+    const teamTag = document.getElementById('night-player-team-tag');
+    const cardContent = document.getElementById('night-role-action-card');
+
+    if (avatar) {
+      avatar.textContent = player.avatar;
+      avatar.style.background = player.avatarBg || '#fee2e2';
+    }
+    if (name) name.textContent = player.name;
+    if (roleBadge) {
+      roleBadge.textContent = `${player.role.icon} ${this.lang === 'vi' ? player.role.name_vi : player.role.name_en}`;
+      roleBadge.style.color = player.role.color;
+    }
+    if (teamTag) {
+      teamTag.className = `team-tag ${player.role.team}`;
+      teamTag.textContent = player.role.team === 'good' ? 'Phe Dân'
+                          : player.role.team === 'evil' ? 'Phe Ác'
+                          : 'Trung Lập';
+    }
+
+    if (!cardContent) return;
+    cardContent.innerHTML = '';
+
+    const alivePlayers = this.players.filter(p => !p.isEliminated);
+    const otherAlive = alivePlayers.filter(p => p.id !== player.id);
+
+    const markAbilityDone = (msg) => {
+      this.roundUsedAbilities.add(player.id);
+      cardContent.innerHTML = `
+        <div style="text-align: center; padding: 12px 6px;">
+          <div style="font-size: 28px; margin-bottom: 6px;">✅</div>
+          <strong style="color: #10b981; font-size: 14px;">${this.lang === 'vi' ? 'Đã hoàn tất hành động đêm nay!' : 'Night Action Completed!'}</strong>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${msg || ''}</p>
+        </div>
+      `;
+    };
+
+    switch (player.role.id) {
+      case 'detective': {
+        cardContent.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 22px;">🔍</span>
+              <div>
+                <strong style="color: #3b82f6;">${this.lang === 'vi' ? 'Thám Tử – Soi Danh Tính' : 'Detective – Scan Alignment'}</strong>
+                <p style="font-size: 11px; color: var(--text-muted); margin: 0;">${this.lang === 'vi' ? 'Chọn 1 người chơi để kiểm tra xem họ có thuộc Phe Ác không.' : 'Scan 1 player alignment'}</p>
+              </div>
+            </div>
+            <select id="night-detective-target" class="form-select" style="width: 100%; padding: 8px 10px;">
+              ${otherAlive.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+            </select>
+            <button id="btn-night-detective-act" class="primary-cta-btn" style="background: #3b82f6; min-height: 40px;">
+              ${this.lang === 'vi' ? 'Kiểm tra người này' : 'Inspect Player'}
+            </button>
+          </div>
+        `;
+        cardContent.querySelector('#btn-night-detective-act')?.addEventListener('click', () => {
+          sound.playDramaticReveal();
+          const targetId = cardContent.querySelector('#night-detective-target').value;
+          const target = this.players.find(p => p.id === targetId);
+          let resultMsg = '';
+          if (target && target.isImposter) {
+            if (!this.detectivesExposedImposter) this.detectivesExposedImposter = new Set();
+            this.detectivesExposedImposter.add(player.id);
+            resultMsg = `⚠️ BÁO ĐỘNG:\n${target.name} THUỘC PHE ÁC (KẺ GIẢ MẠO)!`;
+          } else {
+            resultMsg = `✓ BÌNH AN:\n${target.name} là người vô tội (Phe Dân).`;
+          }
+          alert(`🔍 KẾT QUẢ SOI:\n\n${resultMsg}`);
+          markAbilityDone(`Đã kiểm tra ${target.name}.`);
+        });
+        break;
+      }
+
+      case 'doctor': {
+        cardContent.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 22px;">💉</span>
+              <div>
+                <strong style="color: #06b6d4;">${this.lang === 'vi' ? 'Bác Sĩ – Lá Chắn Huyết Thanh' : 'Doctor – Serum Shield'}</strong>
+                <p style="font-size: 11px; color: var(--text-muted); margin: 0;">${this.lang === 'vi' ? 'Chọn 1 người để tiêm huyết thanh bảo vệ khỏi bị loại vòng này.' : 'Protect 1 player from elimination'}</p>
+              </div>
+            </div>
+            <select id="night-doctor-target" class="form-select" style="width: 100%; padding: 8px 10px;">
+              ${alivePlayers.map(p => `<option value="${p.id}">${p.name}${p.id === player.id ? ' (Bản thân)' : ''}</option>`).join('')}
+            </select>
+            <button id="btn-night-doctor-act" class="primary-cta-btn" style="background: #06b6d4; min-height: 40px;">
+              ${this.lang === 'vi' ? 'Tiêm huyết thanh bảo vệ' : 'Protect Player'}
+            </button>
+          </div>
+        `;
+        cardContent.querySelector('#btn-night-doctor-act')?.addEventListener('click', () => {
+          sound.playWinFanfare();
+          const targetId = cardContent.querySelector('#night-doctor-target').value;
+          const target = this.players.find(p => p.id === targetId);
+          if (!this.doctorShieldedPlayerIds) this.doctorShieldedPlayerIds = new Set();
+          this.doctorShieldedPlayerIds.add(targetId);
+          this.doctorShieldedPlayerId = targetId;
+          markAbilityDone(`Đã tiêm huyết thanh bảo hộ cho ${target.name}.`);
+        });
+        break;
+      }
+
+      case 'bodyguard': {
+        cardContent.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 22px;">🛡️</span>
+              <div>
+                <strong style="color: #2563eb;">${this.lang === 'vi' ? 'Vệ Sĩ – Thế Mạng Bảo Vệ' : 'Bodyguard – Guard Teammate'}</strong>
+                <p style="font-size: 11px; color: var(--text-muted); margin: 0;">${this.lang === 'vi' ? 'Chọn 1 đồng đội: Nếu họ bị vote loại vòng này, bạn sẽ hy sinh thay.' : 'Sacrifice if guarded target is voted out'}</p>
+              </div>
+            </div>
+            <select id="night-bodyguard-target" class="form-select" style="width: 100%; padding: 8px 10px;">
+              ${otherAlive.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+            </select>
+            <button id="btn-night-bodyguard-act" class="primary-cta-btn" style="background: #2563eb; min-height: 40px;">
+              ${this.lang === 'vi' ? 'Bảo vệ người này' : 'Guard Player'}
+            </button>
+          </div>
+        `;
+        cardContent.querySelector('#btn-night-bodyguard-act')?.addEventListener('click', () => {
+          sound.playWinFanfare();
+          const targetId = cardContent.querySelector('#night-bodyguard-target').value;
+          const target = this.players.find(p => p.id === targetId);
+          if (!this.bodyguardProtectedMap) this.bodyguardProtectedMap = {};
+          this.bodyguardProtectedMap[player.id] = targetId;
+          markAbilityDone(`Đang âm thầm bảo vệ ${target.name}.`);
+        });
+        break;
+      }
+
+      case 'saboteur': {
+        cardContent.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 22px;">💣</span>
+              <div>
+                <strong style="color: #ef4444;">${this.lang === 'vi' ? 'Kẻ Phá Hoại – Rút Ngắn Thời Gian' : 'Saboteur – Timer Sabotage'}</strong>
+                <p style="font-size: 11px; color: var(--text-muted); margin: 0;">${this.lang === 'vi' ? 'Bí mật cắt giảm 30 giây thời gian thảo luận của phòng.' : 'Subtract 30s from timer'}</p>
+              </div>
+            </div>
+            <button id="btn-night-saboteur-act" class="primary-cta-btn" style="background: #ef4444; min-height: 40px;">
+              ${this.lang === 'vi' ? 'Kích hoạt: Trừ 30s Thảo Luận' : 'Sabotage -30s'}
+            </button>
+          </div>
+        `;
+        cardContent.querySelector('#btn-night-saboteur-act')?.addEventListener('click', () => {
+          sound.playTick();
+          this.timerRemaining = Math.max(5, (this.timerRemaining || this.durationSeconds) - 30);
+          this.updateTimerDisplay();
+          markAbilityDone(this.lang === 'vi' ? 'Đã kích hoạt rút ngắn 30s của cả phòng!' : 'Sabotaged -30s.');
+        });
+        break;
+      }
+
+      case 'spy': {
+        const firstLetter = this.secretWord ? this.secretWord.charAt(0).toUpperCase() : '?';
+        cardContent.innerHTML = `
+          <div style="text-align: center; padding: 10px;">
+            <span style="font-size: 26px;">🕵️</span>
+            <div style="font-size: 13px; font-weight: 700; color: #8b5cf6; margin: 4px 0;">Mật Báo Tình Báo (Gián Điệp)</div>
+            <div style="font-size: 18px; font-weight: 800; color: #fff; margin: 6px 0;">"${firstLetter}..."</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Chữ cái đầu tiên của từ khóa bí mật.</div>
+          </div>
+        `;
+        break;
+      }
+
+      case 'seer': {
+        const wordCount = this.secretWord ? this.secretWord.trim().split(/\s+/).length : 0;
+        const charCount = this.secretWord ? this.secretWord.replace(/\s+/g, '').length : 0;
+        cardContent.innerHTML = `
+          <div style="text-align: center; padding: 10px;">
+            <span style="font-size: 26px;">🔮</span>
+            <div style="font-size: 13px; font-weight: 700; color: #a855f7; margin: 4px 0;">Cấu Trúc Từ Khóa (Nhà Tiên Tri)</div>
+            <div style="font-size: 16px; font-weight: 800; color: #fff; margin: 6px 0;">${wordCount} tiếng • ${charCount} ký tự</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Từ khóa bí mật của phe Dân.</div>
+          </div>
+        `;
+        break;
+      }
+
+      case 'medium': {
+        const deadPlayers = this.players.filter(p => p.isEliminated);
+        if (deadPlayers.length === 0) {
+          cardContent.innerHTML = `
+            <div style="text-align: center; padding: 10px;">
+              <span style="font-size: 26px;">🕯️</span>
+              <div style="font-size: 13px; font-weight: 700; color: #818cf8; margin: 4px 0;">Bà Đồng – Thỉnh Cầu Linh Hồn</div>
+              <p style="font-size: 12px; color: var(--text-muted); margin: 6px 0;">Chưa có người chơi nào bị loại để giao tiếp linh hồn.</p>
+            </div>
+          `;
+        } else {
+          cardContent.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 22px;">🕯️</span>
+                <div>
+                  <strong style="color: #818cf8;">Bà Đồng – Gọi Hồn</strong>
+                  <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Chọn 1 linh hồn người đã khuất để biết vai trò & phe thật.</p>
+                </div>
+              </div>
+              <select id="night-medium-target" class="form-select" style="width: 100%; padding: 8px 10px;">
+                ${deadPlayers.map(p => `<option value="${p.id}">${p.name} (Vòng ${p.eliminatedInRound || 1})</option>`).join('')}
+              </select>
+              <button id="btn-night-medium-act" class="primary-cta-btn" style="background: #4338ca; min-height: 40px;">
+                Thỉnh cầu linh hồn
+              </button>
+            </div>
+          `;
+          cardContent.querySelector('#btn-night-medium-act')?.addEventListener('click', () => {
+            sound.playDramaticReveal();
+            const targetId = cardContent.querySelector('#night-medium-target').value;
+            const target = this.players.find(p => p.id === targetId);
+            const teamName = target.role.team === 'good' ? 'Phe Dân (Vô tội)'
+                           : target.role.team === 'evil' ? 'Phe Ác (Kẻ Giả Mạo)'
+                           : 'Phe Trung Lập';
+            alert(`🕯️ LINH HỒN CỦA ${target.name} TIẾT LỘ:\n\n• Vai trò thật: ${target.role.name_vi} (${target.role.icon})\n• Phe: ${teamName}`);
+            markAbilityDone(`Đã giao tiếp với linh hồn ${target.name}.`);
+          });
+        }
+        break;
+      }
+
+      case 'hacker': {
+        cardContent.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 22px;">💻</span>
+              <div>
+                <strong style="color: #10b981;">Tin Tặc – Hack Hồ Sơ Dữ Liệu</strong>
+                <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Giải mã chính xác vai trò bí mật của 1 người chơi.</p>
+              </div>
+            </div>
+            <select id="night-hacker-target" class="form-select" style="width: 100%; padding: 8px 10px;">
+              ${otherAlive.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+            </select>
+            <button id="btn-night-hacker-act" class="primary-cta-btn" style="background: #059669; min-height: 40px;">
+              Hack hồ sơ người này
+            </button>
+          </div>
+        `;
+        cardContent.querySelector('#btn-night-hacker-act')?.addEventListener('click', () => {
+          sound.playDramaticReveal();
+          const targetId = cardContent.querySelector('#night-hacker-target').value;
+          const target = this.players.find(p => p.id === targetId);
+          const teamName = target.role.team === 'good' ? 'Phe Dân'
+                         : target.role.team === 'evil' ? 'Phe Ác (Imposter)'
+                         : 'Trung Lập';
+          alert(`💻 HACK DỮ LIỆU THÀNH CÔNG:\n\n• Mục tiêu: ${target.name}\n• Vai trò: ${target.role.name_vi} (${target.role.icon})\n• Phe: ${teamName}`);
+          markAbilityDone(`Đã hack dữ liệu ${target.name}.`);
+        });
+        break;
+      }
+
+      case 'witch': {
+        const hasSave = !this.witchUsedSavePotion;
+        const hasPoison = !this.witchUsedPoisonPotion;
+
+        if (!hasSave && !hasPoison) {
+          cardContent.innerHTML = `
+            <div style="text-align: center; padding: 10px;">
+              <span style="font-size: 26px;">🧙‍♀️</span>
+              <div style="font-size: 13px; font-weight: 700; color: #a855f7; margin: 4px 0;">Phù Thủy</div>
+              <p style="font-size: 12px; color: var(--text-muted);">Bạn đã sử dụng hết cả Bình Cứu và Bình Độc trong ván này.</p>
+            </div>
+          `;
+        } else {
+          cardContent.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 22px;">🧙‍♀️</span>
+                <div>
+                  <strong style="color: #a855f7;">Phù Thủy – Độc Dược & Hồi Sinh</strong>
+                  <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Bình Cứu: ${hasSave ? '🟢 Còn' : '🔴 Hết'} • Bình Độc: ${hasPoison ? '🟢 Còn' : '🔴 Hết'}</p>
+                </div>
+              </div>
+              ${hasSave ? `
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <select id="night-witch-save-target" class="form-select" style="flex: 1; padding: 6px 10px;">
+                  ${alivePlayers.map(p => `<option value="${p.id}">🧪 Cứu: ${p.name}${p.id === player.id ? ' (Bản thân)' : ''}</option>`).join('')}
+                </select>
+                <button id="btn-night-witch-save" class="ctrl-btn" style="background: #10b981; color: #fff; min-width: 90px;">
+                  Ban Cứu
+                </button>
+              </div>` : ''}
+              ${hasPoison ? `
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <select id="night-witch-poison-target" class="form-select" style="flex: 1; padding: 6px 10px;">
+                  ${otherAlive.map(p => `<option value="${p.id}">☠️ Độc: ${p.name}</option>`).join('')}
+                </select>
+                <button id="btn-night-witch-poison" class="ctrl-btn" style="background: #dc2626; color: #fff; min-width: 90px;">
+                  Đầu Độc
+                </button>
+              </div>` : ''}
+            </div>
+          `;
+
+          if (hasSave) {
+            cardContent.querySelector('#btn-night-witch-save')?.addEventListener('click', () => {
+              sound.playWinFanfare();
+              const targetId = cardContent.querySelector('#night-witch-save-target').value;
+              const target = this.players.find(p => p.id === targetId);
+              this.witchSavedPlayerId = targetId;
+              this.witchUsedSavePotion = true;
+              markAbilityDone(`Đã ban Bình Cứu cho ${target.name}.`);
+            });
+          }
+
+          if (hasPoison) {
+            cardContent.querySelector('#btn-night-witch-poison')?.addEventListener('click', () => {
+              const targetId = cardContent.querySelector('#night-witch-poison-target').value;
+              const target = this.players.find(p => p.id === targetId);
+              const confirmPoison = confirm(`☠️ Bạn có chắc chắn muốn dùng Bình Độc để LOẠI NGAY ${target.name} khỏi ván chơi không?`);
+              if (!confirmPoison) return;
+              sound.playDramaticReveal();
+              this.witchUsedPoisonPotion = true;
+              target.isEliminated = true;
+              target.eliminatedInRound = this.roundNumber;
+              if (!this.allEliminatedPlayers) this.allEliminatedPlayers = [];
+              this.allEliminatedPlayers.push(target);
+              alert(`☠️ ĐÃ HẠ ĐỘC THÀNH CÔNG!\n${target.name} đã bị loại.`);
+              if (this.checkGameStatusAfterDeath()) {
+                return;
+              }
+              markAbilityDone(`Đã hạ độc loại ${target.name}.`);
+            });
+          }
+        }
+        break;
+      }
+
+      case 'chameleon': {
+        const decoys = this.getChameleonDecoys();
+        cardContent.innerHTML = `
+          <div style="text-align: center; padding: 10px;">
+            <span style="font-size: 26px;">🦎</span>
+            <div style="font-size: 13px; font-weight: 700; color: #059669; margin: 4px 0;">3 Từ Ngụy Trang (Tắc Kè Hoa)</div>
+            <div style="font-size: 15px; font-weight: 800; color: #fff; margin: 8px 0; line-height: 1.5;">
+              • ${decoys.join('<br>• ')}
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted);">Hãy chọn 1 từ để miêu tả hòa nhập cùng phe Dân.</div>
+          </div>
+        `;
+        break;
+      }
+
+      default: {
+        let flavorTitle = 'Đêm Đen Tĩnh Lặng';
+        let flavorDesc = 'Bạn đang chìm vào giấc ngủ say. Đêm nay bạn không có hành động đặc biệt nào.';
+        let icon = '💤';
+
+        if (player.role.id === 'imposter') {
+          flavorTitle = 'Kẻ Giả Mạo Ẩn Nấp';
+          flavorDesc = 'Hãy giữ bình tĩnh, nét mặt tự nhiên và ghi nhớ các gợi ý để chuẩn bị thao túng phe Dân khi trời sáng!';
+          icon = '🎭';
+        } else if (player.role.id === 'traitor') {
+          flavorTitle = 'Kẻ Phản Bội Bí Mật';
+          flavorDesc = 'Bạn biết từ khóa nhưng thuộc phe Ác. Hãy chuẩn bị dẫn dắt dư luận chia rẽ phe Dân!';
+          icon = '🗡️';
+        } else if (player.role.id === 'civilian') {
+          flavorTitle = 'Dân Thường Yên Giấc';
+          flavorDesc = 'Bạn là Dân Thường vô tội. Hãy giữ nét mặt tự nhiên và chuẩn bị thảo luận khi trời sáng.';
+          icon = '💤';
+        }
+
+        cardContent.innerHTML = `
+          <div style="text-align: center; padding: 16px 8px;">
+            <div style="font-size: 32px; margin-bottom: 6px;">${icon}</div>
+            <strong style="font-size: 15px; color: #fff;">${flavorTitle}</strong>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 6px auto 0; max-width: 280px; line-height: 1.4;">${flavorDesc}</p>
+          </div>
+        `;
+        break;
+      }
+    }
+  }
+
+  startDiscussionStage() {
+    if (!this.roundNumber) this.roundNumber = 1;
     this.switchScreen('screen-discussion');
     this.timerRemaining = this.durationSeconds;
     this.timerTotal = this.durationSeconds;
@@ -1722,12 +2247,14 @@ class ImposterGame {
       const card = document.createElement('div');
       card.className = 'vote-player-card';
       card.dataset.playerId = p.id;
+      const isMayor = p.role.id === 'mayor';
       card.innerHTML = `
         <div class="vote-player-avatar" style="background: ${p.avatarBg};">
           ${p.avatar}
         </div>
         <div class="vote-player-name">${p.name}</div>
         <div style="font-size: 11px; color: var(--text-muted);">${this.lang === 'vi' ? 'Nghi phạm' : 'Suspect'}</div>
+        ${isMayor ? `<span class="hero-badge" style="background: rgba(245, 158, 11, 0.25); color: #f59e0b; font-size: 10px; margin-top: 4px; padding: 2px 6px;">👑 x2 Phiếu</span>` : ''}
       `;
 
       card.addEventListener('click', () => {
@@ -1757,11 +2284,50 @@ class ImposterGame {
     if (isDoctorProtected) {
       if (this.doctorShieldedPlayerIds) this.doctorShieldedPlayerIds.delete(suspect.id);
       this.doctorShieldedPlayerId = null;
+      if (!this.doctorSuccessfulSaves) this.doctorSuccessfulSaves = new Set();
+      this.players.filter(p => p.role.id === 'doctor' && !p.isEliminated).forEach(d => this.doctorSuccessfulSaves.add(d.id));
+
       sound.playWinFanfare();
       alert(`💉 BÁC SĨ ĐÃ BẢO VỆ THÀNH CÔNG!\n${suspect.name} đã được tiêm huyết thanh bảo hộ nên KHÔNG bị loại vòng này!\nVán chơi tiếp tục sang vòng sau.`);
       this.roundNumber++;
-      this.startDiscussionStage();
+      this.prepareRoundStart();
       return;
+    }
+
+    // Witch Blessing Check (Save Potion)
+    if (this.witchSavedPlayerId === suspect.id) {
+      this.witchSavedPlayerId = null;
+      sound.playWinFanfare();
+      alert(this.lang === 'vi'
+        ? `🧙‍♀️ PHÙ THỦY ĐÃ HỒI SINH!\nPhù Thủy đã ban Bình Cứu cho ${suspect.name}! Án tử bị vô hiệu hóa.\nVán chơi tiếp tục sang vòng sau.`
+        : `🧙‍♀️ WITCH BLESSING ACTIVATED!\n${suspect.name} was saved by the Witch's potion!`);
+      this.roundNumber++;
+      this.prepareRoundStart();
+      return;
+    }
+
+    // Judge Veto Check (1-time execution veto)
+    const aliveJudges = this.players.filter(p => p.role.id === 'judge' && !p.isEliminated);
+    if (aliveJudges.length > 0 && !this.judgeVetoUsed) {
+      const judge = aliveJudges[0];
+      const useVeto = confirm(
+        this.lang === 'vi'
+          ? `⚖️ THẨM PHÁN (${judge.name}): Bạn có muốn kích hoạt quyền PHỦ QUYẾT (VETO) một lần duy nhất để cứu ${suspect.name} khỏi bị trục xuất không?`
+          : `⚖️ JUDGE (${judge.name}): Do you want to use your 1-time VETO to save ${suspect.name}?`
+      );
+      if (useVeto) {
+        this.judgeVetoUsed = true;
+        this.judgeVetoSavedPlayerId = suspect.id;
+        sound.playGavel();
+        alert(
+          this.lang === 'vi'
+            ? `⚖️ THẨM PHÁN ĐÃ THỰC THI QUYỀN PHỦ QUYẾT!\nThẩm Phán ${judge.name} đã hủy bỏ quyết định trục xuất ${suspect.name}!\nKhông ai bị loại vòng này. Ván chơi tiếp tục sang vòng sau.`
+            : `⚖️ JUDGE VETO ACTIVATED!\nJudge ${judge.name} vetoed the execution of ${suspect.name}!`
+        );
+        this.roundNumber++;
+        this.prepareRoundStart();
+        return;
+      }
     }
 
     // Bodyguard Protection Check (if suspect was protected by a living bodyguard)
@@ -1773,18 +2339,28 @@ class ImposterGame {
       if (guardingBodyguardId) {
         const bodyguard = this.players.find(p => p.id === guardingBodyguardId);
         sound.playDramaticReveal();
+        if (!this.bodyguardSacrifices) this.bodyguardSacrifices = new Set();
+        this.bodyguardSacrifices.add(bodyguard.id);
+
         alert(`🛡️ VỆ SĨ ĐÃ HY SINH!\n${bodyguard.name} đã liều mình đỡ đòn thay cho ${suspect.name}!\n${suspect.name} được an toàn, ${bodyguard.name} bị loại khỏi ván chơi.`);
         bodyguard.isEliminated = true;
         bodyguard.eliminatedInRound = this.roundNumber;
+        if (!this.firstEliminatedPlayer) this.firstEliminatedPlayer = bodyguard;
+        if (!this.allEliminatedPlayers) this.allEliminatedPlayers = [];
+        this.allEliminatedPlayers.push(bodyguard);
         delete this.bodyguardProtectedMap[guardingBodyguardId];
+        if (this.checkGameStatusAfterDeath()) return;
         this.roundNumber++;
-        this.startDiscussionStage();
+        this.prepareRoundStart();
         return;
       }
     }
 
     suspect.isEliminated = true;
     suspect.eliminatedInRound = this.roundNumber;
+    if (!this.firstEliminatedPlayer) this.firstEliminatedPlayer = suspect;
+    if (!this.allEliminatedPlayers) this.allEliminatedPlayers = [];
+    this.allEliminatedPlayers.push(suspect);
 
     sound.playDramaticReveal();
 
@@ -1794,6 +2370,22 @@ class ImposterGame {
       return;
     } 
     
+    // Traitor (Kẻ Phản Bội): Evil team but ALREADY knows keyword! No comeback guess
+    if (suspect.role.id === 'traitor') {
+      const remainingImposters = this.players.filter(p => p.isImposter && !p.isEliminated);
+      if (remainingImposters.length === 0) {
+        this.winningTeam = 'good';
+        this.showResultsScreen(suspect);
+        return;
+      } else {
+        alert(this.lang === 'vi'
+          ? `🗡️ ĐÃ VẠCH MẶT KẺ PHẢN BỘI (${suspect.name})!\nHắn thuộc Phe Ác nhưng đã bị trục xuất! Vẫn còn Kẻ Giả Mạo khác đang ẩn nấp.`
+          : `🗡️ TRAITOR EXPOSED (${suspect.name})!\nStill other Imposters hiding.`);
+        this.showRoundIntermission(suspect, true);
+        return;
+      }
+    }
+
     if (suspect.isImposter) {
       const remainingImposters = this.players.filter(p => p.isImposter && !p.isEliminated);
       if (remainingImposters.length === 0) {
@@ -1963,7 +2555,7 @@ class ImposterGame {
   skipVotingRound() {
     sound.playToggle();
     this.roundNumber++;
-    this.startDiscussionStage();
+    this.prepareRoundStart();
   }
 
   showComebackStage(suspect) {
@@ -2095,11 +2687,23 @@ class ImposterGame {
 
     const logBox = document.getElementById('match-timeline-log');
     const elimName = eliminatedPlayer ? eliminatedPlayer.name : 'Nghi phạm';
-    const elimRole = eliminatedPlayer && eliminatedPlayer.role ? (this.lang === 'vi' ? eliminatedPlayer.role.name_vi : eliminatedPlayer.role.name_en) : 'Kẻ Giả Mạo';
+    const elimRole = eliminatedPlayer && eliminatedPlayer.role ? (this.lang === 'vi' ? eliminatedPlayer.role.name_vi : (eliminatedPlayer.role.name_en || eliminatedPlayer.role.name_vi)) : 'Kẻ Giả Mạo';
+    
+    let comebackTimelineNote = '';
+    if (this.imposterWonByComeback) {
+      const heroName = this.caughtImposter ? this.caughtImposter.name : elimName;
+      comebackTimelineNote = `<div>• <strong>🔥 Cơ hội lật kèo:</strong> ${heroName} đã xuất sắc đoán chính xác từ khóa "<strong>${this.secretWord}</strong>"! Phe Kẻ Giả Mạo giành chiến thắng chung cuộc (+${Math.min(25, Math.max(12, Math.round(civilianCount * 2.5)))}đ cho Imposter, Dân Làng bị trừ -8đ: -5đ thua ván + -3đ làm lộ từ khóa).</div>`;
+    } else if (this.caughtImposter) {
+      const heroName = this.caughtImposter.name;
+      const guessDisp = this.imposterGuessText ? `"${this.imposterGuessText}"` : 'Chịu thua';
+      comebackTimelineNote = `<div>• <strong>❌ Cơ hội lật kèo:</strong> ${heroName} đã đoán ${guessDisp} (không chính xác, từ đúng là "${this.secretWord}") ➔ Phe Dân Làng bảo toàn chiến thắng (+10đ thắng ván, +5đ bắt Imposter)!</div>`;
+    }
+
     logBox.innerHTML = `
       <div>• <strong>${this.lang === 'vi' ? 'Bắt đầu ván:' : 'Match start:'}</strong> ${this.players.length || 6} ${this.lang === 'vi' ? 'người chơi tham gia' : 'players participated'}.</div>
       <div>• <strong>${this.lang === 'vi' ? 'Chủ đề từ khóa:' : 'Topic:'}</strong> ${this.categoryData.name_vi} (${this.secretWord}).</div>
       <div>• <strong>${this.lang === 'vi' ? 'Kết quả bỏ phiếu:' : 'Voting verdict:'}</strong> ${elimName} (${elimRole}) ${this.lang === 'vi' ? 'đã bị đa số trục xuất.' : 'was eliminated.'}</div>
+      ${comebackTimelineNote}
     `;
 
     // ==========================================
@@ -2116,8 +2720,8 @@ class ImposterGame {
       // 1. KẾT QUẢ THEO PHE THẮNG / THUA
       // ========================================================
       if (this.winningTeam === 'good') {
-        // Phe Dân Thắng
-        if (p.role.team === 'good') {
+        // Phe Dân Thắng (bao gồm Kẻ Say Rượu theo phe Dân)
+        if (p.role.team === 'good' || p.role.id === 'drunkard') {
           if (!p.isEliminated) {
             delta += 10;
             reasons.push(this.lang === 'vi' ? 'Thắng ván (+10)' : 'Match win (+10)');
@@ -2167,9 +2771,10 @@ class ImposterGame {
           if (this.imposterWonByComeback) {
             const comebackScore = Math.min(25, Math.max(12, Math.round(civilianCount * 2.5)));
             delta += comebackScore;
+            const isHero = this.caughtImposter ? (p.id === this.caughtImposter.id) : true;
             reasons.push(this.lang === 'vi' 
-              ? `Lật kèo đoán trúng từ (+${comebackScore}đ: +2.5đ x ${civilianCount} Dân)` 
-              : `Comeback word guess (+${comebackScore} pts)`);
+              ? (isHero ? `Lật kèo đoán trúng từ (+${comebackScore}đ: +2.5đ x ${civilianCount} Dân)` : `Đồng đội lật kèo cứu ván (+${comebackScore}đ)`) 
+              : (isHero ? `Comeback word guess (+${comebackScore} pts)` : `Teammate comeback (+${comebackScore} pts)`));
           } else if (!p.isEliminated) {
             const imposterWinScore = Math.min(30, Math.max(10, civilianCount * 3));
             delta += imposterWinScore;
@@ -2191,8 +2796,8 @@ class ImposterGame {
               ? `Phe Imposter thắng (+${imposterDeadWinScore}đ)` 
               : `Imposter team win (+${imposterDeadWinScore} pts)`);
           }
-        } else if (p.role.team === 'good') {
-          // DÂN THƯỜNG KHÔNG NGĂN CHẶN ĐƯỢC IMPOSTER: XỬ THUA & TRỪ ĐIỂM
+        } else if (p.role.team === 'good' || p.role.id === 'drunkard') {
+          // DÂN THƯỜNG & KẺ SAY RƯỢU THUA TRẬN TRƯỚC IMPOSTER: XỬ THUA & TRỪ ĐIỂM
           delta -= 5;
           reasons.push(this.lang === 'vi' ? 'Thua trận trước Imposter (-5)' : 'Defeated by Imposter (-5)');
 
@@ -2213,10 +2818,54 @@ class ImposterGame {
         if (!p.isEliminated) {
           delta += 15;
           reasons.push(this.lang === 'vi' ? 'Sống sót (+15)' : 'Survivor bonus (+15)');
+        } else {
+          delta -= 5;
+          reasons.push(this.lang === 'vi' ? 'Kẻ Sống Sót bị loại (-5)' : 'Survivor eliminated (-5)');
         }
       }
 
-      // B. Phạt biểu quyết oan sai (Wrong vote penalty)
+      // B. Phù Thủy (Witch): Thắng cùng phe sống sót cuối ván
+      if (p.role.id === 'witch') {
+        if (!p.isEliminated) {
+          delta += 15;
+          reasons.push(this.lang === 'vi' ? 'Phù Thủy sống sót (+15)' : 'Witch survival (+15)');
+        } else {
+          delta -= 5;
+          reasons.push(this.lang === 'vi' ? 'Phù Thủy bị loại (-5)' : 'Witch eliminated (-5)');
+        }
+      }
+
+      // C. Điệp Viên Hai Mang (Double Agent): Thắng nếu Imposter sống sót hoặc là người cuối cùng
+      if (p.role.id === 'double_agent') {
+        const anyImposterSurvived = this.players.some(pl => pl.isImposter && !pl.isEliminated);
+        if (anyImposterSurvived || this.winningTeam === 'evil' || !p.isEliminated) {
+          delta += 15;
+          reasons.push(this.lang === 'vi' ? 'Điệp Viên giúp Imposter thắng (+15)' : 'Double Agent victory (+15)');
+        } else {
+          delta -= 5;
+          reasons.push(this.lang === 'vi' ? 'Điệp Viên thất bại (-5)' : 'Double Agent failed (-5)');
+        }
+      }
+
+      // D. Thưởng Kỹ Năng Hành Động (Action Bonuses)
+      if (this.detectivesExposedImposter && this.detectivesExposedImposter.has(p.id)) {
+        delta += 5;
+        reasons.push(this.lang === 'vi' ? 'Soi trúng Kẻ Giả Mạo (+5)' : 'Exposed Imposter (+5)');
+      }
+      if (this.doctorSuccessfulSaves && this.doctorSuccessfulSaves.has(p.id)) {
+        delta += 10;
+        reasons.push(this.lang === 'vi' ? 'Lá chắn cứu sống đồng đội (+10)' : 'Protected teammate (+10)');
+      }
+      if (this.bodyguardSacrifices && this.bodyguardSacrifices.has(p.id)) {
+        delta += 10;
+        reasons.push(this.lang === 'vi' ? 'Hy sinh bảo vệ đồng đội (+10)' : 'Sacrificed for teammate (+10)');
+      }
+      if (this.judgeVetoUsed && p.role.id === 'judge') {
+        delta += 5;
+        reasons.push(this.lang === 'vi' ? 'Phủ quyết công tâm (+5)' : 'Righteous Veto (+5)');
+      }
+
+      // E. Phạt biểu quyết oan sai (Wrong vote penalty)
       if (p.penalty && p.penalty > 0) {
         delta -= p.penalty;
         reasons.push(this.lang === 'vi' ? `Chỉ tay bầu oan (-${p.penalty})` : `Wrongful vote (-${p.penalty})`);
@@ -2429,7 +3078,7 @@ class ImposterGame {
     const stats = document.getElementById('setup-tournament-stats');
     if (!banner || !stats) return;
 
-    const entries = Object.entries(this.partyScores || {}).filter(([_, data]) => data && (data.games > 0 || data.total > 0));
+    const entries = Object.entries(this.partyScores || {}).filter(([_, data]) => data && (data.games > 0 || data.total !== undefined));
     if (entries.length === 0) {
       stats.textContent = this.lang === 'vi'
         ? 'Chưa có điểm • Sẵn sàng bắt đầu giải đấu mới!'
@@ -2439,11 +3088,18 @@ class ImposterGame {
 
     entries.sort((a, b) => b[1].total - a[1].total);
     const topPlayer = entries[0];
+    const lowestPlayer = entries.length > 1 && entries[entries.length - 1][1].total < 0 ? entries[entries.length - 1] : null;
     const totalMatches = Object.values(this.partyScores).reduce((max, cur) => Math.max(max, cur.games || 0), 0) || 1;
 
-    stats.innerHTML = this.lang === 'vi'
-      ? `Đã đấu: <strong style="color: #fff;">${totalMatches} ván</strong> • Dẫn đầu: <strong style="color: #f59e0b;">${topPlayer[0]} (${topPlayer[1].total}đ)</strong>`
-      : `Played: <strong style="color: #fff;">${totalMatches} matches</strong> • Leader: <strong style="color: #f59e0b;">${topPlayer[0]} (${topPlayer[1].total} pts)</strong>`;
+    let textVi = `Đã đấu: <strong class="tournament-stat-matches">${totalMatches} ván</strong> • Dẫn đầu: <strong class="tournament-stat-leader">${topPlayer[0]} (${topPlayer[1].total > 0 ? '+' : ''}${topPlayer[1].total}đ)</strong>`;
+    let textEn = `Played: <strong class="tournament-stat-matches">${totalMatches} matches</strong> • Leader: <strong class="tournament-stat-leader">${topPlayer[0]} (${topPlayer[1].total > 0 ? '+' : ''}${topPlayer[1].total} pts)</strong>`;
+
+    if (lowestPlayer) {
+      textVi += ` • <span style="color: var(--text-muted);">Điểm âm:</span> <strong style="color: #ef4444; font-weight: 700;">${lowestPlayer[0]} (${lowestPlayer[1].total}đ)</strong>`;
+      textEn += ` • <span style="color: var(--text-muted);">Negative:</span> <strong style="color: #ef4444; font-weight: 700;">${lowestPlayer[0]} (${lowestPlayer[1].total} pts)</strong>`;
+    }
+
+    stats.innerHTML = this.lang === 'vi' ? textVi : textEn;
   }
 
   showToast(message, type = 'success') {
@@ -2573,9 +3229,9 @@ class ImposterGame {
 
     entries.forEach((item, idx) => {
       const row = document.createElement('div');
-      row.className = `leaderboard-row ${idx === 0 ? 'mvp-highlight' : ''}`;
-      const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : 'rank-other';
-      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`;
+      row.className = `leaderboard-row ${idx === 0 && item.total > 0 ? 'mvp-highlight' : (item.total < 0 ? 'negative-score-row' : '')}`;
+      const rankClass = idx === 0 && item.total > 0 ? 'rank-1' : idx === 1 && item.total > 0 ? 'rank-2' : idx === 2 && item.total > 0 ? 'rank-3' : (item.total < 0 ? 'rank-other rank-negative' : 'rank-other');
+      const medal = (idx === 0 && item.total > 0) ? '🥇' : (idx === 1 && item.total > 0) ? '🥈' : (idx === 2 && item.total > 0) ? '🥉' : (item.total < 0 ? '🔻' : `${idx + 1}`);
 
       row.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -2591,7 +3247,7 @@ class ImposterGame {
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 6px;">
-          <span class="score-tag-total ${item.total < 0 ? 'negative' : ''}" style="font-size: 16px; color: ${item.total < 0 ? '#ef4444' : '#f59e0b'};">${item.total} pts</span>
+          <span class="score-tag-total ${item.total < 0 ? 'negative' : ''}" style="font-size: 16px; color: ${item.total < 0 ? '#ef4444' : '#f59e0b'};">${item.total > 0 ? `+${item.total}` : `${item.total}`} pts</span>
           <button type="button" class="leaderboard-action-btn btn-edit-lb-player" data-player="${item.name}" title="${this.lang === 'vi' ? 'Đổi tên người chơi' : 'Rename player'}">✏️</button>
           <button type="button" class="leaderboard-action-btn btn-delete-lb-player" data-player="${item.name}" title="${this.lang === 'vi' ? 'Xóa người chơi khỏi BXH' : 'Delete player'}">🗑️</button>
         </div>
@@ -2772,8 +3428,8 @@ class ImposterGame {
             <div style="font-size: 11px; color: var(--text-muted);">${item.wins || 0} ${this.lang === 'vi' ? 'chiến thắng' : 'wins'} / ${item.games || 0} ${this.lang === 'vi' ? 'ván' : 'matches'}</div>
           </div>
         </div>
-        <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 800; color: #f59e0b;">
-          ${item.total || 0} pts
+        <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 800; color: ${item.total < 0 ? '#ef4444' : '#f59e0b'};">
+          ${item.total > 0 ? `+${item.total}` : `${item.total || 0}`} pts
         </div>
       `;
 
@@ -2842,9 +3498,18 @@ class ImposterGame {
     const normTarget = norm(target);
     const normGuess = norm(guess);
 
+    // Chuẩn hóa loại bỏ từ chỉ lượng/loại từ tiếng Việt (con, cây, cái, chiếc)
+    const cleanClassifier = s => s.replace(/^(con|cây|cái|chiếc|món|quà|bộ)\s+/i, '').trim();
+    const coreTarget = cleanClassifier(target);
+    const coreGuess = cleanClassifier(guess);
+    const normCoreTarget = norm(coreTarget);
+    const normCoreGuess = norm(coreGuess);
+
     const isMatch = !isGiveup && normGuess.length > 0 && (
       normTarget === normGuess || 
-      (normGuess.length >= 3 && (normTarget.includes(normGuess) || normGuess.includes(normTarget)))
+      (normCoreTarget.length > 0 && normCoreTarget === normCoreGuess) ||
+      (normCoreTarget.length > 0 && normCoreTarget === normGuess) ||
+      (normTarget.length > 0 && normTarget === normCoreGuess)
     );
 
     if (isMatch) {
@@ -2908,7 +3573,7 @@ class ImposterGame {
             ${item.date} • ${item.playersCount} ${this.lang === 'vi' ? 'người' : 'players'} • Imposter: ${item.imposters}
           </div>
         </div>
-        <span class="setting-badge-val" style="color: #fff;">${item.keyword}</span>
+        <span class="setting-badge-val" style="color: var(--text-primary);">${item.keyword}</span>
       `;
       container.appendChild(row);
     });
@@ -3252,11 +3917,305 @@ class ImposterGame {
       });
     }
 
+    // 8. BÀ ĐỒNG (Medium) - Thỉnh cầu linh hồn người bị loại
+    const aliveMediums = alivePlayers.filter(p => p.role.id === 'medium');
+    const availableMediums = aliveMediums.filter(m => !this.roundUsedAbilities.has(m.id));
+    availableMediums.forEach((medium, idx) => {
+      const item = document.createElement('div');
+      item.className = 'setting-item-row';
+      item.style.flexDirection = 'column';
+      item.style.alignItems = 'flex-start';
+      item.dataset.playerId = medium.id;
+
+      const titleNum = aliveMediums.length > 1 ? `#${idx + 1} ` : '';
+      const deadPlayers = this.players.filter(p => p.isEliminated);
+
+      if (deadPlayers.length === 0) {
+        item.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 24px;">🕯️</span>
+              <div>
+                <strong>${this.lang === 'vi' ? `Bà Đồng ${titleNum}(${medium.name})` : `Medium ${titleNum}(${medium.name})`}</strong>
+                <p style="font-size: 11px; color: #818cf8; margin: 0;">${this.lang === 'vi' ? 'Chưa có người chơi nào bị loại để thỉnh cầu linh hồn.' : 'No players eliminated yet to commune with.'}</p>
+              </div>
+            </div>
+            <button id="btn-medium-ack-${medium.id}" class="ctrl-btn" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-medium); color: var(--text-primary); min-width: 88px;">
+              ${this.lang === 'vi' ? 'Đã hiểu' : 'OK'}
+            </button>
+          </div>
+        `;
+        content.appendChild(item);
+        item.querySelector(`#btn-medium-ack-${medium.id}`).addEventListener('click', () => {
+          sound.playClick();
+          dismissCard(item);
+        });
+      } else {
+        item.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 24px;">🕯️</span>
+              <div>
+                <strong>${this.lang === 'vi' ? `Bà Đồng ${titleNum}(${medium.name}) – Gọi Hồn` : `Medium ${titleNum}(${medium.name}) – Séance`}</strong>
+                <p style="font-size: 11px; color: #818cf8; margin: 0;">${this.lang === 'vi' ? 'Chọn 1 linh hồn người đã khuất để biết phe/vai trò thật' : 'Commune with eliminated player'}</p>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; width: 100%; margin-top: 10px;">
+            <select id="medium-target-${medium.id}" class="form-select" style="flex: 1; padding: 6px 10px;">
+              ${deadPlayers.map(p => `<option value="${p.id}">${p.name} (Vòng ${p.eliminatedInRound || 1})</option>`).join('')}
+            </select>
+            <button id="btn-medium-commune-${medium.id}" class="ctrl-btn" style="background: #4338ca; color: #fff; min-width: 88px;">
+              ${this.lang === 'vi' ? 'Thỉnh cầu' : 'Commune'}
+            </button>
+          </div>
+        `;
+        content.appendChild(item);
+        item.querySelector(`#btn-medium-commune-${medium.id}`).addEventListener('click', () => {
+          sound.playDramaticReveal();
+          const targetId = item.querySelector(`#medium-target-${medium.id}`).value;
+          const target = this.players.find(p => p.id === targetId);
+          const teamName = target.role.team === 'good' ? (this.lang === 'vi' ? 'Phe Dân Làng (Vô tội)' : 'Innocent Civilian')
+                         : target.role.team === 'evil' ? (this.lang === 'vi' ? 'Phe Ác (Kẻ Giả Mạo)' : 'Evil Imposter')
+                         : (this.lang === 'vi' ? 'Phe Trung Lập' : 'Neutral');
+          this.roundUsedAbilities.add(medium.id);
+          alert(this.lang === 'vi'
+            ? `🕯️ BÀ ĐỒNG (${medium.name}) THỈNH CẦU LINH HỒN:\n\nLinh hồn của ${target.name} hiển linh và tiết lộ:\n• Vai trò thật: ${target.role.name_vi} (${target.role.icon})\n• Phe: ${teamName}`
+            : `🕯️ MEDIUM (${medium.name}) SÉANCE:\n\nSpirit of ${target.name} reveals:\n• Role: ${target.role.name_en}\n• Team: ${teamName}`);
+          dismissCard(item);
+        });
+      }
+    });
+
+    // 9. TIN TẶC (Hacker) - Đột nhập dữ liệu người chơi
+    const aliveHackers = alivePlayers.filter(p => p.role.id === 'hacker');
+    const availableHackers = aliveHackers.filter(h => !this.roundUsedAbilities.has(h.id));
+    availableHackers.forEach((hacker, idx) => {
+      const item = document.createElement('div');
+      item.className = 'setting-item-row';
+      item.style.flexDirection = 'column';
+      item.style.alignItems = 'flex-start';
+      item.dataset.playerId = hacker.id;
+
+      const titleNum = aliveHackers.length > 1 ? `#${idx + 1} ` : '';
+      const targets = alivePlayers.filter(p => p.id !== hacker.id);
+
+      item.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">💻</span>
+            <div>
+              <strong>${this.lang === 'vi' ? `Tin Tặc ${titleNum}(${hacker.name}) – Hack Hồ Sơ` : `Hacker ${titleNum}(${hacker.name}) – Data Breach`}</strong>
+              <p style="font-size: 11px; color: #10b981; margin: 0;">${this.lang === 'vi' ? 'Đột nhập dữ liệu giải mã vai trò của 1 người chơi' : 'Hack and reveal 1 player secret profile'}</p>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; width: 100%; margin-top: 10px;">
+          <select id="hacker-target-${hacker.id}" class="form-select" style="flex: 1; padding: 6px 10px;">
+            ${targets.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+          </select>
+          <button id="btn-hacker-scan-${hacker.id}" class="ctrl-btn" style="background: #059669; color: #fff; min-width: 88px;">
+            ${this.lang === 'vi' ? 'Hack dữ liệu' : 'Hack'}
+          </button>
+        </div>
+      `;
+      content.appendChild(item);
+
+      item.querySelector(`#btn-hacker-scan-${hacker.id}`).addEventListener('click', () => {
+        sound.playDramaticReveal();
+        const targetId = item.querySelector(`#hacker-target-${hacker.id}`).value;
+        const target = this.players.find(p => p.id === targetId);
+        const teamName = target.role.team === 'good' ? (this.lang === 'vi' ? 'Phe Dân' : 'Civilian Team')
+                       : target.role.team === 'evil' ? (this.lang === 'vi' ? 'Phe Ác (Imposter)' : 'Evil Team')
+                       : (this.lang === 'vi' ? 'Trung Lập' : 'Neutral');
+        this.roundUsedAbilities.add(hacker.id);
+        alert(this.lang === 'vi'
+          ? `💻 TIN TẶC (${hacker.name}) HACK DỮ LIỆU THÀNH CÔNG:\n\n• Mục tiêu: ${target.name}\n• Vai trò: ${target.role.name_vi} (${target.role.icon})\n• Phe: ${teamName}`
+          : `💻 HACKER (${hacker.name}) DATA BREACH SUCCESSFUL:\n\n• Target: ${target.name}\n• Role: ${target.role.name_en}\n• Team: ${teamName}`);
+        dismissCard(item);
+      });
+    });
+
+    // 10. PHÙ THỦY (Witch) - Bình Thuốc Cứu & Bình Thuốc Độc (1 lần mỗi loại / ván)
+    const aliveWitches = alivePlayers.filter(p => p.role.id === 'witch');
+    aliveWitches.forEach((witch, idx) => {
+      const hasSave = !this.witchUsedSavePotion;
+      const hasPoison = !this.witchUsedPoisonPotion;
+
+      if (!hasSave && !hasPoison) return;
+
+      const item = document.createElement('div');
+      item.className = 'setting-item-row';
+      item.style.flexDirection = 'column';
+      item.style.alignItems = 'flex-start';
+      item.dataset.playerId = witch.id;
+
+      const titleNum = aliveWitches.length > 1 ? `#${idx + 1} ` : '';
+      const otherAlive = alivePlayers.filter(p => p.id !== witch.id);
+
+      item.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">🧙‍♀️</span>
+            <div>
+              <strong>${this.lang === 'vi' ? `Phù Thủy ${titleNum}(${witch.name})` : `Witch ${titleNum}(${witch.name})`}</strong>
+              <p style="font-size: 11px; color: #a855f7; margin: 0;">
+                ${this.lang === 'vi' ? `Bình Cứu: ${hasSave ? '🟢 Còn' : '🔴 Hết'} • Bình Độc: ${hasPoison ? '🟢 Còn' : '🔴 Hết'}` : `Save: ${hasSave ? 'Ready' : 'Used'} • Poison: ${hasPoison ? 'Ready' : 'Used'}`}
+              </p>
+            </div>
+          </div>
+        </div>
+        ${hasSave ? `
+        <div style="display: flex; gap: 8px; width: 100%; margin-top: 10px; align-items: center;">
+          <select id="witch-save-target-${witch.id}" class="form-select" style="flex: 1; padding: 6px 10px;">
+            ${alivePlayers.map(p => `<option value="${p.id}">🧪 Cứu: ${p.name}${p.id === witch.id ? ' (Bản thân)' : ''}</option>`).join('')}
+          </select>
+          <button id="btn-witch-save-${witch.id}" class="ctrl-btn" style="background: #10b981; color: #fff; min-width: 96px;">
+            ${this.lang === 'vi' ? 'Ban Bình Cứu' : 'Cast Save'}
+          </button>
+        </div>` : ''}
+        ${hasPoison ? `
+        <div style="display: flex; gap: 8px; width: 100%; margin-top: 8px; align-items: center;">
+          <select id="witch-poison-target-${witch.id}" class="form-select" style="flex: 1; padding: 6px 10px;">
+            ${otherAlive.map(p => `<option value="${p.id}">☠️ Độc: ${p.name}</option>`).join('')}
+          </select>
+          <button id="btn-witch-poison-${witch.id}" class="ctrl-btn" style="background: #dc2626; color: #fff; min-width: 96px;">
+            ${this.lang === 'vi' ? 'Đầu Độc' : 'Poison'}
+          </button>
+        </div>` : ''}
+      `;
+      content.appendChild(item);
+
+      if (hasSave) {
+        item.querySelector(`#btn-witch-save-${witch.id}`).addEventListener('click', () => {
+          sound.playWinFanfare();
+          const targetId = item.querySelector(`#witch-save-target-${witch.id}`).value;
+          const target = this.players.find(p => p.id === targetId);
+          this.witchSavedPlayerId = targetId;
+          this.witchUsedSavePotion = true;
+          alert(this.lang === 'vi'
+            ? `🧪 Phù Thủy ${witch.name} đã ban Bình Cứu cho ${target.name}!\nNếu họ bị biểu quyết loại vòng này, án tử sẽ tự động được hóa giải.`
+            : `🧪 Witch ${witch.name} cast Save Potion on ${target.name}!`);
+          dismissCard(item);
+        });
+      }
+
+      if (hasPoison) {
+        item.querySelector(`#btn-witch-poison-${witch.id}`).addEventListener('click', () => {
+          const targetId = item.querySelector(`#witch-poison-target-${witch.id}`).value;
+          const target = this.players.find(p => p.id === targetId);
+          const confirmPoison = confirm(this.lang === 'vi'
+            ? `☠️ Bạn có chắc chắn muốn dùng Bình Độc để LOẠI NGAY ${target.name} khỏi ván chơi không?`
+            : `☠️ Are you sure you want to POISON and eliminate ${target.name}?`);
+          if (!confirmPoison) return;
+
+          sound.playDramaticReveal();
+          this.witchUsedPoisonPotion = true;
+          target.isEliminated = true;
+          target.eliminatedInRound = this.roundNumber;
+          if (!this.allEliminatedPlayers) this.allEliminatedPlayers = [];
+          this.allEliminatedPlayers.push(target);
+
+          alert(this.lang === 'vi'
+            ? `☠️ ĐỘC DƯỢC KÍCH HOẠT!\nPhù Thủy ${witch.name} đã hạ độc! ${target.name} đã trúng độc và bị loại khỏi ván chơi ngay lập tức!`
+            : `☠️ POISON TRIGGERED!\n${target.name} was eliminated by the Witch!`);
+          
+          dismissCard(item);
+          this.checkGameStatusAfterDeath();
+        });
+      }
+    });
+
+    // 11. TẮC KÈ HOA (Chameleon) - Xem lại 3 từ ngụy trang
+    const aliveChameleons = alivePlayers.filter(p => p.role.id === 'chameleon');
+    const availableChameleons = aliveChameleons.filter(c => !this.roundUsedAbilities.has(c.id));
+    availableChameleons.forEach((chameleon, idx) => {
+      const item = document.createElement('div');
+      item.className = 'setting-item-row';
+      item.dataset.playerId = chameleon.id;
+
+      const titleNum = aliveChameleons.length > 1 ? `#${idx + 1} ` : '';
+      item.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">🦎</span>
+            <div>
+              <strong>${this.lang === 'vi' ? `Tắc Kè Hoa ${titleNum}(${chameleon.name})` : `Chameleon ${titleNum}(${chameleon.name})`}</strong>
+              <p style="font-size: 11px; color: #059669; margin: 0;">${this.lang === 'vi' ? 'Xem lại 3 từ ngụy trang an toàn' : 'View 3 decoy camouflage clues'}</p>
+            </div>
+          </div>
+          <button id="btn-chameleon-${chameleon.id}" class="ctrl-btn" style="background: #047857; color: #fff; min-width: 88px;">
+            ${this.lang === 'vi' ? 'Xem từ' : 'View'}
+          </button>
+        </div>
+      `;
+      content.appendChild(item);
+
+      item.querySelector(`#btn-chameleon-${chameleon.id}`).addEventListener('click', () => {
+        sound.playClick();
+        const decoys = this.getChameleonDecoys();
+        this.roundUsedAbilities.add(chameleon.id);
+        alert(this.lang === 'vi'
+          ? `🦎 3 TỪ KHÓA NGỤY TRANG (Tắc Kè Hoa: ${chameleon.name}):\n\n• ${decoys.join('\n• ')}\n\nHãy chọn 1 trong 3 từ trên để hòa nhập cùng phe Dân!`
+          : `🦎 3 DECOY CLUES for ${chameleon.name}:\n\n• ${decoys.join('\n• ')}`);
+        dismissCard(item);
+      });
+    });
+
+    // 12. THẨM PHÁN (Judge) - Trạng thái quyền Phủ Quyết
+    const aliveJudges = alivePlayers.filter(p => p.role.id === 'judge');
+    if (aliveJudges.length > 0 && !this.roundUsedAbilities.has('judge_info')) {
+      const item = document.createElement('div');
+      item.className = 'setting-item-row';
+      const vetoStatus = this.judgeVetoUsed 
+        ? (this.lang === 'vi' ? '🔴 Đã sử dụng' : '🔴 Used') 
+        : (this.lang === 'vi' ? '🟢 Sẵn sàng' : '🟢 Ready');
+      item.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">⚖️</span>
+            <div>
+              <strong>${this.lang === 'vi' ? `Thẩm Phán (${aliveJudges.map(j => j.name).join(', ')})` : `Judge (${aliveJudges.map(j => j.name).join(', ')})`}</strong>
+              <p style="font-size: 11px; color: #64748b; margin: 0;">
+                ${this.lang === 'vi' ? `Quyền Phủ Quyết: ${vetoStatus} • Tự động kích hoạt khi có biểu quyết loại!` : `Veto Right: ${vetoStatus}`}
+              </p>
+            </div>
+          </div>
+          <button id="btn-judge-ack" class="ctrl-btn" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-medium); color: var(--text-primary); min-width: 88px;">
+            ${this.lang === 'vi' ? 'Đã hiểu' : 'OK'}
+          </button>
+        </div>
+      `;
+      content.appendChild(item);
+      item.querySelector('#btn-judge-ack').addEventListener('click', () => {
+        sound.playClick();
+        this.roundUsedAbilities.add('judge_info');
+        dismissCard(item);
+      });
+    }
+
     if (content.children.length === 0) {
       renderEmptyState();
     }
 
     modal.classList.add('open');
+  }
+
+  checkGameStatusAfterDeath() {
+    const livingImposters = this.players.filter(p => p.isImposter && !p.isEliminated);
+    const livingInnocents = this.players.filter(p => !p.isImposter && !p.isEliminated);
+
+    if (livingImposters.length === 0) {
+      this.winningTeam = 'good';
+      this.showResultsScreen();
+      return true;
+    }
+    if (livingImposters.length >= livingInnocents.length) {
+      this.winningTeam = 'evil';
+      this.showResultsScreen();
+      return true;
+    }
+    return false;
   }
 
   bindEvents() {
@@ -3456,6 +4415,22 @@ class ImposterGame {
       localStorage.setItem('gti_roulette', this.rouletteEnabled);
     });
 
+    document.getElementById('switch-night-phase')?.addEventListener('change', (e) => {
+      sound.playToggle();
+      this.nightPhaseEnabled = e.target.checked;
+      localStorage.setItem('gti_night_phase', this.nightPhaseEnabled ? 'true' : 'false');
+      const modalSwitch = document.getElementById('switch-night-phase-modal');
+      if (modalSwitch) modalSwitch.checked = this.nightPhaseEnabled;
+    });
+
+    document.getElementById('switch-night-phase-modal')?.addEventListener('change', (e) => {
+      sound.playToggle();
+      this.nightPhaseEnabled = e.target.checked;
+      localStorage.setItem('gti_night_phase', this.nightPhaseEnabled ? 'true' : 'false');
+      const setupSwitch = document.getElementById('switch-night-phase');
+      if (setupSwitch) setupSwitch.checked = this.nightPhaseEnabled;
+    });
+
 
     document.getElementById('switch-hints')?.addEventListener('change', (e) => {
       sound.playToggle();
@@ -3557,9 +4532,34 @@ class ImposterGame {
         const pick = living[Math.floor(Math.random() * (living.length || 1))];
         this.currentSpeakerIndex = pick ? this.players.indexOf(pick) : 0;
       }
-      this.startDiscussionStage();
+      this.prepareRoundStart();
     });
     document.getElementById('btn-roulette-proceed')?.addEventListener('click', () => {
+      sound.playClick();
+      this.prepareRoundStart();
+    });
+
+    // Screen Night Phase Events
+    document.getElementById('btn-open-night-action')?.addEventListener('click', () => {
+      sound.playClick();
+      const curtain = document.getElementById('night-curtain-box');
+      const viewport = document.getElementById('night-action-viewport');
+      if (curtain) curtain.style.display = 'none';
+      if (viewport) viewport.style.display = 'flex';
+    });
+
+    document.getElementById('btn-night-done')?.addEventListener('click', () => {
+      sound.playClick();
+      this.currentNightIndex++;
+      this.showNightStep(this.currentNightIndex);
+    });
+
+    document.getElementById('btn-dawn-proceed')?.addEventListener('click', () => {
+      sound.playWinFanfare();
+      this.startDiscussionStage();
+    });
+
+    document.getElementById('btn-skip-night-phase')?.addEventListener('click', () => {
       sound.playClick();
       this.startDiscussionStage();
     });
@@ -3823,7 +4823,7 @@ class ImposterGame {
 
       document.getElementById('modal-round-intermission')?.classList.remove('open');
       this.roundNumber++;
-      this.startDiscussionStage();
+      this.prepareRoundStart();
     });
 
     // Deep Rules Modal Events
@@ -4152,7 +5152,7 @@ class ImposterGame {
           </div>
           <div style="flex: 1; min-width: 0;">
             <div style="display: flex; align-items: center; gap: 6px;">
-              <strong style="color: #fff; font-size: 13px;">${role.name_vi}</strong>
+              <strong style="color: var(--text-primary); font-size: 13px;">${role.name_vi}</strong>
               <span class="team-tag ${role.team}" style="font-size: 9px; padding: 1px 6px;">${teamLabel}</span>
             </div>
             <div style="font-size: 11px; color: var(--text-muted); line-height: 1.3; margin-top: 2px;">
@@ -4742,7 +5742,7 @@ class ImposterGame {
 
     // Reassign affected pairs to general category
     const remainingCats = this.customCategories.filter(c => c.id !== id);
-    const fallbackCat = remainingCats[0] || { id: 'food_drink', name_vi: 'Ẩm Thực & Đồ Uống' };
+    const fallbackCat = remainingCats[0] || { id: 'food_drink', name_vi: 'Đồ ăn' };
     this.customWordPairs.forEach(wp => {
       if (wp.categoryId === id) {
         wp.categoryId = fallbackCat.id;
@@ -4790,7 +5790,7 @@ class ImposterGame {
           <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
             <span style="font-size: 24px; flex-shrink: 0;">${cat.icon}</span>
             <div style="min-width: 0;">
-              <strong style="font-size: 13px; color: #fff; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <strong style="font-size: 13px; color: var(--text-primary); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                 ${cat.name_vi}
               </strong>
               <span style="font-size: 11px; color: var(--text-muted);">${wordsCount} cặp từ đã match</span>
@@ -4841,7 +5841,7 @@ class ImposterGame {
           <span style="font-size: 24px; flex-shrink: 0;">${cat.icon}</span>
           <div style="min-width: 0;">
             <div style="display: flex; align-items: center; gap: 6px;">
-              <strong style="font-size: 13px; color: #fff;">${cat.name_vi}</strong>
+              <strong style="font-size: 13px; color: var(--text-primary);">${cat.name_vi}</strong>
               <span style="font-size: 9.5px; padding: 1px 6px; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.08); color: var(--text-muted);">Mặc định</span>
             </div>
             <span style="font-size: 11px; color: var(--text-muted);">
