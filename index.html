@@ -39,8 +39,11 @@
         </div>
       </div>
 
-      <!-- Right Controls: Luật chơi (?) & Cài đặt (⚙️) ở góc phải -->
+      <!-- Right Controls: Hộp quà (🎁), Luật chơi (❓) & Cài đặt (⚙️) ở góc phải -->
       <div class="control-group control-group-right">
+        <button id="btn-open-donate" class="ctrl-btn icon-only-btn pulse-gift-btn" title="Ủng hộ dự án & Tác giả" aria-label="Ủng hộ dự án">
+          <span style="font-size: 15px;">🎁</span>
+        </button>
         <button id="btn-open-rules" class="ctrl-btn icon-only-btn" title="Luật chơi & Tính điểm" aria-label="Luật chơi">
           <span style="font-size: 15px;">❓</span>
         </button>
@@ -357,11 +360,11 @@
           </div>
         </div>
 
-        <!-- STICKY BOTTOM ACTION BAR -->
-        <div class="sticky-bottom-action-bar">
-          <button id="btn-start-game" class="primary-cta-btn">
-            <span>🚀</span>
-            <span data-i18n="btn_start_game">Bắt đầu thiết lập người chơi</span>
+        <!-- FLOATING LIQUID GLASS BOTTOM ACTION BAR -->
+        <div class="sticky-bottom-action-bar liquid-glass-dock">
+          <button id="btn-start-game" class="primary-cta-btn liquid-glass-cta-btn">
+            <span class="liquid-glass-icon-wrapper">🚀</span>
+            <span class="liquid-glass-btn-label" data-i18n="btn_start_game">Bắt đầu thiết lập người chơi</span>
           </button>
         </div>
       </section>
@@ -531,14 +534,23 @@
 
               <!-- Back Side: Revealed Identity -->
               <div class="flip-card-back" id="flip-card-back">
-                <div>
-                  <span class="team-tag" id="revealed-team-tag">Phe Dân</span>
+                <!-- SVG Border Running Line Timer -->
+                <svg class="card-timer-svg" id="card-timer-svg" preserveAspectRatio="none">
+                  <rect class="card-timer-track" id="card-timer-track" pathLength="1000" />
+                  <rect class="card-timer-stroke" id="card-timer-stroke" pathLength="1000" />
+                </svg>
+
+                <div style="width: 100%; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2;">
+                  <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
+                    <span class="team-tag" id="revealed-team-tag">Phe Dân</span>
+                    <span id="reveal-timer-badge" class="reveal-timer-badge" title="Thời gian xem vai trò">⏱️ 30s</span>
+                  </div>
                   <div class="revealed-role-icon" id="revealed-icon">🔍</div>
                   <h3 class="revealed-role-name" id="revealed-name">Thám Tử</h3>
                 </div>
 
                 <!-- Secret Keyword Box (Only if permitted) -->
-                <div class="secret-keyword-container" id="keyword-box">
+                <div class="secret-keyword-container" id="keyword-box" style="position: relative; z-index: 2;">
                   <div class="keyword-label" id="keyword-label" data-i18n="secret_keyword_label">Từ khóa bí mật:</div>
                   <div class="secret-keyword-text" id="keyword-text">Trà Sữa Trân Châu</div>
                   <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="keyword-category">
@@ -546,14 +558,19 @@
                   </div>
                 </div>
 
-                <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.45;" id="revealed-ability">
+                <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.45; position: relative; z-index: 2;" id="revealed-ability">
                   Khả năng: Có thể kiểm tra 1 người chơi để biết họ có phải là Imposter hay không.
                 </div>
 
-                <!-- Hide Role Button -->
-                <button id="btn-hide-role" class="secondary-btn" style="min-height: 44px; width: 100%;">
-                  <span>🙈</span> <span data-i18n="btn_hide_role">Đã nhớ, giấu vai trò</span>
-                </button>
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 4px; position: relative; z-index: 2;">
+                  <!-- Hide Role Button -->
+                  <button id="btn-hide-role" class="secondary-btn" style="min-height: 44px; width: 100%;">
+                    <span>🙈</span> <span id="label-btn-hide-role" data-i18n="btn_hide_role">Đã nhớ, giấu vai trò</span>
+                  </button>
+                  <div style="font-size: 10.5px; color: var(--text-muted); text-align: center; margin-top: 2px;">
+                    Chạm thẻ để úp lại • Tự chuyển sau <span id="reveal-timer-sec-hint">30s</span>
+                  </div>
+                </div>
               </div>
 
             </div>
@@ -1373,7 +1390,7 @@
           <strong>Hệ thống điểm giải đấu:</strong><br />
           • Thắng ván: +10đ (Phe Dân) / +10đ ~ +30đ (Imposter)<br />
           • Imposter lật kèo đoán đúng từ: +15đ ~ +25đ<br />
-          • Bỏ phiếu chuẩn / Bắt Imposter: +5đ • Kẻ Ngu: +25đ • Gián Điệp: +25đ<br />
+          • Bắt Kẻ Giả Mạo & Trung Lập: +5đ/kẻ (Lũy kế) • Kẻ Ngu: +25đ • Gián Điệp: +25đ<br />
           • Điểm phạt (Âm điểm): -5đ khi vote nhầm Dân, -15đ khi Imposter bị bắt ngay Vòng 1, -5đ khi Thua trận.
         </div>
       </div>
@@ -1605,17 +1622,35 @@
         <div style="font-size: 12px; font-weight: 700; color: #ef4444; margin-bottom: 8px;">
           ⚖️ Áp dụng trừ -5 điểm oan sai cho ai?
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-          <button type="button" id="btn-penalty-team" class="ctrl-btn" style="font-size: 11px; padding: 7px 8px; border-radius: var(--radius-sm); border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.25); color: #fff; font-weight: 700; cursor: pointer;">
-            👥 Cả phe Dân còn sống
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+          <button type="button" id="btn-penalty-team" class="ctrl-btn" style="font-size: 10.5px; padding: 7px 4px; border-radius: var(--radius-sm); border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.25); color: #fff; font-weight: 700; cursor: pointer; text-align: center;">
+            👥 Cả phe Dân
           </button>
-          <button type="button" id="btn-penalty-voters" class="ctrl-btn" style="font-size: 11px; padding: 7px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-weight: 700; cursor: pointer;">
-            👆 Chọn người đã chỉ tay
+          <button type="button" id="btn-penalty-all" class="ctrl-btn" style="font-size: 10.5px; padding: 7px 4px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-weight: 700; cursor: pointer; text-align: center;">
+            🌐 Tất cả người sống
+          </button>
+          <button type="button" id="btn-penalty-voters" class="ctrl-btn" style="font-size: 10.5px; padding: 7px 4px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-weight: 700; cursor: pointer; text-align: center;">
+            👆 Chọn người chỉ tay
           </button>
         </div>
-        <div id="penalty-voters-selector-grid" style="display: none; flex-wrap: wrap; gap: 6px; margin: 8px 0;">
-          <!-- Dynamically populated toggle chips -->
+
+        <div id="penalty-voters-container" style="display: none; margin: 8px 0;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Danh sách tất cả người chơi còn sống:</span>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" id="btn-penalty-select-all" class="ctrl-btn" style="font-size: 10px; padding: 3px 8px; color: #10b981; border-color: rgba(16, 185, 129, 0.35); font-weight: 700; cursor: pointer;">
+                ✓ Chọn tất cả
+              </button>
+              <button type="button" id="btn-penalty-deselect-all" class="ctrl-btn" style="font-size: 10px; padding: 3px 8px; color: #9ca3af; border-color: var(--border-subtle); font-weight: 600; cursor: pointer;">
+                ✕ Bỏ chọn
+              </button>
+            </div>
+          </div>
+          <div id="penalty-voters-selector-grid" style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <!-- Dynamically populated toggle chips for ALL living players -->
+          </div>
         </div>
+
         <p id="penalty-explainer-text" style="font-size: 11px; color: var(--text-secondary); margin: 0; line-height: 1.4;">
           <strong>Trách nhiệm tập thể:</strong> Cả nhóm đã thống nhất biểu quyết theo số đông, do đó toàn bộ phe Dân còn sống cùng chịu phạt -5 điểm.
         </p>
@@ -1693,7 +1728,7 @@
             <tbody>
               <tr>
                 <td>👑 <strong>Imposter sống sót thắng ván</strong><br><span style="font-size: 10px; color: var(--text-muted);">Ẩn mình thành công đến hết ván</span></td>
-                <td class="pts-plus">+15 điểm<br><span style="font-size: 10px; color: #10b981;">(+2đ / lần lừa Dân vote oan)</span></td>
+                <td class="pts-plus">+15 điểm</td>
               </tr>
               <tr>
                 <td>🔥 <strong>Imposter Lật Kèo đoán đúng từ khóa</strong><br><span style="font-size: 10px; color: var(--text-muted);">Thời gian suy nghĩ: 30s. Miễn trừ mọi hình phạt bị bắt hay lộ vòng 1!</span></td>
@@ -1735,16 +1770,12 @@
                 <td class="pts-plus">+10 điểm</td>
               </tr>
               <tr>
-                <td>🎯 <strong>Phe Dân còn sống vote đúng Imposter</strong><br><span style="font-size: 10px; color: var(--text-muted);">Dân còn sống bỏ phiếu bắt Kẻ Giả Mạo</span></td>
-                <td class="pts-plus">+5 điểm<br><span style="font-size: 10px; color: #10b981; font-weight: 700;">(Tổng +15 điểm)</span></td>
+                <td>🎯 <strong>Phe Dân còn sống vote đúng Kẻ Giả Mạo & Trung Lập</strong><br><span style="font-size: 10px; color: var(--text-muted);">Dân còn sống bỏ phiếu bắt Kẻ Giả Mạo hoặc Trung Lập (Lũy kế nếu có nhiều kẻ)</span></td>
+                <td class="pts-plus">+5 điểm / kẻ<br><span style="font-size: 10px; color: #10b981; font-weight: 700;">(Lũy kế: +5đ, +10đ...)</span></td>
               </tr>
               <tr>
                 <td>💀 <strong>Dân Thường thua trận trước Imposter</strong><br><span style="font-size: 10px; color: var(--text-muted);">Để Imposter sống sót áp đảo số lượng Dân</span></td>
                 <td class="pts-minus">-5 điểm</td>
-              </tr>
-              <tr>
-                <td>💥 <strong>Để Imposter Lật Kèo đoán trúng từ</strong><br><span style="font-size: 10px; color: var(--text-muted);">Gợi ý quá lộ liễu khiến Imposter đoán được từ</span></td>
-                <td class="pts-minus">-3 điểm</td>
               </tr>
               <tr>
                 <td>⚠️ <strong>Phe Dân vote nhầm Dân vô tội</strong><br><span style="font-size: 10px; color: var(--text-muted);">Tất cả Dân còn sống bị phạt -5đ (không tính dân đã chết)</span></td>
@@ -1774,14 +1805,6 @@
                 <td class="pts-plus">+10 điểm<br><span style="font-size: 10px; color: var(--text-muted);">(Hưởng thêm điểm thắng/thua phe Dân)</span></td>
               </tr>
               <tr>
-                <td>🛡️ <strong>Vệ Sĩ (Bodyguard)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Hy sinh hoặc bảo vệ thành công đồng đội</span></td>
-                <td class="pts-plus">+10 điểm<br><span style="font-size: 10px; color: var(--text-muted);">(Hưởng thêm điểm thắng/thua phe Dân)</span></td>
-              </tr>
-              <tr>
-                <td>⚖️ <strong>Thẩm Phán (Judge)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Dùng quyền phủ quyết cứu Dân vô tội</span></td>
-                <td class="pts-plus">+5 điểm<br><span style="font-size: 10px; color: var(--text-muted);">(Hưởng thêm điểm thắng/thua phe Dân)</span></td>
-              </tr>
-              <tr>
                 <td>🤪 <strong>Kẻ Ngu (Jester) bị vote loại</strong><br><span style="font-size: 10px; color: var(--text-muted);">Biết từ khóa, lừa cả làng thành công (Thắng độc lập)</span></td>
                 <td class="pts-plus" style="color: #ec4899; font-weight: 800; font-size: 13px;">+25 điểm<br><span style="font-size: 10px; color: #ef4444;">(Tất cả người khác: -5đ)</span></td>
               </tr>
@@ -1790,8 +1813,8 @@
                 <td style="color: var(--text-secondary); font-size: 11px; font-weight: 600;">0 điểm<br><span style="font-size: 10px; color: var(--text-muted);">(Không mất điểm)</span></td>
               </tr>
               <tr>
-                <td>🕵️ <strong>Gián Điệp (Spy)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Nhận từ của Imposter, vote đúng/sai 0đ</span></td>
-                <td><span class="pts-plus">+25 điểm</span> (Thắng ván)<br><span class="pts-minus">-10 điểm</span> (Nếu bị chết)</td>
+                <td>🕵️ <strong>Gián Điệp (Spy)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Nhận từ của Imposter, không thể đoán từ khi bị phát hiện như Imposter thường, chỉ có thể cố gắng sống sót đến cuối (vote đúng/sai 0đ)</span></td>
+                <td><span class="pts-plus">+25 điểm</span> (Sống sót thắng)<br><span class="pts-minus">-10 điểm</span> (Bị phát hiện/loại)</td>
               </tr>
               <tr>
                 <td>🧙‍♀️ <strong>Phù Thủy (Witch)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Sống sót cùng phe chiến thắng cuối ván</span></td>
@@ -1802,15 +1825,170 @@
                 <td><span class="pts-plus">+15 điểm</span> (Thắng)<br><span class="pts-minus">-5 điểm</span> (Thất bại)</td>
               </tr>
               <tr>
-                <td>🗡️ <strong>Phe Ác (Phản Bội, Gây Rối, Tắc Kè Hoa)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Đồng minh của Kẻ Giả Mạo</span></td>
+                <td>🗡️ <strong>Phe Ác (Phản Bội, Tắc Kè Hoa)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Đồng minh của Kẻ Giả Mạo</span></td>
                 <td><span class="pts-plus">+15 điểm</span> (Phe thắng)<br><span class="pts-minus">-10 điểm</span> (Bị bắt/thua)</td>
               </tr>
               <tr>
-                <td>🍺 <strong>Kẻ Say Rượu, Thị Trưởng, Tiên Tri, Bà Đồng...</strong><br><span style="font-size: 10px; color: var(--text-muted);">Các vai trò hỗ trợ phe Dân Làng</span></td>
+                <td>🍺 <strong>Kẻ Say Rượu, Thị Trưởng...</strong><br><span style="font-size: 10px; color: var(--text-muted);">Các vai trò hỗ trợ phe Dân Làng</span></td>
                 <td><span class="pts-plus">+10 điểm</span> (Thắng ván)<br><span class="pts-minus">-5 điểm</span> (Thua trận)</td>
               </tr>
             </tbody>
           </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Donate & Support Project (Clean QR Without Any Logo) -->
+  <div id="modal-donate" class="modal-overlay" style="z-index: 280;">
+    <div class="bottom-sheet-content donate-sheet-content">
+      <div class="sheet-drag-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title" style="display: flex; align-items: center; gap: 8px;">
+          <span>🎁</span> <span>Ủng Hộ Dự Án (Mời Cà Phê ☕)</span>
+        </h3>
+        <button class="close-sheet-btn" id="btn-close-donate">✕</button>
+      </div>
+
+      <div class="donate-scroll-body" style="max-height: 72vh; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 14px;">
+        
+        <!-- Intro Banner -->
+        <div class="donate-intro-box">
+          <p style="margin: 0; font-size: 12px; line-height: 1.45; color: var(--text-secondary); text-align: center;">
+            Cảm ơn bạn đã ủng hộ tách cà phê để tiếp thêm năng lượng duy trì và phát triển trò chơi! ☕❤️
+          </p>
+        </div>
+
+        <!-- Clean QR Code Display Box: Techcombank Logo Only -->
+        <div class="donate-qr-container">
+          <div class="donate-qr-card">
+            <div class="donate-qr-header-logo">
+              <img src="techcombank_logo.png" alt="Techcombank" class="tcb-brand-logo" />
+            </div>
+            <div class="donate-qr-img-wrapper">
+              <img src="vietqr_donate.png" alt="Mã QR Chuyển Khoản Techcombank" id="donate-qr-img" class="donate-qr-image" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Action Buttons Matching Reference UI: + Bổ sung số tiền & Chia tiền -->
+        <div class="donate-action-bar-grid">
+          <button type="button" id="btn-toggle-custom-amount" class="donate-quick-action-btn">
+            <span class="action-btn-icon">➕</span>
+            <span class="action-btn-text">Bổ sung số tiền</span>
+          </button>
+          <button type="button" id="btn-toggle-split-money" class="donate-quick-action-btn">
+            <span class="action-btn-icon">➗</span>
+            <span class="action-btn-text">Chia tiền</span>
+          </button>
+        </div>
+
+        <!-- Expandable Panel 1: Bổ sung số tiền tùy chỉnh -->
+        <div id="panel-custom-amount" class="donate-expandable-panel" style="display: none;">
+          <div class="panel-header-line">
+            <span style="font-size: 12px; font-weight: 700; color: #f59e0b;">💵 Bổ sung số tiền chuyển khoản:</span>
+            <button type="button" class="btn-close-panel" id="btn-close-custom-amount">✕</button>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 8px;">
+            <input type="number" id="input-custom-donate-amount" class="form-input" placeholder="Ví dụ: 30000 (VNĐ)" min="1000" step="5000" style="flex: 1; font-size: 13px;" />
+            <button type="button" id="btn-submit-custom-amount" class="primary-cta-btn" style="min-height: 40px; padding: 0 16px; font-size: 12px; font-weight: 700;">
+              Tạo QR
+            </button>
+          </div>
+        </div>
+
+        <!-- Expandable Panel 2: Chia tiền nâng cao -->
+        <div id="panel-split-money" class="donate-expandable-panel" style="display: none;">
+          <div class="panel-header-line">
+            <span style="font-size: 12px; font-weight: 700; color: #f59e0b;">➗ Chia tiền cho nhóm chơi:</span>
+            <button type="button" class="btn-close-panel" id="btn-close-split-money">✕</button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+            <div>
+              <label class="acc-label">Số người trong nhóm</label>
+              <div class="fixed-role-stepper-control" style="width: 100%; justify-content: space-between; margin-top: 4px;">
+                <button type="button" class="stepper-btn" id="btn-split-dec-players">-</button>
+                <span class="stepper-val" id="val-split-players">6</span>
+                <button type="button" class="stepper-btn" id="btn-split-inc-players">+</button>
+              </div>
+            </div>
+            <div>
+              <label class="acc-label">Mỗi bạn góp</label>
+              <select id="select-split-per-person" class="form-input" style="width: 100%; font-size: 12px; height: 38px; margin-top: 4px; padding: 0 8px;">
+                <option value="5000">5.000đ / người</option>
+                <option value="10000" selected>10.000đ / người</option>
+                <option value="20000">20.000đ / người</option>
+                <option value="50000">50.000đ / người</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top: 10px; padding: 10px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 12px; color: var(--text-secondary);">Tổng số tiền cả nhóm:</span>
+            <span id="val-split-calculated-total" style="font-family: var(--font-mono); font-size: 15px; font-weight: 800; color: #fbbf24;">60.000đ</span>
+          </div>
+          <button type="button" id="btn-confirm-advanced-split" class="donate-split-btn" style="margin-top: 10px;">
+            Tạo QR
+          </button>
+        </div>
+
+        <!-- Bank Details Card -->
+        <div class="donate-account-card">
+          <div class="donate-account-row">
+            <span class="acc-label">Ngân hàng</span>
+            <span class="acc-val highlight-bank">Techcombank (TCB)</span>
+          </div>
+          <div class="donate-account-row">
+            <span class="acc-label">Chủ tài khoản</span>
+            <span class="acc-val" style="font-weight: 800; color: #fff;">VU BAO NGUYEN</span>
+          </div>
+          <div class="donate-account-row stk-row">
+            <div>
+              <span class="acc-label">Số tài khoản</span>
+              <div class="acc-stk-number" id="donate-stk-display">9964823876</div>
+            </div>
+            <button type="button" id="btn-copy-donate-stk" class="donate-copy-pill" title="Sao chép số tài khoản">
+              <span id="copy-stk-icon">📋</span>
+              <span id="copy-stk-text">Sao chép STK</span>
+            </button>
+          </div>
+          <div class="donate-account-row memo-row">
+            <div>
+              <span class="acc-label">Nội dung CK</span>
+              <div class="acc-memo-text" id="donate-memo-display">Faker Party</div>
+            </div>
+            <button type="button" id="btn-copy-donate-memo" class="donate-copy-pill secondary" title="Sao chép nội dung chuyển khoản">
+              <span id="copy-memo-icon">📋</span>
+              <span id="copy-memo-text">Sao chép</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Amount & Split Options -->
+        <div class="donate-options-card">
+          <div class="donate-options-title">
+            <span>✨ Chọn nhanh mức ủng hộ:</span>
+            <span id="donate-active-amount-label" style="font-size: 11px; color: #f59e0b; font-weight: 700;">Tùy tâm</span>
+          </div>
+          <div class="donate-amount-chips" id="donate-amount-chips-group">
+            <button type="button" class="amount-chip active" data-amount="0">Tùy tâm 💝</button>
+            <button type="button" class="amount-chip" data-amount="10000">10k (Trà đá 🥤)</button>
+            <button type="button" class="amount-chip" data-amount="20000">20k (Bánh mì 🥖)</button>
+            <button type="button" class="amount-chip" data-amount="50000">50k (Cà phê ☕)</button>
+            <button type="button" class="amount-chip" data-amount="100000">100k (Bữa trưa 🍱)</button>
+          </div>
+
+          <!-- Button Tạo QR -->
+          <button type="button" id="btn-apply-group-split" class="donate-split-btn" style="margin-top: 10px;">
+            Tạo QR
+          </button>
+        </div>
+
+        <!-- Thank you Footer Note -->
+        <div class="donate-footer-note">
+          <p style="margin: 0; font-size: 11px; color: var(--text-muted); text-align: center; line-height: 1.45;">
+            Trò chơi hoàn toàn miễn phí và không có quảng cáo gây phiền toái. Sự đồng hành của bạn chính là món quà ý nghĩa nhất! Chúc bạn và nhóm có những ván chơi thật nhiều niềm vui! 🎉
+          </p>
         </div>
 
       </div>

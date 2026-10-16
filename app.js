@@ -146,13 +146,8 @@ class ImposterGame {
     this.doctorShieldedPlayerId = null;
     this.doctorShieldedPlayerIds = new Set();
     this.doctorSuccessfulSaves = new Set();
-    this.bodyguardProtectedPlayerId = null;
-    this.bodyguardProtectedMap = {};
-    this.bodyguardSacrifices = new Set();
     this.roundUsedAbilities = new Set();
     this.detectivesExposedImposter = new Set();
-    this.judgeVetoUsed = false;
-    this.judgeVetoSavedPlayerId = null;
     this.witchSavedPlayerId = null;
     this.witchUsedSavePotion = false;
     this.witchUsedPoisonPotion = false;
@@ -184,6 +179,8 @@ class ImposterGame {
     this.categoryData = null;
     this.currentRevealIndex = 0;
     this.isCardFlipped = false;
+    this.revealTimerInterval = null;
+    this.isRevealTransitioning = false;
     this.currentSpeakerIndex = 0;
 
     // Timer & Speech State
@@ -224,7 +221,7 @@ class ImposterGame {
       } else if (typeof saved === 'object' && saved !== null) {
         return saved;
       }
-    } catch (e) {}
+    } catch (e) { }
     return {};
   }
 
@@ -458,7 +455,7 @@ class ImposterGame {
       } else if (players <= 15) {
         activeSpecialRoles = ['detective', 'doctor', 'spy', 'jester'];
       } else {
-        activeSpecialRoles = ['detective', 'doctor', 'spy', 'jester', 'seer'];
+        activeSpecialRoles = ['detective', 'doctor', 'spy', 'jester', 'mayor'];
       }
     }
 
@@ -631,10 +628,112 @@ class ImposterGame {
     if (playSound) sound.playClick();
   }
 
+  getRoleStatusBadgeHtml(role) {
+    const isSpecial = role.id !== 'civilian' && role.id !== 'imposter';
+    const isFixed = isSpecial && !!(this.fixedRoles && this.fixedRoles[role.id]);
+    const fixedCount = isFixed ? (this.fixedRoles[role.id] || 1) : 0;
+
+    if (!role.enabled || role.count === 0) {
+      return `<span class="role-status-badge off">⛔ Đã tắt</span>`;
+    }
+
+    if (isFixed) {
+      return `<span class="role-status-badge fixed">📌 Cố định${fixedCount > 1 ? ` (${fixedCount})` : ''}</span>`;
+    }
+
+    if (isSpecial) {
+      return `<span class="role-status-badge pool">🎲 Trong vòng quay ngẫu nhiên</span>`;
+    }
+
+    return `<span class="role-status-badge active">✓ Kích hoạt</span>`;
+  }
+
+  updateRoleCardBadges(card, role) {
+    const badgeSlot = card.querySelector('.role-status-badge-slot');
+    if (badgeSlot) {
+      badgeSlot.innerHTML = this.getRoleStatusBadgeHtml(role);
+    }
+
+    const isSpecial = role.id !== 'civilian' && role.id !== 'imposter';
+    if (!isSpecial) return;
+
+    const isFixed = !!(this.fixedRoles && this.fixedRoles[role.id]);
+    const fixedCount = isFixed ? (this.fixedRoles[role.id] || 1) : 0;
+
+    const pinLabel = card.querySelector('.role-fixed-pin-label');
+    const pinActions = card.querySelector('.role-fixed-pin-actions');
+    if (pinLabel && pinActions) {
+      pinLabel.className = `role-fixed-pin-label ${isFixed ? 'active' : ''}`;
+      pinLabel.textContent = isFixed ? 'Cố định trong ván (chắc chắn xuất hiện):' : 'Tùy chọn cố định vai trò này:';
+
+      pinActions.innerHTML = isFixed ? `
+        <div class="fixed-role-stepper-control">
+          <button type="button" class="stepper-btn card-dec-fixed" data-role-id="${role.id}" title="Giảm số lượng cố định">-</button>
+          <span class="stepper-val card-val-fixed">${fixedCount}</span>
+          <button type="button" class="stepper-btn card-inc-fixed" data-role-id="${role.id}" title="Tăng số lượng cố định">+</button>
+        </div>
+        <button type="button" class="btn-remove-fixed card-remove-fixed" data-role-id="${role.id}" title="Hủy cố định vai trò này">✕</button>
+      ` : `
+        <button type="button" class="ctrl-btn card-btn-pin-fixed" data-role-id="${role.id}" style="color: #10b981; border-color: rgba(16, 185, 129, 0.4); font-size: 11px; padding: 4px 10px; font-weight: 700;">
+          <span>+ Ghim cố định</span>
+        </button>
+      `;
+      this.bindCardFixedEvents(card, role);
+    }
+  }
+
+  bindCardFixedEvents(card, role) {
+    const isSpecial = role.id !== 'civilian' && role.id !== 'imposter';
+    if (!isSpecial) return;
+
+    card.querySelector('.card-btn-pin-fixed')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const maxSpecial = this.getMaxSpecialAllowed();
+      if (this.getTotalFixedCount() >= maxSpecial) {
+        this.showToast(`⚠️ Đã hết slot vai trò đặc biệt (${maxSpecial} slot)!`, 'warning');
+        return;
+      }
+      sound.playClick();
+      role.enabled = true;
+      if (!role.count || role.count === 0) role.count = 1;
+      this.setFixedRoleCount(role.id, 1);
+    });
+
+    card.querySelector('.card-inc-fixed')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const maxSpecial = this.getMaxSpecialAllowed();
+      if (this.getTotalFixedCount() >= maxSpecial) {
+        this.showToast(`⚠️ Đã hết slot vai trò đặc biệt (${maxSpecial} slot)!`, 'warning');
+        return;
+      }
+      const curFixed = (this.fixedRoles && this.fixedRoles[role.id]) || 1;
+      if (curFixed >= (role.maxCount || 3)) {
+        this.showToast(`⚠️ Vai trò "${role.name_vi}" tối đa ${role.maxCount || 3} người!`, 'warning');
+        return;
+      }
+      sound.playClick();
+      this.setFixedRoleCount(role.id, curFixed + 1);
+    });
+
+    card.querySelector('.card-dec-fixed')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sound.playClick();
+      const curFixed = (this.fixedRoles && this.fixedRoles[role.id]) || 1;
+      this.setFixedRoleCount(role.id, curFixed - 1);
+    });
+
+    card.querySelector('.card-remove-fixed')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sound.playClick();
+      this.setFixedRoleCount(role.id, 0);
+    });
+  }
+
   renderRolesList(filter = 'all') {
     this.currentRoleFilter = filter;
     const container = document.getElementById('roles-container');
     if (!container) return;
+    const prevScroll = container.scrollTop;
     container.innerHTML = '';
 
     const filterFixedCountEl = document.getElementById('filter-fixed-count');
@@ -664,14 +763,15 @@ class ImposterGame {
       const card = document.createElement('div');
       card.className = `role-card-item ${role.enabled ? 'enabled' : ''}`;
       card.style.setProperty('--role-color', role.color);
+      card.style.setProperty('--role-glow', `${role.color}33`);
 
       const title = role.name_vi;
       const desc = role.desc_vi;
       const ability = role.ability_vi;
       const winCond = role.win_vi;
       const teamLabel = role.team === 'good' ? ('Phe Dân')
-                      : role.team === 'evil' ? ('Phe Ác')
-                      : ('Trung lập');
+        : role.team === 'evil' ? ('Phe Ác')
+          : ('Trung lập');
 
       const isSpecial = role.id !== 'civilian' && role.id !== 'imposter';
       const isFixed = isSpecial && !!(this.fixedRoles && this.fixedRoles[role.id]);
@@ -684,26 +784,30 @@ class ImposterGame {
               ${role.icon}
             </div>
             <div class="role-title-team">
-              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <div class="role-title-tags">
                 <h4>${title}</h4>
                 <span class="team-tag ${role.team}">${teamLabel}</span>
-                ${isFixed ? '<span class="team-tag good" style="font-size: 9px; padding: 1px 5px; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">📌 Cố định</span>' : ''}
-                ${isSpecial && !isFixed && role.enabled ? '<span class="team-tag" style="font-size: 9px; padding: 1px 5px; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);">🎲 Trong vòng quay ngẫu nhiên</span>' : ''}
-                ${!role.enabled ? '<span class="team-tag" style="font-size: 9px; padding: 1px 5px; background: rgba(107, 114, 128, 0.15); color: #9ca3af;">⛔ Đã tắt</span>' : ''}
               </div>
-              <span style="font-size: 11px; color: var(--text-muted);">${winCond}</span>
+              <div class="role-status-badge-slot">
+                ${this.getRoleStatusBadgeHtml(role)}
+              </div>
             </div>
           </div>
-          <label class="switch-control">
+          <label class="switch-control" title="${role.enabled ? 'Nhấn để tắt vai trò' : 'Nhấn để bật vai trò'}">
             <input type="checkbox" class="role-toggle-switch" data-role-id="${role.id}" ${role.enabled ? 'checked' : ''} />
             <span class="switch-slider"></span>
           </label>
         </div>
+
         <p class="role-desc-short">${desc}</p>
-        <div class="role-ability-pill">⚡ <strong>${'Kỹ năng:'}</strong> ${ability}</div>
+        <div class="role-ability-pill">⚡ <strong>Kỹ năng:</strong> ${ability}</div>
+        ${winCond ? `
+          <div class="role-win-pill">🏆 <strong>Điều kiện thắng & Điểm:</strong> ${winCond}</div>
+        ` : ''}
+
         <div class="role-footer-controls">
           <span style="font-size: 11px; color: var(--text-muted);">
-            ${'Số lượng cho phép:'}
+            Số lượng cho phép:
           </span>
           <div class="role-count-stepper">
             <button class="stepper-btn role-dec-btn" data-role-id="${role.id}">-</button>
@@ -742,9 +846,20 @@ class ImposterGame {
       toggle.addEventListener('change', (e) => {
         sound.playToggle();
         role.enabled = e.target.checked;
-        if (role.enabled && role.count === 0) role.count = 1;
+        if (role.enabled) {
+          if (!role.count || role.count === 0) role.count = 1;
+        } else {
+          role.count = 0;
+          if (this.fixedRoles && this.fixedRoles[role.id]) {
+            delete this.fixedRoles[role.id];
+            this.saveFixedRoles();
+            this.renderFixedRolesChips();
+          }
+        }
         card.classList.toggle('enabled', role.enabled);
-        card.querySelector(`#role-val-${role.id}`).textContent = role.count;
+        const valEl = card.querySelector(`#role-val-${role.id}`);
+        if (valEl) valEl.textContent = role.count;
+        this.updateRoleCardBadges(card, role);
         this.updateBalanceMeter();
       });
 
@@ -757,11 +872,14 @@ class ImposterGame {
             role.enabled = false;
             toggle.checked = false;
             card.classList.remove('enabled');
-            if (this.fixedRoles[role.id]) {
-              this.setFixedRoleCount(role.id, 0);
+            if (this.fixedRoles && this.fixedRoles[role.id]) {
+              delete this.fixedRoles[role.id];
+              this.saveFixedRoles();
+              this.renderFixedRolesChips();
             }
           }
           card.querySelector(`#role-val-${role.id}`).textContent = role.count;
+          this.updateRoleCardBadges(card, role);
           this.updateBalanceMeter();
         }
       });
@@ -775,55 +893,22 @@ class ImposterGame {
           toggle.checked = true;
           card.classList.add('enabled');
           card.querySelector(`#role-val-${role.id}`).textContent = role.count;
+          this.updateRoleCardBadges(card, role);
           this.updateBalanceMeter();
         }
       });
 
       // Bind inline card fixed pin actions
       if (isSpecial) {
-        card.querySelector('.card-btn-pin-fixed')?.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const maxSpecial = this.getMaxSpecialAllowed();
-          if (this.getTotalFixedCount() >= maxSpecial) {
-            this.showToast(`⚠️ Đã hết slot vai trò đặc biệt (${maxSpecial} slot)!`, 'warning');
-            return;
-          }
-          sound.playClick();
-          role.enabled = true;
-          if (role.count === 0) role.count = 1;
-          this.setFixedRoleCount(role.id, 1);
-        });
-
-        card.querySelector('.card-inc-fixed')?.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const maxSpecial = this.getMaxSpecialAllowed();
-          if (this.getTotalFixedCount() >= maxSpecial) {
-            this.showToast(`⚠️ Đã hết slot vai trò đặc biệt (${maxSpecial} slot)!`, 'warning');
-            return;
-          }
-          if (fixedCount >= (role.maxCount || 3)) {
-            this.showToast(`⚠️ Vai trò "${role.name_vi}" tối đa ${role.maxCount || 3} người!`, 'warning');
-            return;
-          }
-          sound.playClick();
-          this.setFixedRoleCount(role.id, fixedCount + 1);
-        });
-
-        card.querySelector('.card-dec-fixed')?.addEventListener('click', (e) => {
-          e.stopPropagation();
-          sound.playClick();
-          this.setFixedRoleCount(role.id, fixedCount - 1);
-        });
-
-        card.querySelector('.card-remove-fixed')?.addEventListener('click', (e) => {
-          e.stopPropagation();
-          sound.playClick();
-          this.setFixedRoleCount(role.id, 0);
-        });
+        this.bindCardFixedEvents(card, role);
       }
 
       container.appendChild(card);
     });
+
+    if (prevScroll) {
+      container.scrollTop = prevScroll;
+    }
   }
 
   // ==========================================================
@@ -842,7 +927,7 @@ class ImposterGame {
       if (Array.isArray(saved) && saved.length >= 3 && !hasLegacy) {
         return saved;
       }
-    } catch (e) {}
+    } catch (e) { }
     const defaultNames = [];
     const count = this.playerCount || 6;
     for (let i = 1; i <= count; i++) {
@@ -1017,7 +1102,7 @@ class ImposterGame {
 
     // 1. Guaranteed Imposter(s)
     const imposterRole = this.roles.find(r => r.id === 'imposter') || DEFAULT_ROLES[1];
-    
+
     // Check if any evil special role is fixed
     let evilFixedCount = 0;
     Object.keys(this.fixedRoles || {}).forEach(rId => {
@@ -1047,9 +1132,9 @@ class ImposterGame {
     });
 
     // 3. Roll for remaining special slots up to maxSpecial
-    const availableCandidates = this.roles.filter(r => 
-      r.id !== 'civilian' && 
-      r.id !== 'imposter' && 
+    const availableCandidates = this.roles.filter(r =>
+      r.id !== 'civilian' &&
+      r.id !== 'imposter' &&
       r.enabled !== false &&
       !(this.fixedRoles && this.fixedRoles[r.id])
     );
@@ -1105,13 +1190,8 @@ class ImposterGame {
     this.doctorShieldedPlayerIds = new Set();
     this.doctorShieldHistory = [];
     this.doctorSuccessfulSaves = new Set();
-    this.bodyguardProtectedPlayerId = null;
-    this.bodyguardProtectedMap = {};
-    this.bodyguardSacrifices = new Set();
     this.roundUsedAbilities = new Set();
     this.detectivesExposedImposter = new Set();
-    this.judgeVetoUsed = false;
-    this.judgeVetoSavedPlayerId = null;
     this.witchSavedPlayerId = null;
     this.witchUsedSavePotion = false;
     this.witchUsedPoisonPotion = false;
@@ -1180,6 +1260,9 @@ class ImposterGame {
   }
 
   showRevealStep(index) {
+    this.stopRevealTimer();
+    this.isRevealTransitioning = false;
+
     if (index >= this.players.length) {
       if (this.rouletteEnabled) {
         this.showRouletteScreen();
@@ -1235,11 +1318,28 @@ class ImposterGame {
     const backCard = document.getElementById('flip-card-back');
     backCard.style.setProperty('--role-color', player.role.color);
 
+    const cardTimerStroke = document.getElementById('card-timer-stroke');
+    if (cardTimerStroke) {
+      cardTimerStroke.style.stroke = player.role.color || '#10b981';
+      cardTimerStroke.style.filter = `drop-shadow(0 0 10px ${player.role.color || '#10b981'})`;
+      cardTimerStroke.style.strokeDashoffset = '0';
+      cardTimerStroke.classList.remove('warning');
+    }
+    const timerBadge = document.getElementById('reveal-timer-badge');
+    if (timerBadge) {
+      timerBadge.textContent = '⏱️ 30s';
+      timerBadge.classList.remove('warning');
+    }
+    const secHint = document.getElementById('reveal-timer-sec-hint');
+    if (secHint) {
+      secHint.textContent = '30s';
+    }
+
     const teamTag = document.getElementById('revealed-team-tag');
     teamTag.className = `team-tag ${player.role.team}`;
     teamTag.textContent = player.role.team === 'good' ? 'Phe Dân'
-                        : player.role.team === 'evil' ? 'Phe Ác'
-                        : 'Trung Lập';
+      : player.role.team === 'evil' ? 'Phe Ác'
+        : 'Trung Lập';
 
     document.getElementById('revealed-icon').textContent = player.role.icon;
     document.getElementById('revealed-name').textContent = player.role.name_vi;
@@ -1281,49 +1381,12 @@ class ImposterGame {
       keywordText.className = 'secret-keyword-text imposter';
       const spyWord = this.imposterWord || 'Cùng từ với Kẻ Giả Mạo';
       keywordText.textContent = `Từ của Imposter: ${spyWord}`;
-      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • Bạn nhận từ của Imposter để trà trộn cùng Imposter. Vote đúng/sai không đổi điểm. Thắng ván +25đ, nếu bị loại -10đ!`;
-    } else if (player.role.id === 'seer') {
-      keywordLabel.textContent = 'Từ khóa bí mật:';
-      keywordText.className = 'secret-keyword-text';
-      keywordText.textContent = this.secretWord;
-      const wordCount = this.secretWord.trim().split(/\s+/).length;
-      const charCount = this.secretWord.replace(/\s+/g, '').length;
-      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 🔮 Thấu thị: Cụm từ gồm ${wordCount} tiếng (${charCount} ký tự)`;
-    } else if (player.role.id === 'mime') {
-      keywordLabel.textContent = 'Từ khóa bí mật (Bạn là Kẻ Câm Lặng 🤐):';
-      keywordText.className = 'secret-keyword-text';
-      keywordText.textContent = this.secretWord;
-      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 🤐 Nghiêm cấm nói quá 1 từ mỗi lượt phát biểu! Hãy dùng cử chỉ/hành động!`;
+      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • Bạn nhận từ của Imposter để trà trộn cùng Imposter. Bạn KHÔNG CÓ khả năng đoán từ khi bị phát hiện như Imposter thường, chỉ có thể cố gắng sống sót đến cuối ván! Sống sót thắng ván +25đ, bị loại -10đ (loại ngay, không đoán từ). Vote đúng/sai 0đ.`;
     } else if (player.role.id === 'witch') {
       keywordLabel.textContent = 'Từ khóa bí mật (Bạn là Phù Thủy 🧙‍♀️):';
       keywordText.className = 'secret-keyword-text';
       keywordText.textContent = this.secretWord;
       keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 🧙‍♀️ Sở hữu 1 Bình Cứu (hóa giải vote) và 1 Bình Độc (loại người) trong Hộp công cụ!`;
-    } else if (player.role.id === 'judge') {
-      keywordLabel.textContent = 'Từ khóa bí mật (Bạn là Thẩm Phán ⚖️):';
-      keywordText.className = 'secret-keyword-text';
-      keywordText.textContent = this.secretWord;
-      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • ⚖️ Nắm giữ quyền Phủ Quyết (Veto) 1 lần duy nhất để hủy kết quả trục xuất oan sai!`;
-    } else if (player.role.id === 'hacker') {
-      keywordLabel.textContent = 'Từ khóa bí mật (Bạn là Tin Tặc 💻):';
-      keywordText.className = 'secret-keyword-text';
-      keywordText.textContent = this.secretWord;
-      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 💻 Mở Hộp công cụ để hack dữ liệu giải mã vai trò người khác!`;
-    } else if (player.role.id === 'medium') {
-      keywordLabel.textContent = 'Từ khóa bí mật (Bạn là Bà Đồng 🕯️):';
-      keywordText.className = 'secret-keyword-text';
-      keywordText.textContent = this.secretWord;
-      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 🕯️ Khi có người bị loại, Bà Đồng có thể thỉnh cầu linh hồn họ trong Hộp công cụ!`;
-    } else if (player.role.id === 'saboteur') {
-      keywordLabel.textContent = 'BẠN LÀ KẺ PHÁ HOẠI (PHE ÁC 🧨)!';
-      keywordText.className = 'secret-keyword-text imposter';
-      if (this.hintsEnabled && this.imposterWord) {
-        keywordText.textContent = `Gợi ý của bạn: ${this.imposterWord}`;
-        keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • Mở Hộp công cụ để bí mật trừ 30s tranh luận của phe Dân!`;
-      } else {
-        keywordText.textContent = `Chủ đề: ${this.categoryData.name_vi}`;
-        keywordCat.textContent = 'Bạn không biết từ. Hãy mở Hộp công cụ trừ 30s tranh luận để gây hoảng loạn!';
-      }
     } else if (player.role.knowsKeyword) {
       keywordLabel.textContent = 'Từ khóa bí mật:';
       keywordText.className = 'secret-keyword-text';
@@ -1342,6 +1405,127 @@ class ImposterGame {
     }
 
     document.getElementById('revealed-ability').textContent = player.role.ability_vi;
+  }
+
+  startRevealTimer(durationSec = 30) {
+    this.stopRevealTimer();
+
+    const cardBack = document.getElementById('flip-card-back');
+    const svg = document.getElementById('card-timer-svg');
+    const track = document.getElementById('card-timer-track');
+    const stroke = document.getElementById('card-timer-stroke');
+    const badge = document.getElementById('reveal-timer-badge');
+    const secHint = document.getElementById('reveal-timer-sec-hint');
+
+    const w = (cardBack ? cardBack.offsetWidth : 340) || 340;
+    const h = (cardBack ? cardBack.offsetHeight : 480) || 480;
+    const inset = 2;
+    const rx = 26;
+    const ry = 26;
+
+    if (svg) {
+      svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    }
+    [track, stroke].forEach(el => {
+      if (!el) return;
+      el.setAttribute('x', inset.toString());
+      el.setAttribute('y', inset.toString());
+      el.setAttribute('width', (w - inset * 2).toString());
+      el.setAttribute('height', (h - inset * 2).toString());
+      el.setAttribute('rx', rx.toString());
+      el.setAttribute('ry', ry.toString());
+      el.setAttribute('pathLength', '1000');
+    });
+
+    if (stroke) {
+      stroke.style.strokeDashoffset = '0';
+      stroke.classList.remove('warning');
+    }
+    if (badge) {
+      badge.textContent = `⏱️ ${durationSec}s`;
+      badge.classList.remove('warning');
+    }
+    if (secHint) {
+      secHint.textContent = `${durationSec}s`;
+    }
+
+    const startTime = Date.now();
+    const durationMs = durationSec * 1000;
+
+    this.revealTimerInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const remainingMs = Math.max(0, durationMs - elapsed);
+      const remainingSec = Math.ceil(remainingMs / 1000);
+      const ratio = remainingMs / durationMs;
+      const offset = 1000 * (1 - ratio);
+
+      if (stroke) {
+        stroke.style.strokeDashoffset = offset.toFixed(1);
+        if (remainingSec <= 5) {
+          stroke.classList.add('warning');
+        }
+      }
+      if (badge) {
+        badge.textContent = `⏱️ ${remainingSec}s`;
+        if (remainingSec <= 5) {
+          badge.classList.add('warning');
+        }
+      }
+      if (secHint) {
+        secHint.textContent = `${remainingSec}s`;
+      }
+
+      if (remainingMs <= 0) {
+        this.stopRevealTimer();
+        this.hideRoleAndAdvance();
+      }
+    }, 100);
+  }
+
+  stopRevealTimer() {
+    if (this.revealTimerInterval) {
+      clearInterval(this.revealTimerInterval);
+      this.revealTimerInterval = null;
+    }
+    const stroke = document.getElementById('card-timer-stroke');
+    const badge = document.getElementById('reveal-timer-badge');
+    if (stroke) stroke.classList.remove('warning');
+    if (badge) badge.classList.remove('warning');
+  }
+
+  flipCardOpen() {
+    if (this.isCardFlipped || this.isRevealTransitioning) return;
+    this.isRevealTransitioning = true;
+    sound.playFlipCard();
+
+    const card = document.getElementById('flip-card-inner');
+    if (card) card.classList.add('flipped');
+    this.isCardFlipped = true;
+
+    // Bắt đầu đếm ngược 30s xem vai trò kèm viền chạy quanh thẻ
+    this.startRevealTimer(30);
+
+    setTimeout(() => {
+      this.isRevealTransitioning = false;
+    }, 400);
+  }
+
+  hideRoleAndAdvance() {
+    if (!this.isCardFlipped || this.isRevealTransitioning) return;
+    this.isRevealTransitioning = true;
+    this.stopRevealTimer();
+    sound.playFlipCard();
+
+    const card = document.getElementById('flip-card-inner');
+    if (card) card.classList.remove('flipped');
+    this.isCardFlipped = false;
+
+    // Chờ hiệu ứng úp thẻ hoàn tất rồi mới chuyển sang màn che quyền riêng tư của người tiếp theo
+    setTimeout(() => {
+      this.currentRevealIndex++;
+      this.showRevealStep(this.currentRevealIndex);
+      this.isRevealTransitioning = false;
+    }, 350);
   }
 
   getDrunkardWord() {
@@ -1554,7 +1738,7 @@ class ImposterGame {
         if (window.confetti) {
           try {
             window.confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
-          } catch (e) {}
+          } catch (e) { }
         }
       }
     };
@@ -1578,11 +1762,7 @@ class ImposterGame {
       avatarEl.style.background = current.avatarBg || '#fee2e2';
     }
     if (nameEl) {
-      if (current.role.id === 'mime') {
-        nameEl.innerHTML = `${current.name} <span class="hero-badge" style="background: rgba(107, 114, 128, 0.4); color: #e5e7eb; font-size: 10px; margin-left: 6px; padding: 2px 6px;">🤐 Kẻ Câm Lặng (Tối đa 1 từ)</span>`;
-      } else {
-        nameEl.textContent = current.name;
-      }
+      nameEl.textContent = current.name;
     }
 
     this.speechTimerRemaining = this.speechDurationSeconds;
@@ -1638,8 +1818,7 @@ class ImposterGame {
 
   hasActiveNightRoles() {
     const activeNightRoleIds = new Set([
-      'detective', 'doctor', 'bodyguard', 'saboteur',
-      'spy', 'seer', 'medium', 'hacker', 'witch', 'chameleon'
+      'detective', 'doctor', 'spy', 'witch', 'chameleon'
     ]);
     return this.players.some(p => !p.isEliminated && activeNightRoleIds.has(p.role.id));
   }
@@ -1650,8 +1829,6 @@ class ImposterGame {
     // Reset round abilities at round start
     this.doctorShieldedPlayerId = null;
     this.doctorShieldedPlayerIds = new Set();
-    this.bodyguardProtectedPlayerId = null;
-    this.bodyguardProtectedMap = {};
     this.roundUsedAbilities = new Set();
 
     // If Night Phase is enabled AND active night roles exist in this match
@@ -1727,8 +1904,8 @@ class ImposterGame {
     if (teamTag) {
       teamTag.className = `team-tag ${player.role.team}`;
       teamTag.textContent = player.role.team === 'good' ? 'Phe Dân'
-                          : player.role.team === 'evil' ? 'Phe Ác'
-                          : 'Trung Lập';
+        : player.role.team === 'evil' ? 'Phe Ác'
+          : 'Trung Lập';
     }
 
     if (!cardContent) return;
@@ -1800,8 +1977,8 @@ class ImposterGame {
             targetName: target.name,
             type: isEvil ? 'evil' : 'good',
             heading: isEvil ? '⚠️ BÁO ĐỘNG PHE ÁC!' : '✓ BÌNH AN (VÔ TỘI)',
-            message: isEvil 
-              ? `<strong>${target.name}</strong> thuộc <strong>Phe Ác (Kẻ GiẢ Mạo)</strong>!` 
+            message: isEvil
+              ? `<strong>${target.name}</strong> thuộc <strong>Phe Ác (Kẻ GiẢ Mạo)</strong>!`
               : `<strong>${target.name}</strong> là người vô tội thuộc <strong>Phe Dân</strong>.`,
             note: '🔒 Kết quả này chỉ hiển thị riêng tư cho Thám Tử trên máy bạn.'
           });
@@ -1861,102 +2038,6 @@ class ImposterGame {
         break;
       }
 
-      case 'bodyguard': {
-        cardContent.innerHTML = `
-          <div style="display: flex; flex-direction: column; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 22px;">🛡️</span>
-              <div>
-                <strong style="color: #2563eb;">${'Vệ Sĩ – Thế Mạng Bảo Vệ'}</strong>
-                <p style="font-size: 11px; color: var(--text-muted); margin: 0;">${'Chọn 1 đồng đội: Nếu họ bị vote loại vòng này, bạn sẽ hy sinh thay.'}</p>
-              </div>
-            </div>
-            <select id="night-bodyguard-target" class="form-select" style="width: 100%; padding: 8px 10px;">
-              ${otherAlive.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-            </select>
-            <button id="btn-night-bodyguard-act" class="primary-cta-btn" style="background: #2563eb; min-height: 40px;">
-              ${'Bảo vệ người này'}
-            </button>
-          </div>
-        `;
-        cardContent.querySelector('#btn-night-bodyguard-act')?.addEventListener('click', () => {
-          const targetId = cardContent.querySelector('#night-bodyguard-target').value;
-          const target = this.players.find(p => p.id === targetId);
-          if (!target) return;
-          if (!this.bodyguardProtectedMap) this.bodyguardProtectedMap = {};
-          this.bodyguardProtectedMap[player.id] = targetId;
-          this.roundUsedAbilities.add(player.id);
-
-          cardContent.innerHTML = `
-            <div class="night-action-result-box info">
-              <div style="font-size: 32px;">🛡️</div>
-              <div style="font-size: 15px; font-weight: 800; color: #60a5fa;">
-                ĐANG ÂM THẦM BẢO VỆ
-              </div>
-              <div style="font-size: 13px; color: #fff; text-align: center;">
-                Đang bảo vệ <strong>${target.name}</strong>. Nếu họ bị vote loại, bạn sẽ hy sinh thay!
-              </div>
-            </div>
-          `;
-
-          this.showActionNotice({
-            icon: '🛡️',
-            title: 'KẾT NỐI BẢO VỆ',
-            targetName: target.name,
-            type: 'info',
-            heading: '🛡️ ĐANG BẢO VỆ ĐỒNG ĐỘI',
-            message: `Bạn đang bí mật theo sát <strong>${target.name}</strong>.<br>Nếu họ bị vote loại trong vòng này, bạn sẽ tự động hy sinh đỡ đòn thế mạng!`,
-            note: '🔒 Giữ bí mật vai trò để bảo vệ mục tiêu an toàn.'
-          });
-        });
-        break;
-      }
-
-      case 'saboteur': {
-        cardContent.innerHTML = `
-          <div style="display: flex; flex-direction: column; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 22px;">💣</span>
-              <div>
-                <strong style="color: #ef4444;">${'Kẻ Phá Hoại – Rút Ngắn Thời Gian'}</strong>
-                <p style="font-size: 11px; color: var(--text-muted); margin: 0;">${'Bí mật cắt giảm 30 giây thời gian thảo luận của phòng.'}</p>
-              </div>
-            </div>
-            <button id="btn-night-saboteur-act" class="primary-cta-btn" style="background: #ef4444; min-height: 40px;">
-              ${'Kích hoạt: Trừ 30s Thảo Luận'}
-            </button>
-          </div>
-        `;
-        cardContent.querySelector('#btn-night-saboteur-act')?.addEventListener('click', () => {
-          this.timerRemaining = Math.max(5, (this.timerRemaining || this.durationSeconds) - 30);
-          this.updateTimerDisplay();
-          this.roundUsedAbilities.add(player.id);
-
-          cardContent.innerHTML = `
-            <div class="night-action-result-box evil">
-              <div style="font-size: 32px;">💣</div>
-              <div style="font-size: 15px; font-weight: 800; color: #f87171;">
-                ĐÃ KÍCH HOẠT PHÁ HOẠI
-              </div>
-              <div style="font-size: 13px; color: #fff; text-align: center;">
-                Đã bí mật rút ngắn 30 giây thời gian thảo luận của cả phòng!
-              </div>
-            </div>
-          `;
-
-          this.showActionNotice({
-            icon: '💣',
-            title: 'PHÁ HOẠI ĐỒNG HỒ',
-            targetName: 'Cả phòng',
-            type: 'evil',
-            heading: '💣 TRỪ 30 GIÂY THẢO LUẬN',
-            message: 'Hệ thống đã bí mật cắt bớt 30 giây thời gian thảo luận để gây áp lực lên phe Dân!',
-            note: '🔒 Giữ im lặng và không để lộ vai trò.'
-          });
-        });
-        break;
-      }
-
       case 'spy': {
         const spyWord = this.imposterWord || 'Từ cùng Kẻ Giả Mạo';
         cardContent.innerHTML = `
@@ -1967,146 +2048,6 @@ class ImposterGame {
             <div style="font-size: 12px; color: var(--text-muted);">Chủ đề: ${this.categoryData.name_vi} • Bạn nhận từ của Imposter để trà trộn cùng Imposter.</div>
           </div>
         `;
-        break;
-      }
-
-      case 'seer': {
-        const wordCount = this.secretWord ? this.secretWord.trim().split(/\s+/).length : 0;
-        const charCount = this.secretWord ? this.secretWord.replace(/\s+/g, '').length : 0;
-        cardContent.innerHTML = `
-          <div style="text-align: center; padding: 10px;">
-            <span style="font-size: 26px;">🔮</span>
-            <div style="font-size: 13px; font-weight: 700; color: #a855f7; margin: 4px 0;">Cấu Trúc Từ Khóa (Nhà Tiên Tri)</div>
-            <div style="font-size: 16px; font-weight: 800; color: #fff; margin: 6px 0;">${wordCount} tiếng • ${charCount} ký tự</div>
-            <div style="font-size: 12px; color: var(--text-muted);">Từ khóa bí mật của phe Dân.</div>
-          </div>
-        `;
-        break;
-      }
-
-      case 'medium': {
-        const deadPlayers = this.players.filter(p => p.isEliminated);
-        if (deadPlayers.length === 0) {
-          cardContent.innerHTML = `
-            <div style="text-align: center; padding: 10px;">
-              <span style="font-size: 26px;">🕯️</span>
-              <div style="font-size: 13px; font-weight: 700; color: #818cf8; margin: 4px 0;">Bà Đồng – Thỉnh Cầu Linh Hồn</div>
-              <p style="font-size: 12px; color: var(--text-muted); margin: 6px 0;">Chưa có người chơi nào bị loại để giao tiếp linh hồn.</p>
-            </div>
-          `;
-        } else {
-          cardContent.innerHTML = `
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 22px;">🕯️</span>
-                <div>
-                  <strong style="color: #818cf8;">Bà Đồng – Gọi Hồn</strong>
-                  <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Chọn 1 linh hồn người đã khuất để biết vai trò & phe thật.</p>
-                </div>
-              </div>
-              <select id="night-medium-target" class="form-select" style="width: 100%; padding: 8px 10px;">
-                ${deadPlayers.map(p => `<option value="${p.id}">${p.name} (Vòng ${p.eliminatedInRound || 1})</option>`).join('')}
-              </select>
-              <button id="btn-night-medium-act" class="primary-cta-btn" style="background: #4338ca; min-height: 40px;">
-                Thỉnh cầu linh hồn
-              </button>
-            </div>
-          `;
-          cardContent.querySelector('#btn-night-medium-act')?.addEventListener('click', () => {
-            const targetId = cardContent.querySelector('#night-medium-target').value;
-            const target = this.players.find(p => p.id === targetId);
-            if (!target) return;
-            const isEvil = target.role.team === 'evil';
-            const teamName = isEvil ? 'Phe Ác (Kẻ Giả Mạo)'
-                           : target.role.team === 'good' ? 'Phe Dân (Vô tội)'
-                           : 'Phe Trung Lập';
-            this.roundUsedAbilities.add(player.id);
-
-            cardContent.innerHTML = `
-              <div class="night-action-result-box ${isEvil ? 'evil' : 'info'}">
-                <div style="font-size: 32px;">🕯️</div>
-                <div style="font-size: 15px; font-weight: 800; color: ${isEvil ? '#f87171' : '#a5b4fc'};">
-                  LINH HỒN CỦA ${target.name}
-                </div>
-                <div style="font-size: 13px; color: #fff;">
-                  • Vai trò: <strong>${target.role.name_vi} ${target.role.icon}</strong><br>
-                  • Phe: <strong>${teamName}</strong>
-                </div>
-                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
-                  🔒 Linh hồn đã truyền tải thông điệp.
-                </div>
-              </div>
-            `;
-
-            this.showActionNotice({
-              icon: '🕯️',
-              title: 'LINH HỒN HIỂN LINH',
-              targetName: target.name,
-              type: isEvil ? 'evil' : 'info',
-              heading: `🕯️ LINH HỒN CỦA ${target.name}`,
-              message: `• Vai trò thật: <strong>${target.role.name_vi} (${target.role.icon})</strong><br>• Thuộc: <strong>${teamName}</strong>`,
-              note: '🔒 Chỉ Bà Đồng nghe được tiếng nói của người đã khuất.'
-            });
-          });
-        }
-        break;
-      }
-
-      case 'hacker': {
-        cardContent.innerHTML = `
-          <div style="display: flex; flex-direction: column; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 22px;">💻</span>
-              <div>
-                <strong style="color: #10b981;">Tin Tặc – Hack Hồ Sơ Dữ Liệu</strong>
-                <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Giải mã chính xác vai trò bí mật của 1 người chơi.</p>
-              </div>
-            </div>
-            <select id="night-hacker-target" class="form-select" style="width: 100%; padding: 8px 10px;">
-              ${otherAlive.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-            </select>
-            <button id="btn-night-hacker-act" class="primary-cta-btn" style="background: #059669; min-height: 40px;">
-              Hack hồ sơ người này
-            </button>
-          </div>
-        `;
-        cardContent.querySelector('#btn-night-hacker-act')?.addEventListener('click', () => {
-          const targetId = cardContent.querySelector('#night-hacker-target').value;
-          const target = this.players.find(p => p.id === targetId);
-          if (!target) return;
-          const isEvil = target.role.team === 'evil';
-          const teamName = isEvil ? 'Phe Ác (Kẻ Giả Mạo)'
-                         : target.role.team === 'good' ? 'Phe Dân'
-                         : 'Trung Lập';
-          this.roundUsedAbilities.add(player.id);
-
-          cardContent.innerHTML = `
-            <div class="night-action-result-box ${isEvil ? 'evil' : 'good'}">
-              <div style="font-size: 32px;">💻</div>
-              <div style="font-size: 15px; font-weight: 800; color: ${isEvil ? '#f87171' : '#34d399'};">
-                HACK DỮ LIỆU THÀNH CÔNG
-              </div>
-              <div style="font-size: 13px; color: #fff;">
-                • Mục tiêu: <strong>${target.name}</strong><br>
-                • Vai trò: <strong>${target.role.name_vi} ${target.role.icon}</strong><br>
-                • Phe: <strong>${teamName}</strong>
-              </div>
-              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
-                🔒 Hồ sơ đã được giải mã thành công.
-              </div>
-            </div>
-          `;
-
-          this.showActionNotice({
-            icon: '💻',
-            title: 'HACK DỮ LIỆU THÀNH CÔNG',
-            targetName: target.name,
-            type: isEvil ? 'evil' : 'good',
-            heading: `💻 HỒ SƠ CỦA ${target.name}`,
-            message: `• Vai trò: <strong>${target.role.name_vi} (${target.role.icon})</strong><br>• Phe: <strong>${teamName}</strong>`,
-            note: '🔒 Tin Tặc nắm giữ toàn bộ thông tin tình báo này.'
-          });
-        });
         break;
       }
 
@@ -2282,7 +2223,7 @@ class ImposterGame {
     this.isPaused = false;
 
     document.getElementById('hud-category-name').textContent = this.categoryData.name_vi;
-    
+
     const livingPlayers = this.players.filter(p => !p.isEliminated);
     document.getElementById('hud-players-count').textContent = `${livingPlayers.length} ${'Người sống sót'}`;
 
@@ -2371,7 +2312,7 @@ class ImposterGame {
     const mins = Math.floor(Math.max(0, this.timerRemaining) / 60);
     const secs = Math.max(0, this.timerRemaining) % 60;
     const str = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    
+
     const display = document.getElementById('timer-display');
     if (display) display.textContent = str;
 
@@ -2483,67 +2424,6 @@ class ImposterGame {
       return;
     }
 
-    // Judge Veto Check (1-time execution veto)
-    const aliveJudges = this.players.filter(p => p.role.id === 'judge' && !p.isEliminated);
-    if (aliveJudges.length > 0 && !this.judgeVetoUsed) {
-      const judge = aliveJudges[0];
-      const useVeto = confirm(
-        `⚖️ THẨM PHÁN (${judge.name}): Bạn có muốn kích hoạt quyền PHỦ QUYẾT (VETO) một lần duy nhất để cứu ${suspect.name} khỏi bị trục xuất không?`);
-      if (useVeto) {
-        this.judgeVetoUsed = true;
-        this.judgeVetoSavedPlayerId = suspect.id;
-        this.showActionNotice({
-          icon: '⚖️',
-          title: 'QUYỀN PHỦ QUYẾT THẨM PHÁN',
-          targetName: suspect.name,
-          type: 'good',
-          heading: '⚖️ HỦY BỎ ÁN TRỤC XUẤT',
-          message: `Thẩm Phán <strong>${judge.name}</strong> đã hủy bỏ quyết định trục xuất <strong>${suspect.name}</strong>!<br>Không ai bị loại vòng này. Ván chơi tiếp tục sang vòng sau.`,
-          note: 'Quyền phủ quyết chỉ sử dụng 1 lần duy nhất trong ván.',
-          onClose: () => {
-            this.roundNumber++;
-            this.prepareRoundStart();
-          }
-        });
-        return;
-      }
-    }
-
-    // Bodyguard Protection Check (if suspect was protected by a living bodyguard)
-    if (this.bodyguardProtectedMap) {
-      const guardingBodyguardId = Object.keys(this.bodyguardProtectedMap).find(bgId => {
-        const bg = this.players.find(p => p.id === bgId);
-        return bg && !bg.isEliminated && this.bodyguardProtectedMap[bgId] === suspect.id;
-      });
-      if (guardingBodyguardId) {
-        const bodyguard = this.players.find(p => p.id === guardingBodyguardId);
-        if (!this.bodyguardSacrifices) this.bodyguardSacrifices = new Set();
-        this.bodyguardSacrifices.add(bodyguard.id);
-
-        this.showActionNotice({
-          icon: '🛡️',
-          title: 'VỆ SĨ HY SINH THẾ MẠNG',
-          targetName: suspect.name,
-          type: 'warning',
-          heading: '🛡️ ĐỠ ĐÒN THAY ĐỒNG ĐỘI',
-          message: `<strong>${bodyguard.name}</strong> đã liều mình đỡ đòn thay cho <strong>${suspect.name}</strong>!<br><strong>${suspect.name}</strong> an toàn, còn <strong>${bodyguard.name}</strong> bị loại khỏi ván chơi.`,
-          note: 'Sự hy sinh cao cả của Vệ Sĩ phe Dân.',
-          onClose: () => {
-            bodyguard.isEliminated = true;
-            bodyguard.eliminatedInRound = this.roundNumber;
-            if (!this.firstEliminatedPlayer) this.firstEliminatedPlayer = bodyguard;
-            if (!this.allEliminatedPlayers) this.allEliminatedPlayers = [];
-            this.allEliminatedPlayers.push(bodyguard);
-            delete this.bodyguardProtectedMap[guardingBodyguardId];
-            if (this.checkGameStatusAfterDeath()) return;
-            this.roundNumber++;
-            this.prepareRoundStart();
-          }
-        });
-        return;
-      }
-    }
-
     suspect.isEliminated = true;
     suspect.eliminatedInRound = this.roundNumber;
     if (!this.firstEliminatedPlayer) this.firstEliminatedPlayer = suspect;
@@ -2556,8 +2436,8 @@ class ImposterGame {
       this.winningTeam = 'jester';
       this.showResultsScreen(suspect);
       return;
-    } 
-    
+    }
+
     // Traitor (Kẻ Phản Bội): Evil team but ALREADY knows keyword! No comeback guess
     if (suspect.role.id === 'traitor') {
       const remainingImposters = this.players.filter(p => p.isImposter && !p.isEliminated);
@@ -2582,12 +2462,23 @@ class ImposterGame {
       }
     }
 
-    // Spy (Gián Điệp): Phe Ác nhận từ của Imposter, không tham gia đoán từ lật kèo
+    // Spy (Gián Điệp): Phe Ác nhận từ của Imposter, KHÔNG có khả năng đoán từ khi bị phát hiện như Imposter thường!
     if (suspect.role.id === 'spy') {
-      const remainingImposters = this.players.filter(p => p.role.id === 'imposter' && !p.isEliminated);
-      if (remainingImposters.length === 0) {
+      const remainingNormalImposters = this.players.filter(p => p.role.id === 'imposter' && !p.isEliminated);
+      if (remainingNormalImposters.length === 0) {
         this.winningTeam = 'good';
-        this.showResultsScreen(suspect);
+        this.showActionNotice({
+          icon: '🕵️',
+          title: 'VẠCH MẶT GIÁN ĐIỆP',
+          targetName: suspect.name,
+          type: 'evil',
+          heading: '🕵️ GIÁN ĐIỆP BỊ TRỤC XUẤT',
+          message: `<strong>${suspect.name}</strong> thuộc <strong>Phe Ác (Gián Điệp)</strong> và đã bị trục xuất!<br>Gián Điệp <strong>không có khả năng đoán từ khi bị phát hiện như Imposter thường</strong>, chỉ có thể cố gắng sống sót đến cuối.<br><strong>Toàn bộ Phe Ác đã bị loại bỏ! Phe Dân Làng giành chiến thắng!</strong>`,
+          note: 'Phe Dân Làng bảo toàn chiến thắng!',
+          onClose: () => {
+            this.showResultsScreen(suspect);
+          }
+        });
         return;
       } else {
         this.showActionNotice({
@@ -2596,7 +2487,7 @@ class ImposterGame {
           targetName: suspect.name,
           type: 'evil',
           heading: '🕵️ GIÁN ĐIỆP BỊ TRỤC XUẤT',
-          message: `<strong>${suspect.name}</strong> thuộc <strong>Phe Ác (Gián Điệp)</strong> và đã bị trục xuất!<br>Tuy nhiên, Kẻ Giả Mạo vẫn đang ẩn nấp trong phòng.`,
+          message: `<strong>${suspect.name}</strong> thuộc <strong>Phe Ác (Gián Điệp)</strong> và đã bị trục xuất!<br>Gián Điệp <strong>không có khả năng đoán từ khi bị phát hiện như Imposter thường</strong> (chỉ có thể cố gắng sống sót đến cuối).<br>Tuy nhiên, Kẻ Giả Mạo vẫn đang ẩn nấp trong phòng.`,
           note: 'Phe Dân tiếp tục cảnh giác và truy tìm Kẻ Giả Mạo!',
           onClose: () => {
             this.showRoundIntermission(suspect, true);
@@ -2620,8 +2511,32 @@ class ImposterGame {
         this.showRoundIntermission(suspect, true);
         return;
       }
-    } 
-    
+    }
+
+    // Neutral roles (Phù Thủy, Điệp Viên Hai Mang...): Phe Trung Lập bị trục xuất!
+    if (suspect.role && suspect.role.team === 'neutral' && suspect.role.id !== 'drunkard') {
+      const remainingImposters = this.players.filter(p => p.isImposter && !p.isEliminated);
+      if (remainingImposters.length === 0) {
+        this.winningTeam = 'good';
+        this.showResultsScreen(suspect);
+        return;
+      } else {
+        this.showActionNotice({
+          icon: suspect.role.icon || '🔮',
+          title: 'VẠCH MẶT ' + (suspect.role.name_vi || 'PHE TRUNG LẬP').toUpperCase(),
+          targetName: suspect.name,
+          type: 'neutral',
+          heading: `${suspect.role.icon || '🔮'} ${suspect.role.name_vi.toUpperCase()} BỊ TRỤC XUẤT`,
+          message: `<strong>${suspect.name}</strong> thuộc <strong>Phe Trung Lập (${suspect.role.name_vi})</strong> và đã bị trục xuất!<br>Tuy nhiên, Kẻ Giả Mạo vẫn đang ẩn nấp trong phòng.`,
+          note: 'Phe Dân tiếp tục cảnh giác và truy tìm Kẻ Giả Mạo!',
+          onClose: () => {
+            this.showRoundIntermission(suspect, true);
+          }
+        });
+        return;
+      }
+    }
+
     // Suspect is INNOCENT (Civilian or good team) -> WRONG VOTE PENALTY!
     this.wrongVoteCount = (this.wrongVoteCount || 0) + 1;
 
@@ -2649,7 +2564,7 @@ class ImposterGame {
     const title = document.getElementById('intermission-title');
     const desc = document.getElementById('intermission-desc');
     const btnLabel = document.getElementById('label-next-round-btn');
-    
+
     const livingInnocents = this.players.filter(p => !p.isImposter && !p.isEliminated).length;
     const livingImposters = this.players.filter(p => p.isImposter && !p.isEliminated).length;
 
@@ -2659,9 +2574,13 @@ class ImposterGame {
     if (avatar) avatar.textContent = eliminatedPlayer.avatar;
 
     const penaltyConfigEl = document.getElementById('intermission-penalty-config');
+    const penaltyVotersContainer = document.getElementById('penalty-voters-container');
     const penaltyGrid = document.getElementById('penalty-voters-selector-grid');
     const btnPenaltyTeam = document.getElementById('btn-penalty-team');
+    const btnPenaltyAll = document.getElementById('btn-penalty-all');
     const btnPenaltyVoters = document.getElementById('btn-penalty-voters');
+    const btnPenaltySelectAll = document.getElementById('btn-penalty-select-all');
+    const btnPenaltyDeselectAll = document.getElementById('btn-penalty-deselect-all');
     const penaltyDesc = document.getElementById('penalty-explainer-text');
 
     if (isImposterCaught) {
@@ -2696,15 +2615,17 @@ class ImposterGame {
         this.pendingWrongVotePenaltyMode = 'team';
         this.pendingCustomPenalizedPlayerIds = new Set();
 
-        const livingGood = this.players.filter(p => p.role.team === 'good' && !p.isEliminated);
-        livingGood.forEach(p => this.pendingCustomPenalizedPlayerIds.add(p.id));
+        // Cho phép TẤT CẢ người chơi còn sống xuất hiện trong danh sách vote chỉ tay
+        const livingVoters = this.players.filter(p => !p.isEliminated);
+        livingVoters.forEach(p => this.pendingCustomPenalizedPlayerIds.add(p.id));
 
         if (penaltyGrid) {
           penaltyGrid.innerHTML = '';
-          livingGood.forEach(p => {
+          livingVoters.forEach(p => {
             const chip = document.createElement('button');
             chip.type = 'button';
             chip.className = 'penalty-voter-chip selected';
+            chip.dataset.playerId = p.id;
             chip.innerHTML = `<span>${p.avatar}</span> <span>${p.name}</span> <span class="chip-check">✓</span>`;
             chip.addEventListener('click', () => {
               sound.playClick();
@@ -2722,38 +2643,62 @@ class ImposterGame {
           });
         }
 
+        if (btnPenaltySelectAll) {
+          btnPenaltySelectAll.onclick = () => {
+            sound.playClick();
+            livingVoters.forEach(p => this.pendingCustomPenalizedPlayerIds.add(p.id));
+            penaltyGrid?.querySelectorAll('.penalty-voter-chip').forEach(c => {
+              c.classList.add('selected');
+              const pid = c.dataset.playerId;
+              const pl = livingVoters.find(x => x.id === pid);
+              if (pl) c.innerHTML = `<span>${pl.avatar}</span> <span>${pl.name}</span> <span class="chip-check">✓</span>`;
+            });
+          };
+        }
+
+        if (btnPenaltyDeselectAll) {
+          btnPenaltyDeselectAll.onclick = () => {
+            sound.playClick();
+            this.pendingCustomPenalizedPlayerIds.clear();
+            penaltyGrid?.querySelectorAll('.penalty-voter-chip').forEach(c => {
+              c.classList.remove('selected');
+              const pid = c.dataset.playerId;
+              const pl = livingVoters.find(x => x.id === pid);
+              if (pl) c.innerHTML = `<span>${pl.avatar}</span> <span>${pl.name}</span>`;
+            });
+          };
+        }
+
         const updatePenaltyUI = (mode) => {
           this.pendingWrongVotePenaltyMode = mode;
+          const setActive = (btn, active) => {
+            if (!btn) return;
+            btn.style.background = active ? 'rgba(239, 68, 68, 0.25)' : 'rgba(255, 255, 255, 0.05)';
+            btn.style.borderColor = active ? '#ef4444' : 'var(--border-subtle)';
+            btn.style.color = active ? '#fff' : 'var(--text-muted)';
+          };
+
+          setActive(btnPenaltyTeam, mode === 'team');
+          setActive(btnPenaltyAll, mode === 'all');
+          setActive(btnPenaltyVoters, mode === 'custom');
+
+          if (penaltyVotersContainer) {
+            penaltyVotersContainer.style.display = mode === 'custom' ? 'block' : 'none';
+          } else if (penaltyGrid) {
+            penaltyGrid.style.display = mode === 'custom' ? 'flex' : 'none';
+          }
+
           if (mode === 'team') {
-            if (btnPenaltyTeam) {
-              btnPenaltyTeam.style.background = 'rgba(239, 68, 68, 0.25)';
-              btnPenaltyTeam.style.borderColor = '#ef4444';
-              btnPenaltyTeam.style.color = '#fff';
-            }
-            if (btnPenaltyVoters) {
-              btnPenaltyVoters.style.background = 'rgba(255, 255, 255, 0.05)';
-              btnPenaltyVoters.style.borderColor = 'var(--border-subtle)';
-              btnPenaltyVoters.style.color = 'var(--text-muted)';
-            }
-            if (penaltyGrid) penaltyGrid.style.display = 'none';
             if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Trách nhiệm tập thể:</strong> Cả nhóm đã thống nhất biểu quyết theo số đông, do đó toàn bộ phe Dân còn sống cùng chịu phạt -5 điểm (không tính dân đã chết).';
+          } else if (mode === 'all') {
+            if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Tất cả người chơi cùng vote:</strong> Toàn bộ người chơi còn sống (cả Dân, Imposter & Trung Lập) đều tham gia biểu quyết, tất cả cùng chịu phạt -5 điểm (trừ Kẻ Ngu & Gián Điệp miễn nhiễm theo luật).';
           } else {
-            if (btnPenaltyTeam) {
-              btnPenaltyTeam.style.background = 'rgba(255, 255, 255, 0.05)';
-              btnPenaltyTeam.style.borderColor = 'var(--border-subtle)';
-              btnPenaltyTeam.style.color = 'var(--text-muted)';
-            }
-            if (btnPenaltyVoters) {
-              btnPenaltyVoters.style.background = 'rgba(239, 68, 68, 0.25)';
-              btnPenaltyVoters.style.borderColor = '#ef4444';
-              btnPenaltyVoters.style.color = '#fff';
-            }
-            if (penaltyGrid) penaltyGrid.style.display = 'flex';
-            if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Chỉ phạt người chỉ tay:</strong> Chỉ những người được tích chọn bên trên (đã chỉ tay vote oan) mới bị trừ -5 điểm.';
+            if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Chỉ phạt người chỉ tay:</strong> Chỉ những người được tích chọn bên trên (đã chỉ tay vote oan) mới bị trừ -5 điểm (cho phép chọn bất kỳ ai trong số tất cả người chơi còn sống).';
           }
         };
 
         if (btnPenaltyTeam) btnPenaltyTeam.onclick = () => { sound.playClick(); updatePenaltyUI('team'); };
+        if (btnPenaltyAll) btnPenaltyAll.onclick = () => { sound.playClick(); updatePenaltyUI('all'); };
         if (btnPenaltyVoters) btnPenaltyVoters.onclick = () => { sound.playClick(); updatePenaltyUI('custom'); };
         updatePenaltyUI('team');
       }
@@ -2857,9 +2802,9 @@ class ImposterGame {
     }
 
     if (!eliminatedPlayer) {
-      eliminatedPlayer = this.caughtImposter || 
-        this.players.filter(p => p.isEliminated).pop() || 
-        this.players.find(p => p.isImposter) || 
+      eliminatedPlayer = this.caughtImposter ||
+        this.players.filter(p => p.isEliminated).pop() ||
+        this.players.find(p => p.isImposter) ||
         this.players[0];
     }
 
@@ -2939,9 +2884,9 @@ class ImposterGame {
           </div>
         </div>
         <div>
-          ${p.isEliminated 
-            ? `<span class="team-tag" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">${'Bị loại'}</span>`
-            : `<span class="team-tag" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">${'Sống sót'}</span>`}
+          ${p.isEliminated
+          ? `<span class="team-tag" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">${'Bị loại'}</span>`
+          : `<span class="team-tag" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">${'Sống sót'}</span>`}
         </div>
       `;
       rosterList.appendChild(row);
@@ -2950,19 +2895,34 @@ class ImposterGame {
     const logBox = document.getElementById('match-timeline-log');
     const elimName = eliminatedPlayer ? eliminatedPlayer.name : 'Nghi phạm';
     const elimRole = eliminatedPlayer && eliminatedPlayer.role ? (eliminatedPlayer.role.name_vi) : 'Kẻ Giả Mạo';
-    
+
+    const eliminatedEvilsAndNeutrals = this.players.filter(p =>
+      p.isEliminated && (
+        p.isImposter ||
+        (p.role && (p.role.team === 'evil' || (p.role.team === 'neutral' && p.role.id !== 'drunkard')))
+      )
+    );
+    const caughtCount = eliminatedEvilsAndNeutrals.length;
+    const voteBonusPerLivingGood = caughtCount * 5;
+    const voteBonusNoteText = caughtCount > 0
+      ? (caughtCount > 1
+        ? `Dân còn sống vote đúng ${caughtCount} Kẻ Giả Mạo & Trung Lập (+${voteBonusPerLivingGood}đ)`
+        : `Dân còn sống vote đúng Kẻ Giả Mạo & Trung Lập (+5đ)`)
+      : '';
+    const voteBonusSuffix = voteBonusNoteText ? `; ${voteBonusNoteText}` : '';
+
     let comebackTimelineNote = '';
     if (this.imposterWonByComeback) {
       const heroName = this.caughtImposter ? this.caughtImposter.name : elimName;
-      comebackTimelineNote = `<div>• <strong>🔥 Cơ hội lật kèo:</strong> ${heroName} đã xuất sắc đoán chính xác từ khóa "<strong>${this.secretWord}</strong>"! Phe Kẻ Giả Mạo giành chiến thắng chung cuộc (+20đ cho Imposter, miễn trừ mọi phạt bị bắt hay lộ vòng 1; Dân Làng bị trừ -8đ: -5đ thua ván + -3đ làm lộ từ khóa).</div>`;
+      comebackTimelineNote = `<div>• <strong>🔥 Cơ hội lật kèo:</strong> ${heroName} đã xuất sắc đoán chính xác từ khóa "<strong>${this.secretWord}</strong>"! Phe Kẻ Giả Mạo giành chiến thắng chung cuộc (+20đ cho Imposter, miễn trừ mọi phạt bị bắt hay lộ vòng 1; Dân Làng bị trừ -5đ thua ván).</div>`;
     } else if (this.caughtImposter) {
       const heroName = this.caughtImposter.name;
       if (this.imposterGuessResult === 'wrong') {
         const guessDisp = this.imposterGuessText ? `"${this.imposterGuessText}"` : ('Đoán sai');
-        comebackTimelineNote = `<div>• <strong>❌ Cơ hội lật kèo:</strong> ${heroName} đã đoán ${guessDisp} (không chính xác, từ đúng là "${this.secretWord}") ➔ Phạt thêm -10đ đoán sai (Tổng phạt -20đ; nếu Vòng 1 là -25đ). Phe Dân Làng bảo toàn chiến thắng (Tất cả Dân +10đ; Dân còn sống vote đúng +5đ)!</div>`;
+        comebackTimelineNote = `<div>• <strong>❌ Cơ hội lật kèo:</strong> ${heroName} đã đoán ${guessDisp} (không chính xác, từ đúng là "${this.secretWord}") ➔ Phạt thêm -10đ đoán sai (Tổng phạt -20đ; nếu Vòng 1 là -25đ). Phe Dân Làng bảo toàn chiến thắng (Tất cả Dân +10đ${voteBonusSuffix})!</div>`;
       } else {
         const skipDetail = this.imposterGuessText ? ` (${this.imposterGuessText})` : '';
-        comebackTimelineNote = `<div>• <strong>🏳️ Cơ hội lật kèo:</strong> ${heroName} đã chọn không đoán từ${skipDetail} ➔ Bảo toàn điểm, không bị phạt -10đ đoán sai (chỉ chịu -10đ bị bắt; nếu Vòng 1 là -15đ). Phe Dân Làng bảo toàn chiến thắng (Tất cả Dân +10đ; Dân còn sống vote đúng +5đ)!</div>`;
+        comebackTimelineNote = `<div>• <strong>🏳️ Cơ hội lật kèo:</strong> ${heroName} đã chọn không đoán từ${skipDetail} ➔ Bảo toàn điểm, không bị phạt -10đ đoán sai (chỉ chịu -10đ bị bắt; nếu Vòng 1 là -15đ). Phe Dân Làng bảo toàn chiến thắng (Tất cả Dân +10đ${voteBonusSuffix})!</div>`;
       }
     }
 
@@ -2977,7 +2937,6 @@ class ImposterGame {
     // SCORE CALCULATION & PARTY LEADERBOARD
     // ==========================================
     const roundScores = [];
-    const hasCaughtImposter = this.players.some(p => p.isImposter && p.isEliminated);
 
     this.players.forEach(p => {
       let delta = 0;
@@ -3035,10 +2994,12 @@ class ImposterGame {
           delta += 10;
           reasons.push('Phe Dân thắng (+10đ)');
 
-          // Dân còn sống vote đúng: tất cả dân còn sống +5đ (không tính dân đã chết)
-          if (!p.isEliminated && hasCaughtImposter) {
-            delta += 5;
-            reasons.push('Dân còn sống vote đúng (+5đ)');
+          // Dân còn sống vote đúng Kẻ Giả Mạo & Trung Lập: +5đ/kẻ (lũy kế nếu có nhiều kẻ)
+          if (!p.isEliminated && caughtCount > 0) {
+            delta += voteBonusPerLivingGood;
+            reasons.push(caughtCount > 1
+              ? `Dân còn sống vote đúng ${caughtCount} Kẻ Giả Mạo & Trung Lập (+${voteBonusPerLivingGood}đ)`
+              : `Dân còn sống vote đúng Kẻ Giả Mạo & Trung Lập (+${voteBonusPerLivingGood}đ)`);
           }
         }
       } else if (this.winningTeam === 'jester') {
@@ -3050,8 +3011,16 @@ class ImposterGame {
           // Toàn bộ người chơi khác bị Kẻ Ngu dắt mũi: -5đ
           delta = -5;
           reasons = ['Mắc bẫy Kẻ Ngu (-5đ)'];
+
+          // Dân còn sống vote đúng Kẻ Giả Mạo & Trung Lập (kể cả Kẻ Ngu): +5đ/kẻ lũy kế
+          if (!p.isEliminated && (p.role.team === 'good' || p.role.id === 'drunkard') && caughtCount > 0) {
+            delta += voteBonusPerLivingGood;
+            reasons.push(caughtCount > 1
+              ? `Dân còn sống vote đúng ${caughtCount} Kẻ Giả Mạo & Trung Lập (+${voteBonusPerLivingGood}đ)`
+              : `Dân còn sống vote đúng Kẻ Giả Mạo & Trung Lập (+${voteBonusPerLivingGood}đ)`);
+          }
         }
-      } else { 
+      } else {
         // ========================================================
         // PHE ÁC THẮNG (IMPOSTER THẮNG / DÂN THƯỜNG THUA)
         // ========================================================
@@ -3071,14 +3040,6 @@ class ImposterGame {
           } else if (!p.isEliminated) {
             delta += 15;
             reasons.push('Kẻ Giả Mạo sống sót thắng ván (+15đ)');
-
-            if (this.wrongVoteCount && this.wrongVoteCount > 0) {
-              const deceptionBonus = Math.min(6, this.wrongVoteCount * 2);
-              if (deceptionBonus > 0) {
-                delta += deceptionBonus;
-                reasons.push(`Lừa Dân bầu oan (+${deceptionBonus}đ)`);
-              }
-            }
           } else {
             delta += 10;
             reasons.push('Phe Kẻ Giả Mạo thắng (+10đ)');
@@ -3088,10 +3049,12 @@ class ImposterGame {
           delta -= 5;
           reasons.push('Thua trận trước Imposter (-5đ)');
 
-          // Nếu để Imposter lật kèo đoán trúng từ (gợi ý lộ liễu)
-          if (this.imposterWonByComeback) {
-            delta -= 3;
-            reasons.push('Làm lộ từ khóa cho Imposter lật kèo (-3đ)');
+          // Dân còn sống nếu đã từng vote đúng Kẻ Giả Mạo & Trung Lập các vòng trước: +5đ/kẻ lũy kế
+          if (!p.isEliminated && caughtCount > 0) {
+            delta += voteBonusPerLivingGood;
+            reasons.push(caughtCount > 1
+              ? `Dân còn sống vote đúng ${caughtCount} Kẻ Giả Mạo & Trung Lập (+${voteBonusPerLivingGood}đ)`
+              : `Dân còn sống vote đúng Kẻ Giả Mạo & Trung Lập (+${voteBonusPerLivingGood}đ)`);
           }
         }
       }
@@ -3138,14 +3101,7 @@ class ImposterGame {
           delta += 10;
           reasons.push('Lá chắn cứu sống đồng đội (+10)');
         }
-        if (this.bodyguardSacrifices && this.bodyguardSacrifices.has(p.id)) {
-          delta += 10;
-          reasons.push('Hy sinh bảo vệ đồng đội (+10)');
-        }
-        if (this.judgeVetoUsed && p.role.id === 'judge') {
-          delta += 5;
-          reasons.push('Phủ quyết công tâm (+5)');
-        }
+
 
         // E. Phạt biểu quyết oan sai (Wrong vote penalty): tất cả dân còn sống -5đ (không tính dân đã chết)
         // Kẻ Ngu và Gián Điệp: vote đúng hay sai đều không tăng giảm điểm!
@@ -3641,11 +3597,11 @@ class ImposterGame {
     const rawData = this.partyScores[playerName];
     const data = typeof rawData === 'object' && rawData !== null ? rawData : { total: Number(rawData) || 0 };
     const total = Number(data.total ?? data.score ?? data.points ?? 0);
-    
+
     const modal = document.getElementById('modal-rename-player');
     const pointsVal = document.getElementById('rename-player-points-val');
     const input = document.getElementById('input-rename-player-name');
-    
+
     if (pointsVal) {
       pointsVal.textContent = `${total} điểm (${data.wins || 0} chiến thắng / ${data.games || 0} ván)`;
     }
@@ -3661,7 +3617,7 @@ class ImposterGame {
     const input = document.getElementById('input-rename-player-name');
     const oldName = this.renamingOldPlayerName;
     if (!input || !oldName || !this.partyScores[oldName]) return;
-    
+
     const newName = input.value.trim();
     if (!newName) {
       this.showToast('Tên người chơi không được để trống!', 'danger');
@@ -3678,8 +3634,8 @@ class ImposterGame {
 
     // Sao chép điểm số của người chơi cũ sang tên mới (ĐIỂM SỐ ĐƯỢC GIỮ NGUYÊN BẢO MẬT, KHÔNG THỂ SỬA)
     const oldEntry = this.partyScores[oldName];
-    const entryObj = typeof oldEntry === 'object' && oldEntry !== null 
-      ? { ...oldEntry } 
+    const entryObj = typeof oldEntry === 'object' && oldEntry !== null
+      ? { ...oldEntry }
       : { total: Number(oldEntry) || 0, wins: 0, games: 0, avatar: '👤', avatarBg: '#e0e7ff' };
     this.partyScores[newName] = entryObj;
     delete this.partyScores[oldName];
@@ -3868,7 +3824,7 @@ class ImposterGame {
     const normCoreGuess = norm(coreGuess);
 
     const isMatch = !isGiveup && normGuess.length > 0 && (
-      normTarget === normGuess || 
+      normTarget === normGuess ||
       (normCoreTarget.length > 0 && normCoreTarget === normCoreGuess) ||
       (normCoreTarget.length > 0 && normCoreTarget === normGuess) ||
       (normTarget.length > 0 && normTarget === normCoreGuess)
@@ -3927,8 +3883,8 @@ class ImposterGame {
       row.className = 'setting-item-row';
       row.style.cursor = 'default';
       const winText = item.winner === 'good' ? ('Phe Dân thắng')
-                    : item.winner === 'jester' ? ('Kẻ Ngu thắng')
-                    : ('Imposter thắng');
+        : item.winner === 'jester' ? ('Kẻ Ngu thắng')
+          : ('Imposter thắng');
       const winColor = item.winner === 'good' ? 'var(--team-good)' : 'var(--primary-red)';
 
       row.innerHTML = `
@@ -3953,7 +3909,6 @@ class ImposterGame {
 
     if (!this.roundUsedAbilities) this.roundUsedAbilities = new Set();
     if (!this.doctorShieldedPlayerIds) this.doctorShieldedPlayerIds = new Set();
-    if (!this.bodyguardProtectedMap) this.bodyguardProtectedMap = {};
 
     const alivePlayers = this.players.filter(p => !p.isEliminated);
 
@@ -4031,8 +3986,8 @@ class ImposterGame {
           targetName: target ? target.name : '',
           type: isEvil ? 'evil' : 'good',
           heading: isEvil ? '⚠️ BÁO ĐỘNG PHE ÁC!' : '✓ BÌNH AN (VÔ TỘI)',
-          message: isEvil 
-            ? `Thám Tử <strong>${detective.name}</strong> phát hiện <strong>${target.name}</strong> thuộc <strong>Phe Ác (Kẻ Giả Mạo)</strong>!` 
+          message: isEvil
+            ? `Thám Tử <strong>${detective.name}</strong> phát hiện <strong>${target.name}</strong> thuộc <strong>Phe Ác (Kẻ Giả Mạo)</strong>!`
             : `Thám Tử <strong>${detective.name}</strong> xác nhận <strong>${target.name}</strong> là người vô tội (Phe Dân).`,
           note: '🔒 Kết quả soi danh tính bí mật.'
         });
@@ -4096,105 +4051,7 @@ class ImposterGame {
       });
     });
 
-    // 3. VỆ SĨ (Bodyguard) - Hy sinh bảo vệ
-    const aliveBodyguards = alivePlayers.filter(p => p.role.id === 'bodyguard');
-    const availableBodyguards = aliveBodyguards.filter(bg => !this.roundUsedAbilities.has(bg.id));
-    availableBodyguards.forEach((bodyguard, idx) => {
-      const item = document.createElement('div');
-      item.className = 'setting-item-row';
-      item.style.flexDirection = 'column';
-      item.style.alignItems = 'flex-start';
-      item.dataset.playerId = bodyguard.id;
-
-      const titleNum = aliveBodyguards.length > 1 ? `#${idx + 1} ` : '';
-      const targets = alivePlayers.filter(p => p.id !== bodyguard.id);
-
-      item.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 24px;">🛡️</span>
-            <div>
-              <strong>${`Vệ Sĩ ${titleNum}(${bodyguard.name}) – Thế Mạng`}</strong>
-              <p style="font-size: 11px; color: var(--text-muted); margin: 0;">${'Chọn 1 đồng đội: Nếu họ bị vote loại, bạn sẽ hy sinh thay!'}</p>
-            </div>
-          </div>
-        </div>
-        <div style="display: flex; gap: 8px; width: 100%; margin-top: 10px;">
-          <select id="bodyguard-target-${bodyguard.id}" class="form-select" style="flex: 1; padding: 6px 10px;">
-            ${targets.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-          </select>
-          <button id="btn-bodyguard-guard-${bodyguard.id}" class="ctrl-btn" style="background: var(--team-good); color: #fff; min-width: 88px;">
-            ${'Bảo vệ'}
-          </button>
-        </div>
-      `;
-      content.appendChild(item);
-
-      item.querySelector(`#btn-bodyguard-guard-${bodyguard.id}`).addEventListener('click', () => {
-        const targetId = item.querySelector(`#bodyguard-target-${bodyguard.id}`).value;
-        const target = this.players.find(p => p.id === targetId);
-
-        this.bodyguardProtectedMap[bodyguard.id] = targetId;
-        this.roundUsedAbilities.add(bodyguard.id);
-
-        this.showActionNotice({
-          icon: '🛡️',
-          title: 'VỆ SĨ THẾ MẠNG',
-          targetName: target ? target.name : '',
-          type: 'info',
-          heading: '🛡️ BẢO VỆ ĐỒNG ĐỘI',
-          message: `Vệ Sĩ <strong>${bodyguard.name}</strong> đã chọn bảo vệ <strong>${target?.name}</strong>!<br>(Nếu người này bị đa số phiếu vote loại, Vệ Sĩ sẽ hy sinh thế mạng)`,
-          note: 'Đã sẵn sàng thế mạng.'
-        });
-        dismissCard(item);
-      });
-    });
-
-    // 4. KẺ PHÁ HOẠI / GÂY RỐI (Saboteur) - Trừ giờ
-    const aliveSaboteurs = alivePlayers.filter(p => p.role.id === 'saboteur');
-    const availableSaboteurs = aliveSaboteurs.filter(s => !this.roundUsedAbilities.has(s.id));
-    availableSaboteurs.forEach((saboteur, idx) => {
-      const item = document.createElement('div');
-      item.className = 'setting-item-row';
-      item.dataset.playerId = saboteur.id;
-
-      const titleNum = aliveSaboteurs.length > 1 ? `#${idx + 1} ` : '';
-
-      item.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 24px;">💣</span>
-            <div>
-              <strong>${`Kẻ Phá Hoại ${titleNum}(${saboteur.name})`}</strong>
-              <p style="font-size: 11px; color: var(--text-muted); margin: 0;">${'Bí mật rút ngắn 30s của phe Dân'}</p>
-            </div>
-          </div>
-          <button id="btn-sabotage-${saboteur.id}" class="ctrl-btn" style="background: var(--primary-red); color: #fff; min-width: 88px;">
-            -30s
-          </button>
-        </div>
-      `;
-      content.appendChild(item);
-
-      item.querySelector(`#btn-sabotage-${saboteur.id}`).addEventListener('click', () => {
-        this.timerRemaining = Math.max(5, this.timerRemaining - 30);
-        this.updateTimerDisplay();
-        this.roundUsedAbilities.add(saboteur.id);
-
-        this.showActionNotice({
-          icon: '💣',
-          title: 'PHÁ HOẠI ĐỒNG HỒ',
-          targetName: 'Cả phòng',
-          type: 'evil',
-          heading: '💣 TRỪ 30 GIÂY THẢO LUẬN',
-          message: `Kẻ Phá Hoại <strong>${saboteur.name}</strong> đã kích hoạt phá hoại: Rút ngắn 30 giây thời gian thảo luận của cả phòng!`,
-          note: 'Thời gian đã bị cắt bớt.'
-        });
-        dismissCard(item);
-      });
-    });
-
-    // 5. GIÁN ĐIỆP (Spy) - Xem từ của Imposter
+    // 3. GIÁN ĐIỆP (Spy) - Xem từ của Imposter
     const aliveSpies = alivePlayers.filter(p => p.role.id === 'spy');
     const availableSpies = aliveSpies.filter(s => !this.roundUsedAbilities.has(s.id));
     availableSpies.forEach((spy, idx) => {
@@ -4237,51 +4094,7 @@ class ImposterGame {
       });
     });
 
-    // 6. NHÀ TIÊN TRI (Seer) - Cấu trúc từ khóa
-    const aliveSeers = alivePlayers.filter(p => p.role.id === 'seer');
-    const availableSeers = aliveSeers.filter(s => !this.roundUsedAbilities.has(s.id));
-    availableSeers.forEach((seer, idx) => {
-      const item = document.createElement('div');
-      item.className = 'setting-item-row';
-      item.dataset.playerId = seer.id;
-
-      const titleNum = aliveSeers.length > 1 ? `#${idx + 1} ` : '';
-
-      item.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 24px;">🔮</span>
-            <div>
-              <strong>${`Nhà Tiên Tri ${titleNum}(${seer.name})`}</strong>
-              <p style="font-size: 11px; color: #a855f7; margin: 0;">${'Xem cấu trúc số từ & ký tự'}</p>
-            </div>
-          </div>
-          <button id="btn-seer-${seer.id}" class="ctrl-btn" style="background: #7c3aed; color: #fff; min-width: 88px;">
-            ${'Xem cấu trúc'}
-          </button>
-        </div>
-      `;
-      content.appendChild(item);
-
-      item.querySelector(`#btn-seer-${seer.id}`).addEventListener('click', () => {
-        const wordCount = this.secretWord ? this.secretWord.trim().split(/\s+/).length : 0;
-        const charCount = this.secretWord ? this.secretWord.replace(/\s+/g, '').length : 0;
-        this.roundUsedAbilities.add(seer.id);
-
-        this.showActionNotice({
-          icon: '🔮',
-          title: 'MANH MỐI TIÊN TRI',
-          targetName: seer.name,
-          type: 'info',
-          heading: `🔮 ${wordCount} TIẾNG • ${charCount} KÝ TỰ`,
-          message: `Manh mối cấu trúc từ cho Nhà Tiên Tri <strong>${seer.name}</strong>:<br>Từ khóa bí mật của phe Dân gồm <strong>${wordCount} tiếng</strong> (${charCount} ký tự)`,
-          note: 'Hãy xâu chuỗi lời miêu tả của các người chơi.'
-        });
-        dismissCard(item);
-      });
-    });
-
-    // 7. THỊ TRƯỞNG (Mayor) - Thông tin x2 phiếu bầu
+    // 4. THỊ TRƯỞNG (Mayor) - Thông tin x2 phiếu bầu
     const aliveMayors = alivePlayers.filter(p => p.role.id === 'mayor');
     if (aliveMayors.length > 0 && !this.roundUsedAbilities.has('mayor_info')) {
       const item = document.createElement('div');
@@ -4311,140 +4124,7 @@ class ImposterGame {
       });
     }
 
-    // 8. BÀ ĐỒNG (Medium) - Thỉnh cầu linh hồn người bị loại
-    const aliveMediums = alivePlayers.filter(p => p.role.id === 'medium');
-    const availableMediums = aliveMediums.filter(m => !this.roundUsedAbilities.has(m.id));
-    availableMediums.forEach((medium, idx) => {
-      const item = document.createElement('div');
-      item.className = 'setting-item-row';
-      item.style.flexDirection = 'column';
-      item.style.alignItems = 'flex-start';
-      item.dataset.playerId = medium.id;
-
-      const titleNum = aliveMediums.length > 1 ? `#${idx + 1} ` : '';
-      const deadPlayers = this.players.filter(p => p.isEliminated);
-
-      if (deadPlayers.length === 0) {
-        item.innerHTML = `
-          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 24px;">🕯️</span>
-              <div>
-                <strong>${`Bà Đồng ${titleNum}(${medium.name})`}</strong>
-                <p style="font-size: 11px; color: #818cf8; margin: 0;">${'Chưa có người chơi nào bị loại để thỉnh cầu linh hồn.'}</p>
-              </div>
-            </div>
-            <button id="btn-medium-ack-${medium.id}" class="ctrl-btn" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-medium); color: var(--text-primary); min-width: 88px;">
-              ${'Đã hiểu'}
-            </button>
-          </div>
-        `;
-        content.appendChild(item);
-        item.querySelector(`#btn-medium-ack-${medium.id}`).addEventListener('click', () => {
-          sound.playClick();
-          dismissCard(item);
-        });
-      } else {
-        item.innerHTML = `
-          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 24px;">🕯️</span>
-              <div>
-                <strong>${`Bà Đồng ${titleNum}(${medium.name}) – Gọi Hồn`}</strong>
-                <p style="font-size: 11px; color: #818cf8; margin: 0;">${'Chọn 1 linh hồn người đã khuất để biết phe/vai trò thật'}</p>
-              </div>
-            </div>
-          </div>
-          <div style="display: flex; gap: 8px; width: 100%; margin-top: 10px;">
-            <select id="medium-target-${medium.id}" class="form-select" style="flex: 1; padding: 6px 10px;">
-              ${deadPlayers.map(p => `<option value="${p.id}">${p.name} (Vòng ${p.eliminatedInRound || 1})</option>`).join('')}
-            </select>
-            <button id="btn-medium-commune-${medium.id}" class="ctrl-btn" style="background: #4338ca; color: #fff; min-width: 88px;">
-              ${'Thỉnh cầu'}
-            </button>
-          </div>
-        `;
-        content.appendChild(item);
-        item.querySelector(`#btn-medium-commune-${medium.id}`).addEventListener('click', () => {
-          const targetId = item.querySelector(`#medium-target-${medium.id}`).value;
-          const target = this.players.find(p => p.id === targetId);
-          const isEvil = target.role.team === 'evil';
-          const teamName = target.role.team === 'good' ? ('Phe Dân Làng (Vô tội)')
-                         : isEvil ? ('Phe Ác (Kẻ Giả Mạo)')
-                         : ('Phe Trung Lập');
-          this.roundUsedAbilities.add(medium.id);
-
-          this.showActionNotice({
-            icon: '🕯️',
-            title: 'LINH HỒN HIỂN LINH',
-            targetName: target.name,
-            type: isEvil ? 'evil' : 'info',
-            heading: `🕯️ LINH HỒN CỦA ${target.name}`,
-            message: `Bà Đồng <strong>${medium.name}</strong> thỉnh cầu linh hồn <strong>${target.name}</strong>:<br>• Vai trò thật: <strong>${target.role.name_vi} (${target.role.icon})</strong><br>• Phe: <strong>${teamName}</strong>`,
-            note: 'Lời của người đã khuất luôn luôn chân thật.'
-          });
-          dismissCard(item);
-        });
-      }
-    });
-
-    // 9. TIN TẶC (Hacker) - Đột nhập dữ liệu người chơi
-    const aliveHackers = alivePlayers.filter(p => p.role.id === 'hacker');
-    const availableHackers = aliveHackers.filter(h => !this.roundUsedAbilities.has(h.id));
-    availableHackers.forEach((hacker, idx) => {
-      const item = document.createElement('div');
-      item.className = 'setting-item-row';
-      item.style.flexDirection = 'column';
-      item.style.alignItems = 'flex-start';
-      item.dataset.playerId = hacker.id;
-
-      const titleNum = aliveHackers.length > 1 ? `#${idx + 1} ` : '';
-      const targets = alivePlayers.filter(p => p.id !== hacker.id);
-
-      item.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 24px;">💻</span>
-            <div>
-              <strong>${`Tin Tặc ${titleNum}(${hacker.name}) – Hack Hồ Sơ`}</strong>
-              <p style="font-size: 11px; color: #10b981; margin: 0;">${'Đột nhập dữ liệu giải mã vai trò của 1 người chơi'}</p>
-            </div>
-          </div>
-        </div>
-        <div style="display: flex; gap: 8px; width: 100%; margin-top: 10px;">
-          <select id="hacker-target-${hacker.id}" class="form-select" style="flex: 1; padding: 6px 10px;">
-            ${targets.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-          </select>
-          <button id="btn-hacker-scan-${hacker.id}" class="ctrl-btn" style="background: #059669; color: #fff; min-width: 88px;">
-            ${'Hack dữ liệu'}
-          </button>
-        </div>
-      `;
-      content.appendChild(item);
-
-      item.querySelector(`#btn-hacker-scan-${hacker.id}`).addEventListener('click', () => {
-        const targetId = item.querySelector(`#hacker-target-${hacker.id}`).value;
-        const target = this.players.find(p => p.id === targetId);
-        const isEvil = target.role.team === 'evil';
-        const teamName = target.role.team === 'good' ? ('Phe Dân')
-                       : isEvil ? ('Phe Ác (Imposter)')
-                       : ('Trung Lập');
-        this.roundUsedAbilities.add(hacker.id);
-
-        this.showActionNotice({
-          icon: '💻',
-          title: 'HACK DỮ LIỆU THÀNH CÔNG',
-          targetName: target.name,
-          type: isEvil ? 'evil' : 'good',
-          heading: `💻 HỒ SƠ CỦA ${target.name}`,
-          message: `Tin Tặc <strong>${hacker.name}</strong> hack dữ liệu thành công:<br>• Mục tiêu: <strong>${target.name}</strong><br>• Vai trò: <strong>${target.role.name_vi} (${target.role.icon})</strong><br>• Phe: <strong>${teamName}</strong>`,
-          note: 'Hồ sơ bảo mật đã bị xâm nhập hoàn toàn.'
-        });
-        dismissCard(item);
-      });
-    });
-
-    // 10. PHÙ THỦY (Witch) - Bình Thuốc Cứu & Bình Thuốc Độc (1 lần mỗi loại / ván)
+    // 5. PHÙ THỦY (Witch) - Bình Thuốc Cứu & Bình Thuốc Độc (1 lần mỗi loại / ván)
     const aliveWitches = alivePlayers.filter(p => p.role.id === 'witch');
     aliveWitches.forEach((witch, idx) => {
       const hasSave = !this.witchUsedSavePotion;
@@ -4536,14 +4216,14 @@ class ImposterGame {
             message: `Phù Thủy <strong>${witch.name}</strong> đã hạ độc!<br><strong>${target.name}</strong> đã trúng độc và bị loại khỏi ván chơi ngay lập tức!`,
             note: 'Bình Độc đã tiêu hao.'
           });
-          
+
           dismissCard(item);
           this.checkGameStatusAfterDeath();
         });
       }
     });
 
-    // 11. TẮC KÈ HOA (Chameleon) - Xem lại 3 từ ngụy trang
+    // 6. TẮC KÈ HOA (Chameleon) - Xem lại 3 từ ngụy trang
     const aliveChameleons = alivePlayers.filter(p => p.role.id === 'chameleon');
     const availableChameleons = aliveChameleons.filter(c => !this.roundUsedAbilities.has(c.id));
     availableChameleons.forEach((chameleon, idx) => {
@@ -4585,38 +4265,6 @@ class ImposterGame {
       });
     });
 
-    // 12. THẨM PHÁN (Judge) - Trạng thái quyền Phủ Quyết
-    const aliveJudges = alivePlayers.filter(p => p.role.id === 'judge');
-    if (aliveJudges.length > 0 && !this.roundUsedAbilities.has('judge_info')) {
-      const item = document.createElement('div');
-      item.className = 'setting-item-row';
-      const vetoStatus = this.judgeVetoUsed 
-        ? ('🔴 Đã sử dụng') 
-        : ('🟢 Sẵn sàng');
-      item.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 24px;">⚖️</span>
-            <div>
-              <strong>${`Thẩm Phán (${aliveJudges.map(j => j.name).join(', ')})`}</strong>
-              <p style="font-size: 11px; color: #64748b; margin: 0;">
-                ${`Quyền Phủ Quyết: ${vetoStatus} • Tự động kích hoạt khi có biểu quyết loại!`}
-              </p>
-            </div>
-          </div>
-          <button id="btn-judge-ack" class="ctrl-btn" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-medium); color: var(--text-primary); min-width: 88px;">
-            ${'Đã hiểu'}
-          </button>
-        </div>
-      `;
-      content.appendChild(item);
-      item.querySelector('#btn-judge-ack').addEventListener('click', () => {
-        sound.playClick();
-        this.roundUsedAbilities.add('judge_info');
-        dismissCard(item);
-      });
-    }
-
     if (content.children.length === 0) {
       renderEmptyState();
     }
@@ -4639,6 +4287,84 @@ class ImposterGame {
       return true;
     }
     return false;
+  }
+
+  openDonateModal() {
+    if (typeof sound !== 'undefined') sound.playClick();
+    const modal = document.getElementById('modal-donate');
+    if (!modal) return;
+    modal.classList.add('open');
+  }
+
+  updateDonateQr(amount = 0, label = 'Tùy tâm') {
+    const qrImg = document.getElementById('donate-qr-img');
+    const activeLabel = document.getElementById('donate-active-amount-label');
+    if (activeLabel) activeLabel.textContent = label;
+
+    if (!amount || amount === 0) {
+      if (qrImg) qrImg.src = 'vietqr_donate.png';
+      return;
+    }
+
+    // Call VietQR API to get exact raw text, then render via QR server to ensure 0 logos in center!
+    const addInfo = 'Ung ho Faker Party';
+    const postBody = {
+      accountNo: '9964823876',
+      accountName: 'VU BAO NGUYEN',
+      acqId: 970407,
+      amount: amount,
+      addInfo: addInfo,
+      format: 'text',
+      template: 'qr_only'
+    };
+
+    fetch('https://api.vietqr.io/v2/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(postBody)
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.data && data.data.qrCode) {
+          // Render raw string with zero logo
+          const cleanUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=20&format=png&data=${encodeURIComponent(data.data.qrCode)}`;
+          if (qrImg) qrImg.src = cleanUrl;
+        } else {
+          if (qrImg) qrImg.src = 'vietqr_donate.png';
+        }
+      })
+      .catch(() => {
+        if (qrImg) qrImg.src = 'vietqr_donate.png';
+      });
+  }
+
+  copyToClipboard(text, successCallback) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        if (successCallback) successCallback();
+      }).catch(() => {
+        this.fallbackCopyText(text, successCallback);
+      });
+    } else {
+      this.fallbackCopyText(text, successCallback);
+    }
+  }
+
+  fallbackCopyText(text, successCallback) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      if (successCallback) successCallback();
+    } catch (err) {
+      this.showToast('Không thể sao chép tự động!', 'error');
+    }
+    document.body.removeChild(textArea);
   }
 
   bindEvents() {
@@ -4916,18 +4642,21 @@ class ImposterGame {
       document.getElementById('reveal-card-viewport').style.display = 'block';
     });
 
-    document.getElementById('flip-card-inner')?.addEventListener('click', () => {
-      sound.playFlipCard();
-      const card = document.getElementById('flip-card-inner');
-      card.classList.toggle('flipped');
-      this.isCardFlipped = card.classList.contains('flipped');
+    document.getElementById('flip-card-inner')?.addEventListener('click', (e) => {
+      // Nếu bấm trúng nút Đã nhớ, giấu vai trò thì để listener của nút xử lý
+      if (e.target.closest('#btn-hide-role')) return;
+
+      if (!this.isCardFlipped) {
+        this.flipCardOpen();
+      } else {
+        // Người chơi chạm vào thẻ để úp lại -> giấu vai trò an toàn và chuyển sang màn che người tiếp theo (tránh lộ)
+        this.hideRoleAndAdvance();
+      }
     });
 
     document.getElementById('btn-hide-role')?.addEventListener('click', (e) => {
       e.stopPropagation();
-      sound.playFlipCard();
-      this.currentRevealIndex++;
-      this.showRevealStep(this.currentRevealIndex);
+      this.hideRoleAndAdvance();
     });
 
     // Roulette Screen Events
@@ -5225,6 +4954,10 @@ class ImposterGame {
               p.penalty = (p.penalty || 0) + 5;
             }
           });
+        } else if (this.pendingWrongVotePenaltyMode === 'all') {
+          this.players.filter(p => !p.isEliminated).forEach(p => {
+            p.penalty = (p.penalty || 0) + 5;
+          });
         } else {
           this.players.filter(p => p.role.team === 'good' && !p.isEliminated).forEach(p => {
             p.penalty = (p.penalty || 0) + 5;
@@ -5235,6 +4968,172 @@ class ImposterGame {
       document.getElementById('modal-round-intermission')?.classList.remove('open');
       this.roundNumber++;
       this.prepareRoundStart();
+    });
+
+    // Donate Modal Events
+    document.getElementById('btn-open-donate')?.addEventListener('click', () => {
+      this.openDonateModal();
+    });
+    document.getElementById('btn-close-donate')?.addEventListener('click', () => {
+      document.getElementById('modal-donate')?.classList.remove('open');
+    });
+    document.getElementById('modal-donate')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-donate') {
+        document.getElementById('modal-donate').classList.remove('open');
+      }
+    });
+
+    // Copy STK
+    document.getElementById('btn-copy-donate-stk')?.addEventListener('click', () => {
+      if (typeof sound !== 'undefined') sound.playClick();
+      this.copyToClipboard('9964823876', () => {
+        const btn = document.getElementById('btn-copy-donate-stk');
+        const icon = document.getElementById('copy-stk-icon');
+        const text = document.getElementById('copy-stk-text');
+        if (btn) btn.classList.add('copied');
+        if (icon) icon.textContent = '✓';
+        if (text) text.textContent = 'Đã chép!';
+        this.showToast('📋 Đã sao chép STK Techcombank: 9964823876', 'success');
+        setTimeout(() => {
+          if (btn) btn.classList.remove('copied');
+          if (icon) icon.textContent = '📋';
+          if (text) text.textContent = 'Sao chép STK';
+        }, 2500);
+      });
+    });
+
+    // Copy Memo
+    document.getElementById('btn-copy-donate-memo')?.addEventListener('click', () => {
+      if (typeof sound !== 'undefined') sound.playClick();
+      this.copyToClipboard('Faker Party', () => {
+        const btn = document.getElementById('btn-copy-donate-memo');
+        const icon = document.getElementById('copy-memo-icon');
+        const text = document.getElementById('copy-memo-text');
+        if (btn) btn.classList.add('copied');
+        if (icon) icon.textContent = '✓';
+        if (text) text.textContent = 'Đã chép!';
+        this.showToast('📋 Đã sao chép nội dung: Faker Party', 'success');
+        setTimeout(() => {
+          if (btn) btn.classList.remove('copied');
+          if (icon) icon.textContent = '📋';
+          if (text) text.textContent = 'Sao chép';
+        }, 2500);
+      });
+    });
+
+    // Amount Selection Chips
+    const amountChips = document.querySelectorAll('.amount-chip');
+    amountChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        if (typeof sound !== 'undefined') sound.playClick();
+        amountChips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        const amount = parseInt(chip.getAttribute('data-amount') || '0', 10);
+        const label = chip.textContent.trim();
+        this.updateDonateQr(amount, label);
+      });
+    });
+
+    // Group Split Button (Quick)
+    document.getElementById('btn-apply-group-split')?.addEventListener('click', () => {
+      if (typeof sound !== 'undefined') sound.playClick();
+      const players = this.playerCount || 6;
+      const splitTotal = players * 10000;
+      amountChips.forEach(c => c.classList.remove('active'));
+      this.updateDonateQr(splitTotal, `Nhóm ${players} người (${splitTotal.toLocaleString('vi-VN')}đ)`);
+      this.showToast(`🎯 Đã tạo QR ủng hộ nhóm: ${splitTotal.toLocaleString('vi-VN')}đ`, 'success');
+    });
+
+    // Toggle Panels (+ Bổ sung số tiền & Chia tiền)
+    let currentSplitPlayers = this.playerCount || 6;
+    const updateAdvancedSplitCalc = () => {
+      const perPerson = parseInt(document.getElementById('select-split-per-person')?.value || '10000', 10);
+      const total = currentSplitPlayers * perPerson;
+      const valEl = document.getElementById('val-split-calculated-total');
+      if (valEl) valEl.textContent = `${total.toLocaleString('vi-VN')}đ`;
+    };
+
+    document.getElementById('btn-toggle-custom-amount')?.addEventListener('click', () => {
+      if (typeof sound !== 'undefined') sound.playClick();
+      const p1 = document.getElementById('panel-custom-amount');
+      const p2 = document.getElementById('panel-split-money');
+      if (p2) p2.style.display = 'none';
+      if (p1) {
+        const isShown = p1.style.display === 'block';
+        p1.style.display = isShown ? 'none' : 'block';
+        if (!isShown) document.getElementById('input-custom-donate-amount')?.focus();
+      }
+    });
+
+    document.getElementById('btn-close-custom-amount')?.addEventListener('click', () => {
+      document.getElementById('panel-custom-amount').style.display = 'none';
+    });
+
+    document.getElementById('btn-submit-custom-amount')?.addEventListener('click', () => {
+      if (typeof sound !== 'undefined') sound.playClick();
+      const input = document.getElementById('input-custom-donate-amount');
+      const val = parseInt(input?.value || '0', 10);
+      if (!val || val < 1000) {
+        this.showToast('Vui lòng nhập số tiền từ 1.000đ trở lên!', 'warning');
+        return;
+      }
+      amountChips.forEach(c => c.classList.remove('active'));
+      this.updateDonateQr(val, `${val.toLocaleString('vi-VN')}đ`);
+      document.getElementById('panel-custom-amount').style.display = 'none';
+      this.showToast(`✓ Đã tạo mã QR: ${val.toLocaleString('vi-VN')}đ`, 'success');
+    });
+
+    document.getElementById('btn-toggle-split-money')?.addEventListener('click', () => {
+      if (typeof sound !== 'undefined') sound.playClick();
+      const p1 = document.getElementById('panel-custom-amount');
+      const p2 = document.getElementById('panel-split-money');
+      if (p1) p1.style.display = 'none';
+      if (p2) {
+        const isShown = p2.style.display === 'block';
+        p2.style.display = isShown ? 'none' : 'block';
+        currentSplitPlayers = this.playerCount || 6;
+        const valEl = document.getElementById('val-split-players');
+        if (valEl) valEl.textContent = currentSplitPlayers;
+        updateAdvancedSplitCalc();
+      }
+    });
+
+    document.getElementById('btn-close-split-money')?.addEventListener('click', () => {
+      document.getElementById('panel-split-money').style.display = 'none';
+    });
+
+    document.getElementById('btn-split-dec-players')?.addEventListener('click', () => {
+      if (currentSplitPlayers > 2) {
+        if (typeof sound !== 'undefined') sound.playClick();
+        currentSplitPlayers--;
+        const valEl = document.getElementById('val-split-players');
+        if (valEl) valEl.textContent = currentSplitPlayers;
+        updateAdvancedSplitCalc();
+      }
+    });
+
+    document.getElementById('btn-split-inc-players')?.addEventListener('click', () => {
+      if (currentSplitPlayers < 30) {
+        if (typeof sound !== 'undefined') sound.playClick();
+        currentSplitPlayers++;
+        const valEl = document.getElementById('val-split-players');
+        if (valEl) valEl.textContent = currentSplitPlayers;
+        updateAdvancedSplitCalc();
+      }
+    });
+
+    document.getElementById('select-split-per-person')?.addEventListener('change', () => {
+      updateAdvancedSplitCalc();
+    });
+
+    document.getElementById('btn-confirm-advanced-split')?.addEventListener('click', () => {
+      if (typeof sound !== 'undefined') sound.playClick();
+      const perPerson = parseInt(document.getElementById('select-split-per-person')?.value || '10000', 10);
+      const total = currentSplitPlayers * perPerson;
+      amountChips.forEach(c => c.classList.remove('active'));
+      this.updateDonateQr(total, `Nhóm ${currentSplitPlayers} người (${total.toLocaleString('vi-VN')}đ)`);
+      document.getElementById('panel-split-money').style.display = 'none';
+      this.showToast(`🎯 Đã tạo QR chia tiền nhóm: ${total.toLocaleString('vi-VN')}đ`, 'success');
     });
 
     // Deep Rules Modal Events
@@ -5553,7 +5452,7 @@ class ImposterGame {
       const count = this.fixedRoles[role.id] || 0;
       const item = document.createElement('div');
       item.className = `fixed-role-modal-item ${count > 0 ? 'active' : ''}`;
-      
+
       const teamLabel = role.team === 'good' ? 'Phe Dân' : role.team === 'evil' ? 'Phe Ác' : 'Trung Lập';
 
       item.innerHTML = `
@@ -5778,9 +5677,9 @@ class ImposterGame {
       filter.innerHTML = `
         <option value="all">Tất cả chủ đề (${this.customWordPairs.length})</option>
         ${allCats.map(c => {
-          const count = this.customWordPairs.filter(wp => wp.categoryId === c.id).length;
-          return `<option value="${c.id}">${c.icon} ${c.name_vi} (${count})</option>`;
-        }).join('')}
+        const count = this.customWordPairs.filter(wp => wp.categoryId === c.id).length;
+        return `<option value="${c.id}">${c.icon} ${c.name_vi} (${count})</option>`;
+      }).join('')}
       `;
       if (currentFilter && (currentFilter === 'all' || allCats.some(c => c.id === currentFilter))) {
         filter.value = currentFilter;

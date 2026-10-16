@@ -41,9 +41,9 @@ vuive/
 | **Vai trò cố định kèm số lượng (Fixed Roles & Stepper)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `[SEC 04.4]` hoặc `syncFixedRolesWithDeck`, `setFixedRoleCount`, `renderFixedRolesChips` |
 | **Giao diện Vai trò cố định & Modal 2.2** | [`index.html`](file:///c:/Users/Windows/Documents/APP%20code/vuive/index.html) | Tìm: `#card-fixed-roles`, `#modal-fixed-roles`, `#btn-open-fixed-roles-modal` |
 | **Quản lý cặp từ vựng tự tạo (Word Pairs)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `[SEC 04.5]` hoặc `openWordPairsModal`, `addCustomWordPair`, `deleteCustomWordPair` |
-| **Kỹ năng 20 vai trò đặc biệt (Special Role Abilities)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `openSpecialAbilityToolbox`, `submitVotingOutcome`, `showRevealStep` |
-| **Quyền Phủ Quyết Thẩm Phán & Cứu/Độc Phù Thủy** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `judgeVetoUsed`, `witchSavedPlayerId`, `witchUsedPoisonPotion` |
-| **Bà Đồng gọi hồn & Tin Tặc đột nhập dữ liệu** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `aliveMediums`, `aliveHackers`, `aliveChameleons` |
+| **Kỹ năng 12 vai trò đặc biệt (Special Role Abilities)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `openSpecialAbilityToolbox`, `submitVotingOutcome`, `showRevealStep` |
+| **Cứu/Độc Phù Thủy & Thám Tử / Bác Sĩ** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `witchSavedPlayerId`, `witchUsedPoisonPotion`, `doctorShieldedPlayerId` |
+| **Tắc Kè Hoa, Gián Điệp, Thị Trưởng** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `getChameleonDecoys`, `aliveSpies`, `aliveMayors` |
 | **Cài đặt hệ thống (Theme & Âm thanh)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) & [`index.html`](file:///c:/Users/Windows/Documents/APP%20code/vuive/index.html) | Tìm: `#btn-open-settings` (Góc trên bên phải), `#modal-settings`, `openSettingsModal` |
 | **Bản địa hóa 100% Tiếng Việt** | Toàn bộ ứng dụng | Không sử dụng song ngữ Anh-Việt, khóa cứng ngôn ngữ tiếng Việt thuần túy |
 | **Thêm / Sửa từ vựng mặc định (Word Pairs)** | [`data_categories.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/data_categories.js) | Tìm: `CATEGORIES` (Cặp từ: `{ civilian, imposter }`) |
@@ -75,7 +75,7 @@ Mỗi màn hình được bọc trong thẻ `<section id="screen-..." class="vie
    - Thẻ công bố người phát biểu mở màn, nút bắt đầu thảo luận hoặc quay lại/bỏ qua.
 6. **`#screen-night` (Screen 4.8 - Ban Đêm Bí Mật Chuyền Tay - Pass-the-Phone Night Phase)**:
    - Màn che bảo mật riêng tư (`#night-curtain-box`), hiển thị tên người chơi tiếp theo và nút "Mở mắt hành động".
-   - Viewport hành động bí mật (`#night-action-viewport`) hiển thị vai trò và form kích hoạt kỹ năng riêng cho từng vai trò đặc biệt (Thám tử, Bác sĩ, Vệ sĩ, Phá hoại, Gián điệp, Tiên tri, Bà đồng, Tin tặc, Phù thủy, Tắc kè hoa) và thẻ ngủ yên cho dân thường/imposter.
+   - Viewport hành động bí mật (`#night-action-viewport`) hiển thị vai trò và form kích hoạt kỹ năng riêng cho từng vai trò đặc biệt (Thám tử, Bác sĩ, Gián điệp, Phù thủy, Tắc kè hoa) và thẻ ngủ yên cho dân thường/imposter.
    - Thẻ bình minh "Trời Đã Sáng! ☀️" (`#night-dawn-card`) sau khi tất cả người chơi hoàn tất, chuyển sang phiên thảo luận.
    - Cung cấp tùy chọn bật/tắt linh hoạt (`#switch-night-phase` và `#switch-night-phase-modal`), tự động bỏ qua nếu tắt hoặc ván không có vai trò đêm chủ động.
 7. **`#screen-discussion` (Screen 5 - Thảo luận & Đồng hồ)**:

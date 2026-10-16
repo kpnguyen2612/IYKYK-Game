@@ -11,6 +11,103 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ---
 
+## [2026-10-16] - Loại Bỏ 100% Logo "v" Khỏi Mã QR & Xây Dựng Modal Ủng Hộ (Donate) Sang Trọng
+
+### 🎁 1. Xóa Bỏ Logo "v" Khỏi Mã QR Code (100% Unobstructed Scan)
+- **Vấn đề**: Mã QR từ mẫu VietQR mặc định có chèn logo biểu tượng hình chữ "v" (trái tim Napas/VietQR) ở chính giữa tâm mã, khiến camera của nhiều ứng dụng ngân hàng bị cản trở ma trận dữ liệu và không thể nhận diện thanh toán.
+- **Khắc phục**:
+  - Trích xuất chuỗi mã hóa EMVCo chuẩn mực của Napas 247: `00020101021138540010A00000072701240006970407011099648238760208QRIBFTTA53037045802VN63047ACD`.
+  - Tái tạo mã QR độ phân giải cao (600x600, margin 20px) **hoàn toàn sạch 100%, không chứa bất kỳ logo che khuất nào ở tâm**, đảm bảo 100% ứng dụng ngân hàng và ví điện tử quét chuyển khoản thành công trong 1 giây.
+
+### 🎀 2. Icon Hộp Quà (🎁) Trên Header & Điều Hướng
+- Bổ sung nút **Hộp quà (`🎁`)** (`#btn-open-donate`) tại vị trí đầu tiên của cụm điều khiển góc phải (`.control-group-right`), đứng trước nút Luật chơi (`❓`) và Cài đặt (`⚙️`), đồng thời giữ nút Cúp Bảng xếp hạng (`🏆`) ở phía tay trái (`.control-group-left`).
+- Hiệu ứng viền vàng hổ phách phát sáng nhẹ (`.pulse-gift-btn`) với hiệu ứng hover và click mượt mà.
+
+### ☕ 3. Xây Dựng Modal Thông Tin Ủng Hộ Dự Án (Techcombank)
+- **Tối Giản Thẻ QR - Chỉ Giữ Logo Techcombank**:
+  - Tích hợp trực tiếp logo nhận diện chính thức của **Techcombank** (`techcombank_logo.png`) đặt trang trọng phía trên mã QR.
+  - Lược bỏ hoàn toàn các dòng text thừa, rườm rà xung quanh khung mã QR ("Mã QR sạch 100% không che logo", "Quét bằng mọi app Ngân hàng..."), giữ cho khung thẻ thanh toán tối giản, sang trọng và chuẩn mực ngân hàng.
+- **Giao diện Modal Bottom Sheet cao cấp (`#modal-donate`)**:
+  - Khung thẻ mã QR viền trắng sắc nét, tương phản tối đa cho camera điện thoại quét.
+  - Khối chi tiết tài khoản thụ hưởng:
+    - **Ngân hàng**: Techcombank (TCB)
+    - **Chủ tài khoản**: VU BAO NGUYEN
+    - **Số tài khoản**: 9964823876
+    - **Nội dung chuyển khoản**: Faker Party
+  - Nút **[ 📋 Sao chép STK ]** và **[ 📋 Sao chép Nội dung ]** tiện lợi: Tự động sao chép vào clipboard và đổi trạng thái sang `✓ Đã chép!` kèm thông báo Toast.
+  - **Nút Bổ sung số tiền (+)** và **Chia tiền (➗)**: Mở bảng tùy biến số tiền hoặc bảng chia tiền nhóm nhanh chóng.
+  - **Mức ủng hộ gợi ý nhanh**: Tùy tâm 💝, 10k (Trà đá 🥤), 20k (Bánh mì 🥖), 50k (Cà phê ☕), 100k (Bữa trưa 🍱).
+  - **Nút Tạo QR tối giản**: Lược bỏ hoàn toàn tiêu đề và câu chữ "Chia tiền nhóm chơi", chỉ giữ lại duy nhất nút bấm nổi bật: **"Tạo QR"**.
+
+---
+
+## [2026-10-16] - Xóa Bỏ Hoàn Toàn 7 Vai Trò Dư Thừa & Tinh Gọn Hệ Thống Còn 12 Vai Trò Cốt Lõi
+
+### 🧹 1. Xóa Bỏ Dữ Liệu & Logic 7 Vai Trò:
+- **7 Vai trò bị loại bỏ hoàn toàn**:
+  1. 🕯️ **Bà Đồng (Medium)** (`medium`): Giao tiếp linh hồn người bị loại.
+  2. 💻 **Tin Tặc (Hacker)** (`hacker`): Hack đột nhập dữ liệu giải mã vai trò.
+  3. ⚖️ **Thẩm Phán (Judge)** (`judge`): Quyền phủ quyết (veto) hủy án trục xuất.
+  4. 🔮 **Nhà Tiên Tri (Seer)** (`seer`): Xem cấu trúc số tiếng và số ký tự.
+  5. 🛡️ **Vệ Sĩ (Bodyguard)** (`bodyguard`): Âm thầm theo sát và hy sinh thế mạng.
+  6. 🤐 **Kẻ Câm Lặng (Mime)** (`mime`): Giới hạn phát biểu tối đa 1 từ.
+  7. 💣 **Kẻ Gây Rối / Phá Hoại (Saboteur)** (`saboteur`): Cắt giảm 30s thời gian thảo luận.
+- **12 Vai trò cốt lõi còn lại**:
+  - **Phe Dân (Good)**: Dân Thường, Thám Tử, Bác Sĩ, Thị Trưởng, Kẻ Say Rượu.
+  - **Phe Ác (Evil)**: Kẻ Giả Mạo, Gián Điệp, Kẻ Phản Bội, Tắc Kè Hoa.
+  - **Phe Trung Lập (Neutral)**: Kẻ Ngu (Jester), Phù Thủy (Witch), Điệp Viên Hai Mang (Double Agent).
+
+### ⚙️ 2. Dọn Dẹp Logic Trong Mã Nguồn:
+- **`data_roles.js`**: Loại bỏ toàn bộ định nghĩa đối tượng của 7 vai trò khỏi `DEFAULT_ROLES`.
+- **`app.js`**:
+  - Dọn sạch các thuộc tính trạng thái liên quan trong constructor và `startMatchSession`: `bodyguardProtectedPlayerId`, `bodyguardProtectedMap`, `bodyguardSacrifices`, `judgeVetoUsed`, `judgeVetoSavedPlayerId`.
+  - Cập nhật thuật toán cân bằng vai trò `autoBalanceRoles`: Thay thế vai trò dự phòng `seer` bằng `mayor`.
+  - Dọn sạch logic hiển thị thẻ bài bí mật `renderCardSecretInfo`: Bỏ các nhánh của 7 vai trò, giữ lại nguyên vẹn `witch` và các vai trò còn lại.
+  - Tinh gọn thứ tự phát biểu `renderSpeakingOrder`: Bỏ badge giới hạn của `mime`.
+  - Cập nhật danh sách vai trò hành động ban đêm `hasActiveNightRoles`: Chỉ còn lại `detective`, `doctor`, `spy`, `witch`, `chameleon`.
+  - Dọn dẹp thẻ hành động ban đêm `renderNightRoleActionCard`: Bỏ toàn bộ các case của `bodyguard`, `saboteur`, `seer`, `medium`, `hacker`.
+  - Dọn dẹp quy trình biểu quyết `submitVotingOutcome`: Bỏ kiểm tra quyền phủ quyết của Thẩm Phán và đỡ đòn hy sinh của Vệ Sĩ.
+  - Dọn dẹp tính điểm `calculateMatchScores`: Bỏ điểm thưởng hy sinh Vệ Sĩ (+10đ) và phủ quyết Thẩm Phán (+5đ).
+  - Dọn dẹp Hộp công cụ ban ngày `openSpecialAbilityToolbox`: Bỏ các thẻ kỹ năng của Vệ Sĩ, Phá Hoại, Tiên Tri, Bà Đồng, Tin Tặc, Thẩm Phán.
+- **`index.html`**: Cập nhật bảng luật chơi chi tiết (`#modal-deep-rules`), gỡ bỏ dòng thưởng/phạt và tên của các vai trò đã xóa.
+- **`ARCHITECTURE.md`**: Đồng bộ tài liệu kiến trúc sang 12 vai trò đặc biệt.
+
+---
+
+## [2026-10-16] - Cho Phép Tất Cả Người Chơi Vote & Tùy Chọn Phạt Oan Sai Toàn Diện
+
+### 🗳️ 1. Cho Phép Tất Cả Người Chơi Còn Sống Xuất Hiện Trong Danh Sách Vote Oan
+- **Hiện tượng trước đây**: Khi Dân thường bị biểu quyết loại nhầm, danh sách "Chọn người đã chỉ tay" chỉ lọc và hiển thị người chơi phe Dân (`team === 'good'`), ẩn hoàn toàn Imposter và các vai trò khác (như trong ảnh chụp: ván 6 người loại 1 Dân còn 5 người, nhưng chỉ hiển thị 4 Dân, thiếu mất 1 Imposter).
+- **Cải tiến & Khắc phục**:
+  - Mở rộng danh sách: Hiển thị **toàn bộ tất cả người chơi còn sống** (`this.players.filter(p => !p.isEliminated)`), không phân biệt phe Dân, Imposter hay Trung Lập, cho phép quản trò tự do chọn bất kỳ ai trong nhóm đã chỉ tay vote oan.
+  - Bổ sung 3 chế độ linh hoạt:
+    1. `👥 Cả phe Dân`: Áp dụng trách nhiệm tập thể cho toàn bộ Dân còn sống.
+    2. `🌐 Tất cả người sống`: Áp dụng phạt -5đ cho toàn bộ người chơi còn sống tham gia vote.
+    3. `👆 Chọn người chỉ tay`: Tự do chọn lọc từng người chơi cụ thể.
+  - Bổ sung 2 nút thao tác nhanh: **[ ✓ Chọn tất cả ]** và **[ ✕ Bỏ chọn ]** giúp quản trò thao tác chỉ với 1 chạm.
+
+---
+
+## [2026-10-16] - Sửa Lỗi Đồng Bộ Trạng Thái Toggle & Tái Cấu Trúc Giao Diện Thẻ Vai Trò
+
+### 🎛️ 1. Sửa Lỗi Bật/Tắt Switch Nhưng Badge Không Đổi (Role Toggle Sync Fix)
+- **Hiện tượng**: Khi người dùng gạt công tắc switch sang ON (màu cam), nhãn badge trạng thái vẫn bị kẹt ở `⛔ ĐÃ TẮT`, khiến người dùng nghĩ vai trò chưa được đưa vào vòng quay game.
+- **Nguyên nhân**: Thẻ badge trạng thái bị render tĩnh trong `innerHTML`, listener `toggle.addEventListener('change')` và bộ đếm `+` / `-` không cập nhật lại DOM của badge.
+- **Khắc phục**:
+  - Tạo hàm `getRoleStatusBadgeHtml(role)` và `updateRoleCardBadges(card, role)` để tự động cập nhật ngay lập tức:
+    - Khi Bật (ON): Badge chuyển sang `🎲 Trong vòng quay ngẫu nhiên` (màu tím neon) hoặc `📌 Cố định` nếu đang ghim.
+    - Khi Tắt (OFF): Badge chuyển sang `⛔ Đã tắt` (màu xám).
+  - Tự động đồng bộ số lượng (`role.count`) và hủy ghim cố định nếu người dùng tắt vai trò.
+  - Lưu và khôi phục vị trí cuộn trang (`container.scrollTop`) khi re-render để không bị nhảy màn hình.
+
+### 📐 2. Sửa Lỗi Lệch Giao Diện Header Thẻ Vai Trò (Layout Cramping Fix)
+- **Hiện tượng**: Phần chữ "Điều kiện thắng & Điểm" rất dài (hơn 130 ký tự) bị chèn trực tiếp vào `.role-title-team` ngay trong `.role-header-line`, làm dòng chữ bị ép ngang và đè sát vào công tắc toggle bên phải, gây méo mó xô lệch toàn bộ phần đầu thẻ.
+- **Khắc phục**:
+  - Tách nội dung điều kiện thắng ra khỏi header, chuyển thành khối riêng `.role-win-pill` (icon 🏆 màu vàng hổ phách sang trọng) nằm dưới phần kỹ năng (`.role-ability-pill`).
+  - Chuẩn hóa CSS `.role-header-line`, `.role-id-badge`, `.role-title-team`, `.role-title-tags` với `flex: 1; min-width: 0;` và công tắc switch cố định `flex-shrink: 0;`, đảm bảo giao diện luôn thoáng đãng, sắc nét trên cả desktop lẫn mobile.
+
+---
+
 ## [2026-10-16] - Cải Tổ Logic Trò Chơi: Kẻ Ngu, Gián Điệp, Imposter Luôn Biết Chủ Đề & Nút "Tiếp tục chơi"
 
 ### 🔄 1. Cập Nhật Ngữ Cảnh Nút Thao Tác: "Tiếp Tục Chơi" (Play Again CTA)
@@ -50,6 +147,58 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
   - **12 - 15 người chơi**: Tối đa **4 vai trò cố định** (4 slot).
   - **16 - 20 người chơi**: Tối đa **5 vai trò cố định** (5 slot).
 - Đồng bộ hóa mượt mà: khi người chơi thay đổi số lượng người trong phòng (stepper tăng/giảm hoặc thêm/xóa người chơi), hệ thống tự động cập nhật slot, trim các vai trò cố định dư thừa nếu số người chơi giảm xuống, và hiển thị tức thì trên banner và Modal Chọn Vai Trò Cố Định.
+
+### 🔮 7. Nâng Cấp Nút "Bắt Đầu Thiết Lập Người Chơi" Phong Cách Liquid Glass & Cố Định Đáy Khi Lướt
+- **Luôn luôn hiển thị cố định ở đáy (Persistent Floating Dock)**: Nút được neo trực tiếp tại đáy màn hình (`position: fixed; bottom: max(16px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);`), xuất hiện ngay từ khi ở đỉnh trang và giữ nguyên vị trí trong suốt quá trình người dùng lướt lên lướt xuống.
+- **Hiệu ứng Kính Lỏng (Liquid Glass) Cao Cấp**:
+  - Khay dock kính mờ (`.liquid-glass-dock`) với `backdrop-filter: blur(24px) saturate(200%)` khúc xạ ánh sáng mượt mà từ các nội dung cuộn bên dưới.
+  - Thấu kính cong phản chiếu ánh sáng thủy tinh (`::before` specular highlight).
+  - Vệt sáng phản quang lướt nhẹ (`::after` shimmer animation).
+  - Icon `🚀` lồng trong viên ngọc kính tròn ("Button-in-Button" theo chuẩn Awwwards).
+  - Bổ sung khoảng đệm an toàn `padding-bottom: 96px` cho `#screen-setup` để không che khuất bất kỳ tùy chọn nào ở cuối trang.
+
+### ⚖️ 8. Loại Bỏ Hình Phạt (-3đ) Lật Kèo Cho Phe Dân & Loại Bỏ (+2đ/lần) Lừa Dân Cho Imposter
+- **Xóa bỏ hình phạt `-3 điểm` cho Dân**: Khi Imposter đoán trúng từ khóa ở cơ hội Lật Kèo, phe Dân chỉ chịu phạt thua trận (`-5 điểm`), không còn bị trừ thêm `-3 điểm` vì lý do làm lộ từ khóa.
+- **Xóa bỏ thưởng `+2đ / lần lừa Dân vote oan` cho Imposter**: Khi Kẻ Giả Mạo sống sót thắng ván, điểm số được cố định chuẩn mực là `+15 điểm`, không còn cộng dồn thưởng lừa Dân vote nhầm.
+- **Đồng bộ hóa 100%**: Cập nhật logic tính điểm `calculateRoundScores` và dòng ghi chú diễn biến ván trong `app.js`, định nghĩa vai trò trong `data_roles.js`, và bảng điểm thưởng/phạt trong Modal Luật Chơi (`index.html`).
+
+### 🎯 9. Thưởng +5 Điểm Khi Đoán Trúng Phe Giả Mạo & Trung Lập (Lũy Kế Nếu Có Nhiều Kẻ)
+- **Quy tắc mới**: Phe Dân còn sống (`!p.isEliminated`) khi bỏ phiếu trục xuất thành công người chơi thuộc **Phe Giả Mạo / Phe Ác** (`team: 'evil'` như Kẻ Giả Mạo, Gián Điệp, Kẻ Phản Bội, Kẻ Gây Rối, Tắc Kè Hoa) hoặc **Phe Trung Lập** (`team: 'neutral'` như Kẻ Ngu, Phù Thủy, Điệp Viên Hai Mang) sẽ nhận ngay **+5 điểm / kẻ**.
+- **Cơ chế Lũy kế (Cumulative Scaling)**:
+  - Bắt 1 kẻ: nhận **+5 điểm**.
+  - Bắt 2 kẻ: nhận **+10 điểm** (5đ × 2).
+  - Bắt 3 kẻ: nhận **+15 điểm** (5đ × 3).
+- **Áp dụng toàn diện trong mọi kịch bản kết thúc ván**:
+  - Khi Phe Dân thắng: Dân còn sống nhận `+10đ` thắng ván cộng thêm `+5đ / kẻ` (tổng từ `+15đ` đến `+25đ...`).
+  - Khi Phe Ác thắng hoặc Kẻ Ngu thắng: Dân còn sống vẫn được bảo toàn phần thưởng lũy kế `+5đ / kẻ` cho những kẻ mà họ đã sáng suốt vote loại trước đó.
+- **Đồng bộ giao diện & dữ liệu**:
+  - Cập nhật dòng quy tắc tại Modal Luật Chơi Chi Tiết (`#modal-deep-rules`): `"🎯 Phe Dân còn sống vote đúng Kẻ Giả Mạo & Trung Lập: +5 điểm / kẻ (Lũy kế nếu có nhiều kẻ)"`.
+  - Cập nhật Box gợi ý hệ thống điểm Party Leaderboard (`#modal-cumulative-leaderboard`): `"• Bắt Kẻ Giả Mạo & Trung Lập: +5đ/kẻ (Lũy kế)"`.
+  - Cập nhật mô tả kỹ năng (`ability_vi`) và điều kiện thắng (`win_vi`) của tất cả các vai trò phe Dân trong `data_roles.js`.
+  - Bổ sung xử lý khi người chơi phe Trung Lập (Phù Thủy, Điệp Viên...) bị trục xuất: không bị áp đặt phạt nhầm Dân làng vô tội (`p.penalty`), hiển thị thông báo vạch mặt chuẩn xác và chuyển vòng kế tiếp nếu còn Imposter.
+
+### 🛡️ 10. Chống Lộ Vai Trò Khi Lật Thẻ & Bổ Sung Timer 30s Viền Chạy Quanh Thẻ
+- **Khắc phục triệt để lỗi lộ vai trò khi người chơi chỉ úp lại thẻ**:
+  - Trước đây: nếu người chơi không ấn "Đã nhớ, giấu vai trò" mà chỉ chạm để úp thẻ lại, hệ thống vẫn giữ nguyên thẻ của người đó ở mặt úp; khi người kế tiếp nhận máy chạm mở thẻ sẽ bị nhìn thấy vai trò của người trước.
+  - Cải tiến: khi thẻ đang mở xem vai trò, **bất kể người chơi ấn nút "Đã nhớ, giấu vai trò" HOẶC chạm bất kỳ đâu vào thẻ để úp lại**, hệ thống đều lập tức giấu vai trò và kích hoạt hiệu ứng úp thẻ, sau đó **tự động chuyển sang Màn Che Quyền Riêng Tư** ("Chuyền điện thoại cho: [Người tiếp theo]"). Người sau bắt buộc phải xác nhận "Tôi đã cầm máy, lật thẻ" mới thấy thẻ của chính mình, đảm bảo tuyệt đối không bao giờ bị lộ vai trò.
+- **Thời gian cố định 30 giây xem vai trò (Fixed 30s Timer)**:
+  - Khi mở thẻ xem vai trò, bộ đếm thời gian 30s lập tức kích hoạt.
+  - **Hoạt ảnh đường viền chạy quanh chu vi thẻ (`stroke-dashoffset`)**: Đường viền neon ánh sáng (theo màu phe/vai trò) chạy mượt mà bao quanh toàn bộ 4 cạnh và 4 góc bo tròn của thẻ, rút ngắn dần theo thời gian thực từ 100% về 0%.
+  - Khi còn 5 giây cuối, viền và huy hiệu đếm ngược tự động chuyển sang chế độ cảnh báo nhấp nháy đỏ (`warning pulse`).
+  - Khi hết 30 giây: hệ thống tự động phát âm thanh úp thẻ và chuyển sang màn che của người chơi kế tiếp, không bao giờ để mở thẻ quá lâu trên bàn chơi.
+- **Huy hiệu đếm ngược trực quan**: Bổ sung `⏱️ 30s` (giảm dần từng giây) ngay tại thanh tiêu đề đầu thẻ lật.
+
+### 🕵️ 11. Chuẩn Hóa Cơ Chế Gián Điệp: Không Có Khả Năng Đoán Từ Khi Bị Bắt, Chỉ Cố Gắng Sống Sót Đến Cuối
+- **Quy tắc cốt lõi của Gián Điệp (`spy`)**:
+  - **Không có quyền đoán từ lật kèo**: Khác với Imposter thường có 30 giây lật kèo đoán từ khi bị bỏ phiếu loại, Gián Điệp **hoàn toàn không có khả năng đoán từ** khi bị phát hiện. Nếu bị bỏ phiếu loại, Gián Điệp bị xử phạt `-10 điểm` ngay lập tức và bị loại khỏi ván đấu.
+  - **Mục tiêu duy nhất**: Cố gắng sống sót đến cuối ván cùng Kẻ Giả Mạo để nhận trọn vẹn `+25 điểm` chiến thắng (nếu phe Ác thắng).
+  - **Khi bị trục xuất**:
+    - Nếu Kẻ Giả Mạo vẫn còn sống: Hệ thống hiển thị thông báo vạch mặt Gián Điệp và chuyển ván chơi sang vòng tiếp theo để phe Dân tiếp tục truy lùng Kẻ Giả Mạo còn lại.
+    - Nếu Kẻ Giả Mạo đã bị loại trước đó: Vì Gián Điệp không có quyền đoán từ, phe Dân lập tức giành chiến thắng chung cuộc.
+- **Đồng bộ hóa 100%**:
+  - `data_roles.js`: Cập nhật `desc_vi`, `ability_vi`, và `win_vi` của vai trò Gián Điệp.
+  - `index.html`: Cập nhật bảng luật chơi chi tiết (`#modal-deep-rules`).
+  - `app.js`: Cập nhật thẻ lật vai trò (`showRevealStep`) và thông báo vạch mặt trục xuất trong `confirmEliminationVote`.
 
 ---
 
