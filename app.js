@@ -1200,7 +1200,7 @@ class ImposterGame {
     this.wrongVoteCount = 0;
     this.imposterGuessResult = null;
     this.imposterGuessText = '';
-    this.pendingWrongVotePenaltyMode = 'team';
+    this.pendingWrongVotePenaltyMode = 'all';
     this.pendingCustomPenalizedPlayerIds = new Set();
 
     // Reset match verdict & outcomes cleanly for new match
@@ -2581,7 +2581,6 @@ class ImposterGame {
     const penaltyConfigEl = document.getElementById('intermission-penalty-config');
     const penaltyVotersContainer = document.getElementById('penalty-voters-container');
     const penaltyGrid = document.getElementById('penalty-voters-selector-grid');
-    const btnPenaltyTeam = document.getElementById('btn-penalty-team');
     const btnPenaltyAll = document.getElementById('btn-penalty-all');
     const btnPenaltyVoters = document.getElementById('btn-penalty-voters');
     const btnPenaltySelectAll = document.getElementById('btn-penalty-select-all');
@@ -2611,13 +2610,13 @@ class ImposterGame {
         title.style.color = '#ef4444';
       }
       if (desc) {
-        desc.innerHTML = `Phe Dân đã biểu quyết sai! Toàn bộ Dân còn sống bị <strong style="color: #ef4444;">phạt trừ -5 điểm</strong> (không tính dân đã chết).<br />Kẻ Giả Mạo vẫn chưa bị lộ và đang lẩn trốn.`;
+        desc.innerHTML = `Phe Dân đã biểu quyết sai! Toàn bộ người chơi còn sống bị <strong style="color: #ef4444;">phạt trừ -5 điểm</strong>.<br />Kẻ Giả Mạo vẫn chưa bị lộ và đang lẩn trốn.`;
       }
 
       // Configure interactive penalty target selector
       if (penaltyConfigEl) {
         penaltyConfigEl.style.display = 'block';
-        this.pendingWrongVotePenaltyMode = 'team';
+        this.pendingWrongVotePenaltyMode = 'all';
         this.pendingCustomPenalizedPlayerIds = new Set();
 
         // Cho phép TẤT CẢ người chơi còn sống xuất hiện trong danh sách vote chỉ tay
@@ -2683,7 +2682,6 @@ class ImposterGame {
             btn.style.color = active ? '#fff' : 'var(--text-muted)';
           };
 
-          setActive(btnPenaltyTeam, mode === 'team');
           setActive(btnPenaltyAll, mode === 'all');
           setActive(btnPenaltyVoters, mode === 'custom');
 
@@ -2693,19 +2691,16 @@ class ImposterGame {
             penaltyGrid.style.display = mode === 'custom' ? 'flex' : 'none';
           }
 
-          if (mode === 'team') {
-            if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Trách nhiệm tập thể:</strong> Cả nhóm đã thống nhất biểu quyết theo số đông, do đó toàn bộ phe Dân còn sống cùng chịu phạt -5 điểm (không tính dân đã chết).';
-          } else if (mode === 'all') {
-            if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Tất cả người chơi cùng vote:</strong> Toàn bộ người chơi còn sống (cả Dân, Imposter & Trung Lập) đều tham gia biểu quyết, tất cả cùng chịu phạt -5 điểm (trừ Kẻ Ngu & Gián Điệp miễn nhiễm theo luật).';
+          if (mode === 'all') {
+            if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Trách nhiệm tập thể:</strong> Cả nhóm đã thống nhất biểu quyết theo số đông, do đó toàn bộ người chơi còn sống cùng chịu phạt -5 điểm.';
           } else {
-            if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Chỉ phạt người chỉ tay:</strong> Chỉ những người được tích chọn bên trên (đã chỉ tay vote oan) mới bị trừ -5 điểm (cho phép chọn bất kỳ ai trong số tất cả người chơi còn sống).';
+            if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Chỉ phạt người chỉ tay:</strong> Chỉ những người được tích chọn bên trên (đã giơ tay biểu quyết oan) mới bị trừ -5 điểm (cho phép chọn bất kỳ ai trong số tất cả người chơi còn sống).';
           }
         };
 
-        if (btnPenaltyTeam) btnPenaltyTeam.onclick = () => { sound.playClick(); updatePenaltyUI('team'); };
         if (btnPenaltyAll) btnPenaltyAll.onclick = () => { sound.playClick(); updatePenaltyUI('all'); };
         if (btnPenaltyVoters) btnPenaltyVoters.onclick = () => { sound.playClick(); updatePenaltyUI('custom'); };
-        updatePenaltyUI('team');
+        updatePenaltyUI('all');
       }
     }
 
@@ -4997,12 +4992,9 @@ class ImposterGame {
               p.penalty = (p.penalty || 0) + 5;
             }
           });
-        } else if (this.pendingWrongVotePenaltyMode === 'all') {
-          this.players.filter(p => !p.isEliminated).forEach(p => {
-            p.penalty = (p.penalty || 0) + 5;
-          });
         } else {
-          this.players.filter(p => p.role.team === 'good' && !p.isEliminated).forEach(p => {
+          // Mặc định trách nhiệm tập thể: Tất cả người chơi còn sống cùng chịu phạt vì vote theo số đông
+          this.players.filter(p => !p.isEliminated).forEach(p => {
             p.penalty = (p.penalty || 0) + 5;
           });
         }

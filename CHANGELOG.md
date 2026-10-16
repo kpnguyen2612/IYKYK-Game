@@ -11,6 +11,20 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ---
 
+## [2026-10-16] - Lược Bỏ Lựa Chọn "Cả Phe Dân" Khỏi Bảng Phạt Oan Sai (Logic Thân Phận Ẩn)
+
+### ⚖️ 1. Chuẩn Hóa Logic Phạt Biểu Quyết Oan Sai
+- **Vấn đề logic**: Trong trò chơi suy luận ẩn thân phận, khi một Dân thường vô tội bị vote loại nhầm, cả nhóm và quản trò **hoàn toàn không thể biết ai trong số những người còn sống là Dân, là Imposter hay Trung Lập**. Do đó, nút "👥 Cả phe Dân" là hoàn toàn phi thực tế và vô lý khi áp dụng trách nhiệm cho ván chơi.
+- **Cải tiến & Khắc phục**:
+  - **Lược bỏ 100% nút "👥 Cả phe Dân" (`#btn-penalty-team`)**: Không còn phân biệt phe khi phạt oan sai.
+  - **Tinh gọn còn 2 lựa chọn chuẩn mực 100% logic thực tế**:
+    1. **`🌐 Tất cả người sống`** (`#btn-penalty-all` - Mặc định): Trách nhiệm tập thể do cả nhóm đã biểu quyết theo số đông, tất cả người chơi còn sống đều chịu phạt -5 điểm.
+    2. **`👆 Chọn người chỉ tay`** (`#btn-penalty-voters`): Chỉ phạt đích danh những người chơi cụ thể đã giơ tay/chỉ tay biểu quyết nhầm.
+  - Tối ưu layout 2 nút cân đối (`grid-template-columns: 1fr 1fr`), font chữ rõ nét (11px).
+  - Cập nhật logic tính điểm `this.pendingWrongVotePenaltyMode = 'all'` và đồng bộ câu chữ giải thích luật ở màn hình biểu quyết (`#screen-voting`) và modal thông báo ván.
+
+---
+
 ## [2026-10-16] - Thiết Kế Lại Thẻ Sau Lật: Xóa Bỏ Hoàn Toàn Trùng Lặp Thông Tin
 
 ### 🎨 1. Tinh Gọn & Xóa Bỏ Trùng Lặp Thông Tin 3 Tầng

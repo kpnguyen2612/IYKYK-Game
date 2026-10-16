@@ -882,7 +882,7 @@
         <div class="penalty-warning-box">
           <span class="warning-icon">⚠️</span>
           <div class="warning-text" data-i18n="voting_penalty_rule">
-            <strong>Luật trừ điểm oan sai:</strong> Nếu trục xuất nhầm <strong>DÂN THƯỜNG</strong> vô tội, áp dụng <strong>trừ -5 điểm</strong> (mặc định trách nhiệm tập thể cho cả phe Dân còn sống, hoặc có thể chọn cụ thể người đã chỉ tay vote nhầm).
+            <strong>Luật trừ điểm oan sai:</strong> Nếu trục xuất nhầm <strong>DÂN THƯỜNG</strong> vô tội, áp dụng <strong>trừ -5 điểm</strong> (mặc định trách nhiệm tập thể cho tất cả người sống, hoặc có thể chọn cụ thể người đã chỉ tay vote nhầm).
           </div>
         </div>
 
@@ -1628,14 +1628,11 @@
         <div style="font-size: 12px; font-weight: 700; color: #ef4444; margin-bottom: 8px;">
           ⚖️ Áp dụng trừ -5 điểm oan sai cho ai?
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px;">
-          <button type="button" id="btn-penalty-team" class="ctrl-btn" style="font-size: 10.5px; padding: 7px 4px; border-radius: var(--radius-sm); border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.25); color: #fff; font-weight: 700; cursor: pointer; text-align: center;">
-            👥 Cả phe Dân
-          </button>
-          <button type="button" id="btn-penalty-all" class="ctrl-btn" style="font-size: 10.5px; padding: 7px 4px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-weight: 700; cursor: pointer; text-align: center;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+          <button type="button" id="btn-penalty-all" class="ctrl-btn" style="font-size: 11px; padding: 8px 6px; border-radius: var(--radius-sm); border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.25); color: #fff; font-weight: 700; cursor: pointer; text-align: center;">
             🌐 Tất cả người sống
           </button>
-          <button type="button" id="btn-penalty-voters" class="ctrl-btn" style="font-size: 10.5px; padding: 7px 4px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-weight: 700; cursor: pointer; text-align: center;">
+          <button type="button" id="btn-penalty-voters" class="ctrl-btn" style="font-size: 11px; padding: 8px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-weight: 700; cursor: pointer; text-align: center;">
             👆 Chọn người chỉ tay
           </button>
         </div>
@@ -1658,7 +1655,7 @@
         </div>
 
         <p id="penalty-explainer-text" style="font-size: 11px; color: var(--text-secondary); margin: 0; line-height: 1.4;">
-          <strong>Trách nhiệm tập thể:</strong> Cả nhóm đã thống nhất biểu quyết theo số đông, do đó toàn bộ phe Dân còn sống cùng chịu phạt -5 điểm.
+          <strong>Trách nhiệm tập thể:</strong> Cả nhóm đã thống nhất biểu quyết theo số đông, do đó toàn bộ người chơi còn sống cùng chịu phạt -5 điểm.
         </p>
       </div>
 
