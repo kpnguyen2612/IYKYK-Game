@@ -1348,59 +1348,64 @@ class ImposterGame {
     const keywordText = document.getElementById('keyword-text');
     const keywordCat = document.getElementById('keyword-category');
 
+    const catName = this.categoryData?.name_vi || this.categoryData?.name || 'Chung';
+
     if (player.role.id === 'jester') {
-      keywordLabel.textContent = '🤪 BẠN LÀ KẺ NGU (PHE TRUNG LẬP)!';
+      keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT:';
       keywordText.className = 'secret-keyword-text';
       keywordText.textContent = this.secretWord;
-      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • Bạn BIẾT TỪ KHÓA bí mật! Mục tiêu của bạn là giả vờ đáng ngờ để bị cả làng vote loại. Bị loại bạn sẽ THẮNG ĐỘC LẬP (+25đ), nếu không bị loại không mất điểm!`;
+      keywordCat.textContent = `Chủ đề: ${catName}`;
     } else if (player.role.id === 'drunkard') {
       const drunkWord = this.getDrunkardWord();
-      keywordLabel.textContent = 'Từ khóa bí mật (Hơi say xỉn 🍺):';
+      keywordLabel.textContent = 'TỪ KHÓA CỦA BẠN (SAY XỈN 🍺):';
       keywordText.className = 'secret-keyword-text';
       keywordText.textContent = drunkWord;
-      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • Bạn tin chắc đây là từ đúng! Hãy miêu tả tự nhiên cùng phe Dân!`;
+      keywordCat.textContent = `Chủ đề: ${catName}`;
     } else if (player.role.id === 'traitor') {
-      keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT (BẠN LÀ PHE ÁC 🗡️):';
+      keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT:';
       keywordText.className = 'secret-keyword-text imposter';
       keywordText.textContent = this.secretWord;
-      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • Bạn thuộc PHE ÁC nhưng BIẾT TỪ KHÓA! Hãy ngầm tung hỏa mù dẫn dắt Dân nghi ngờ lẫn nhau!`;
+      keywordCat.textContent = `Chủ đề: ${catName}`;
     } else if (player.role.id === 'chameleon') {
-      keywordLabel.textContent = 'BẠN LÀ TẮC KÈ HOA (PHE ÁC 🦎)!';
+      keywordLabel.textContent = '3 TỪ GỢI Ý NGỤY TRANG:';
       keywordText.className = 'secret-keyword-text imposter';
       const decoys = this.getChameleonDecoys();
       keywordText.textContent = decoys.join(' • ');
-      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • Chọn 1 trong 3 từ gợi ý trên để miêu tả hòa nhập hoàn hảo!`;
+      keywordCat.textContent = `Chủ đề: ${catName}`;
     } else if (player.role.id === 'double_agent') {
-      keywordLabel.textContent = 'Từ khóa bí mật:';
+      keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT:';
       keywordText.className = 'secret-keyword-text';
       keywordText.textContent = this.secretWord;
       const imposterNames = this.players.filter(p => p.isImposter && p.id !== player.id).map(p => p.name).join(', ') || 'Đang ẩn nấp';
-      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 🎭 Mật vụ: Imposter là [${imposterNames}]! Thắng nếu Imposter sống sót!`;
+      keywordCat.textContent = `Chủ đề: ${catName} • Imposter: ${imposterNames}`;
     } else if (player.role.id === 'spy') {
-      keywordLabel.textContent = 'BẠN LÀ GIÁN ĐIỆP (PHE ÁC 🕵️)!';
+      keywordLabel.textContent = 'TỪ GỢI Ý CỦA IMPOSTER:';
       keywordText.className = 'secret-keyword-text imposter';
       const spyWord = this.imposterWord || 'Cùng từ với Kẻ Giả Mạo';
-      keywordText.textContent = `Từ của Imposter: ${spyWord}`;
-      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • Bạn nhận từ của Imposter để trà trộn cùng Imposter. Bạn KHÔNG CÓ khả năng đoán từ khi bị phát hiện như Imposter thường, chỉ có thể cố gắng sống sót đến cuối ván! Sống sót thắng ván +25đ, bị loại -10đ (loại ngay, không đoán từ). Vote đúng/sai 0đ.`;
+      keywordText.textContent = spyWord;
+      keywordCat.textContent = `Chủ đề: ${catName}`;
     } else if (player.role.id === 'witch') {
-      keywordLabel.textContent = 'Từ khóa bí mật (Bạn là Phù Thủy 🧙‍♀️):';
+      keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT:';
       keywordText.className = 'secret-keyword-text';
       keywordText.textContent = this.secretWord;
-      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • 🧙‍♀️ Sở hữu 1 Bình Cứu (hóa giải vote) và 1 Bình Độc (loại người) trong Hộp công cụ!`;
+      keywordCat.textContent = `Chủ đề: ${catName}`;
     } else if (player.role.knowsKeyword) {
-      keywordLabel.textContent = 'Từ khóa bí mật:';
+      keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT:';
       keywordText.className = 'secret-keyword-text';
       keywordText.textContent = this.secretWord;
-      keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi}`;
+      keywordCat.textContent = `Chủ đề: ${catName}`;
     } else {
-      keywordLabel.textContent = 'BẠN LÀ KẺ GIẢ MẠO!';
-      keywordText.className = 'secret-keyword-text imposter';
+      // Kẻ Giả Mạo (Imposter)
       if (this.hintsEnabled && this.imposterWord) {
-        keywordText.textContent = `Gợi ý của bạn: ${this.imposterWord}`;
-        keywordCat.textContent = `Chủ đề: ${this.categoryData.name_vi} • Bạn luôn biết chủ đề! Hãy khéo léo nói về từ này để hòa nhập cùng phe Dân!`;
+        keywordLabel.textContent = 'TỪ GỢI Ý ĐỂ HÒA NHẬP:';
+        keywordText.className = 'secret-keyword-text imposter';
+        keywordText.textContent = this.imposterWord;
+        keywordCat.textContent = `Chủ đề: ${catName}`;
       } else {
-        keywordText.textContent = `Chủ đề: ${this.categoryData.name_vi}`;
-        keywordCat.textContent = `Bạn luôn biết chủ đề là [${this.categoryData.name_vi}]! Hãy hòa nhập, lắng nghe manh mối và lừa phe Dân!`;
+        keywordLabel.textContent = 'MANH MỐI BÍ MẬT:';
+        keywordText.className = 'secret-keyword-text imposter';
+        keywordText.textContent = '❓ KHÔNG BIẾT TỪ KHÓA';
+        keywordCat.textContent = `Chủ đề: ${catName}`;
       }
     }
 

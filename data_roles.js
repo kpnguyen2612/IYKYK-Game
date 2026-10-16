@@ -28,7 +28,7 @@ const DEFAULT_ROLES = [
     team: "evil",
     color: "#EF4444",
     desc_vi: "Kẻ trà trộn luôn biết chủ đề nhưng không biết từ khóa bí mật của phe Dân.",
-    ability_vi: "Luôn biết chủ đề từ vựng. Hòa nhập và lừa Dân. Nếu bị bắt: có 30s suy nghĩ để đoán từ (đúng +20đ, sai -10đ, không đoán không mất điểm). Bị bắt vòng 1 phạt thêm -5đ.",
+    ability_vi: "Đóng vai Dân thường và lừa cả làng. Nếu bị bắt: có 30s suy nghĩ để đoán từ bí mật (đúng +20đ, sai -10đ, bỏ qua 0đ). Bị bắt vòng 1 phạt thêm -5đ.",
     win_vi: "Sống sót thắng ván (+15đ) HOẶC Lật Kèo đoán đúng (+20đ, không bị phạt). Bị bắt: -10đ (vòng 1: -15đ).",
     knowsKeyword: false,
     getsHint: true,

@@ -11,6 +11,27 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ---
 
+## [2026-10-16] - Thiết Kế Lại Thẻ Sau Lật: Xóa Bỏ Hoàn Toàn Trùng Lặp Thông Tin
+
+### 🎨 1. Tinh Gọn & Xóa Bỏ Trùng Lặp Thông Tin 3 Tầng
+- **Vấn đề**: Thẻ sau khi lật (đặc biệt là Kẻ Giả Mạo) bị trùng lặp thông tin rối mắt ở 3 tầng:
+  1. Tên vai trò đã ở Header (`Kẻ Giả Mạo`), nhưng trong hộp lại viết hoa: `BẠN LÀ KẺ GIẢ MẠO!`.
+  2. Từ gợi ý lồng thêm chữ dài dòng: `Gợi ý của bạn: [từ]`.
+  3. Dòng chủ đề bị nhồi nhét câu văn dài: `Chủ đề: [Tên] • Bạn luôn biết chủ đề! Hãy khéo léo nói về từ này để hòa nhập cùng phe Dân!`.
+  4. Khối mô tả ở dưới lại lặp lại lần thứ ba: `Luôn biết chủ đề từ vựng. Hòa nhập và lừa Dân...`.
+- **Cải tiến & Khắc phục**:
+  - **Phân tầng thông tin 3 khối độc lập & mạch lạc**:
+    - **Khối 1 (Header)**: Thể hiện Tôi là ai? (`[Phe Ác]`, `[⏱️ 30s]`, Icon `🎭`, Tên vai trò to rõ `Kẻ Giả Mạo`).
+    - **Khối 2 (Hộp từ khóa trung tâm)**: Thể hiện Tôi nhận được manh mối gì để nói?
+      - Tiêu đề nhãn: `TỪ GỢI Ý ĐỂ HÒA NHẬP:` (hoặc `TỪ KHÓA BÍ MẬT:` cho phe Dân).
+      - Từ khóa/gợi ý hiển thị to bản, sắc nét (26px, phát sáng màu phe), không chứa tiền tố thừa.
+      - Badge chủ đề dạng chip tinh tế: `Chủ đề: [Tên chủ đề]`.
+    - **Khối 3 (Khung nhiệm vụ & kỹ năng - `.revealed-ability-box`)**: Có header icon `🎯 Nhiệm vụ & Kỹ năng:` và nội dung súc tích, không lặp lại bất kỳ câu chữ nào từ hộp từ khóa.
+  - Tối ưu `ability_vi` của Kẻ Giả Mạo trong `data_roles.js` trực diện, gọn gàng.
+  - Áp dụng nhất quán chuẩn giao diện này cho toàn bộ 12 vai trò (Dân Thường, Kẻ Giả Mạo, Kẻ Ngu, Gián Điệp, Tắc Kè Hoa, v.v.).
+
+---
+
 ## [2026-10-16] - Đồng Bộ Kích Cỡ Thẻ Trước Lật & Sau Lật (Zero Layout Shift)
 
 ### 🎴 1. Đồng Nhất 100% Kích Thước Thẻ Trước & Sau Lật

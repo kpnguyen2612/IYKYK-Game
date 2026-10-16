@@ -551,15 +551,21 @@
 
                 <!-- Secret Keyword Box (Only if permitted) -->
                 <div class="secret-keyword-container" id="keyword-box" style="position: relative; z-index: 2;">
-                  <div class="keyword-label" id="keyword-label" data-i18n="secret_keyword_label">Từ khóa bí mật:</div>
+                  <div class="keyword-label" id="keyword-label">TỪ KHÓA BÍ MẬT:</div>
                   <div class="secret-keyword-text" id="keyword-text">Trà Sữa Trân Châu</div>
-                  <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="keyword-category">
+                  <div class="keyword-category-badge" id="keyword-category">
                     Chủ đề: Ẩm Thực & Đồ Uống
                   </div>
                 </div>
 
-                <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.45; position: relative; z-index: 2;" id="revealed-ability">
-                  Khả năng: Có thể kiểm tra 1 người chơi để biết họ có phải là Imposter hay không.
+                <!-- Role Mission & Ability Box -->
+                <div class="revealed-ability-box" id="revealed-ability-box">
+                  <div class="revealed-ability-header">
+                    <span>🎯</span> <span>Nhiệm vụ & Kỹ năng:</span>
+                  </div>
+                  <div class="revealed-ability-text" id="revealed-ability">
+                    Biết từ khóa bí mật, miêu tả khéo léo để tìm Kẻ Giả Mạo.
+                  </div>
                 </div>
 
                 <div style="width: 100%; display: flex; flex-direction: column; gap: 4px; position: relative; z-index: 2;">
