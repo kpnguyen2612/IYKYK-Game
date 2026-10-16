@@ -11,6 +11,22 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ---
 
+## [2026-10-16] - Đồng Bộ Kích Cỡ Thẻ Trước Lật & Sau Lật (Zero Layout Shift)
+
+### 🎴 1. Đồng Nhất 100% Kích Thước Thẻ Trước & Sau Lật
+- **Vấn đề trước đây**: Thẻ màn che bảo mật trước khi lật (`#reveal-curtain-box`) có chiều cao tự do chỉ đạt 337.5px và không có margin dọc, trong khi thẻ lật vai trò 3D (`#reveal-card-viewport`) có chiều cao cố định 480px kèm `margin: 10px 0 20px`. Khi người chơi bấm "Tôi đã cầm máy, lật thẻ" hoặc úp thẻ chuyền cho người tiếp theo, kích cỡ thẻ bị giật nhảy tới 142.5px.
+- **Cải tiến & Khắc phục**:
+  - Khóa đồng bộ kích thước chuẩn **360px × 480px** cho cả:
+    1. Thẻ màn che trước khi lật (`.privacy-curtain-card`).
+    2. Khung thẻ lật (`.flip-card-viewport`).
+    3. Mặt trước khi chạm lật (`.flip-card-front`).
+    4. Mặt sau khi hiển thị vai trò (`.flip-card-back`).
+  - Thiết lập đồng bộ `margin: 10px 0 20px`, bo góc `var(--radius-xl)` và `box-sizing: border-box`.
+  - Tái cấu trúc khối nội dung giữa `.curtain-middle-content` (nhãn chuyền điện thoại, tên người chơi, cảnh báo) và nút bấm ở đáy thẻ (`width: 100%`) với `justify-content: space-between`, tạo bố cục cân xứng hoàn hảo.
+  - Triệt tiêu 100% hiện tượng co giật giao diện (Layout Shift = 0px), mang lại trải nghiệm chuyền điện thoại xem vai trò mượt mà, chuyên nghiệp.
+
+---
+
 ## [2026-10-16] - Tự Động Chuyển Vòng Khi Hòa Phiếu & Nâng Cấp Che Giấu State (Anti-Cheat) + Hàm escapeHtml
 
 ### ⚖️ 1. Cơ Chế Hòa Phiếu Thông Minh (Tie-Vote Auto-Transition)
