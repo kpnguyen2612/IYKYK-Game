@@ -78,7 +78,7 @@ Mỗi màn hình được bọc trong thẻ `<section id="screen-..." class="vie
    - Màn che bảo mật riêng tư (`#night-curtain-box`), hiển thị tên người chơi tiếp theo và nút "Mở mắt hành động".
    - Viewport hành động bí mật (`#night-action-viewport`) hiển thị vai trò và form kích hoạt kỹ năng riêng cho từng vai trò đặc biệt (Thám tử, Bác sĩ, Gián điệp, Phù thủy, Tắc kè hoa) và thẻ ngủ yên cho dân thường/imposter.
    - Thẻ bình minh "Trời Đã Sáng! ☀️" (`#night-dawn-card`) sau khi tất cả người chơi hoàn tất, chuyển sang phiên thảo luận.
-   - Cung cấp tùy chọn bật/tắt linh hoạt (`#switch-night-phase` và `#switch-night-phase-modal`), tự động bỏ qua nếu tắt hoặc ván không có vai trò đêm chủ động.
+   - *(Tạm thời ẩn)*: Công tắc bật/tắt và giai đoạn màn đêm tạm thời được ẩn để trò chơi tập trung vào trải nghiệm tiệc cơ bản, sau lật thẻ/vòng quay chuyển thẳng sang Thảo Luận.
 7. **`#screen-discussion` (Screen 5 - Thảo luận & Đồng hồ)**:
    - Đồng hồ đếm ngược ván chơi.
    - Thanh HUD người đang phát biểu (`#current-speaker-hud`) có avatar, tên, đồng hồ đếm ngược từng lượt và nút **Xong lượt ⏭️**.

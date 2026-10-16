@@ -11,7 +11,19 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ---
 
-## [2026-10-16] - Cải Tiến Kẻ Say Rượu: Phe Dân Đối Trọng Gián Điệp, Bị Vote Miễn Phạt & Tính Điểm Đột Phá
+## [2026-10-16] - Tạm Ẩn Chế Độ Ban Đêm & Công Tắc Màn Đêm Để Trải Nghiệm Game Cơ Bản, Tinh Gọn
+
+### 🌙 1. Tạm Ẩn Giao Diện Công Tắc Ban Đêm
+- **Màn hình Cài đặt (`#screen-setup`)**: Ẩn mục chuyển đổi `#row-night-phase` ("Chế độ Ban Đêm bí mật").
+- **Modal Cài đặt hệ thống (`#modal-settings`)**: Ẩn mục chuyển đổi `#row-night-phase-modal`.
+- Giao diện cài đặt trở nên gọn gàng, liền mạch, tập trung hoàn toàn vào các tùy chọn trải nghiệm cốt lõi (Vòng quay, Thời gian ván, Thời gian mỗi người, Gợi ý Imposter).
+
+### ⚡ 2. Bỏ Qua Giai Đoạn Đêm & Tối Giản Tiến Trình Ván Đấu
+- Khởi tạo `this.nightPhaseEnabled = false`.
+- Trong `prepareRoundStart()`: Tự động bỏ qua giai đoạn Ban Đêm (`startNightPhase`), chuyển thẳng trực tiếp từ màn hình lật thẻ/vòng quay sang **Vòng Thảo Luận (`startDiscussionStage`)**.
+- Trò chơi diễn ra nhanh chóng, thuần túy tính chất Party Game từ vựng suy luận, không rườm rà.
+
+---
 
 ### 🍺 1. Bản Chất Mới Của Kẻ Say Rượu (Drunkard)
 - **Thuộc Phe Dân chính thức**: Kẻ Say Rượu thuộc **Phe Dân** (`team: 'good'`), không còn là Trung Lập.

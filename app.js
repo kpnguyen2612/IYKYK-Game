@@ -137,7 +137,7 @@ class ImposterGame {
     this.durationSeconds = parseInt(localStorage.getItem('gti_discussion_time') || '180', 10);
     this.speechDurationSeconds = parseInt(localStorage.getItem('gti_speech_time') || '30', 10);
     this.rouletteEnabled = localStorage.getItem('gti_roulette') !== 'false';
-    this.nightPhaseEnabled = localStorage.getItem('gti_night_phase') !== 'false';
+    this.nightPhaseEnabled = false; // Tạm thời ẩn/tắt chế độ màn đêm để chơi cơ bản
     this.currentNightIndex = 0;
     this.gameMode = 'pass';
 
@@ -1817,12 +1817,8 @@ class ImposterGame {
     // Reset round abilities at round start
     this.roundUsedAbilities = new Set();
 
-    // If Night Phase is enabled AND active night roles exist in this match
-    if (this.nightPhaseEnabled && this.hasActiveNightRoles()) {
-      this.startNightPhase();
-    } else {
-      this.startDiscussionStage();
-    }
+    // Tạm thời ẩn chế độ Ban Đêm để trải nghiệm cơ bản, chuyển thẳng sang thảo luận
+    this.startDiscussionStage();
   }
 
   startNightPhase() {
