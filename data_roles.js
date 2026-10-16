@@ -1,6 +1,6 @@
 // ==========================================================
 // GUESS THE IMPOSTER - DANH SÁCH VAI TRÒ (ROLES DATA)
-// Định nghĩa 20 vai trò mặc định, kỹ năng, điều kiện thắng & thông số
+// Định nghĩa 7 vai trò cốt lõi, kỹ năng, điều kiện thắng & thông số
 // Thuần Tiếng Việt
 // ==========================================================
 
@@ -38,38 +38,6 @@ const DEFAULT_ROLES = [
     isDefault: true
   },
   {
-    id: "detective",
-    name_vi: "Thám Tử",
-    icon: "🔍",
-    team: "good",
-    color: "#3B82F6",
-    desc_vi: "Có khả năng điều tra hành tung của một người chơi.",
-    ability_vi: "Ban đêm soi danh tính 1 người chơi. Soi trúng phe Ác được thưởng ngay +5 điểm!",
-    win_vi: "Phe Dân Làng chiến thắng (+10đ; còn sống vote đúng +5đ/kẻ lũy kế). Thua ván: -5đ.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 2,
-    defaultCount: 1,
-    enabled: true,
-    isDefault: true
-  },
-  {
-    id: "doctor",
-    name_vi: "Bác Sĩ",
-    icon: "💉",
-    team: "good",
-    color: "#06B6D4",
-    desc_vi: "Có khả năng chữa lành và bảo vệ một người khỏi bị loại.",
-    ability_vi: "Ban đêm chọn che chở 1 người. Cứu sống thành công người bị loại được thưởng ngay +10 điểm!",
-    win_vi: "Phe Dân Làng chiến thắng (+10đ; còn sống vote đúng +5đ/kẻ lũy kế). Thua ván: -5đ.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 2,
-    defaultCount: 1,
-    enabled: true,
-    isDefault: true
-  },
-  {
     id: "spy",
     name_vi: "Gián Điệp",
     icon: "🕵️",
@@ -102,22 +70,6 @@ const DEFAULT_ROLES = [
     isDefault: true
   },
   {
-    id: "mayor",
-    name_vi: "Thị Trưởng",
-    icon: "👑",
-    team: "good",
-    color: "#F59E0B",
-    desc_vi: "Lá phiếu của Thị Trưởng có trọng lượng gấp đôi.",
-    ability_vi: "Phiếu biểu quyết tính là 2 phiếu khi chọn trục xuất người bị nghi ngờ.",
-    win_vi: "Phe Dân Làng chiến thắng (+10đ; còn sống vote đúng +5đ/kẻ lũy kế). Thua ván: -5đ.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 1,
-    defaultCount: 1,
-    enabled: true,
-    isDefault: true
-  },
-  {
     id: "traitor",
     name_vi: "Kẻ Phản Bội",
     icon: "🗡️",
@@ -142,38 +94,6 @@ const DEFAULT_ROLES = [
     desc_vi: "Tưởng mình là Dân nhưng thực ra từ khóa bị biến dạng nhẹ.",
     ability_vi: "Nhận một từ khóa gần giống. Hưởng điểm thắng (+10đ) hoặc thua (-5đ) theo kết quả phe Dân.",
     win_vi: "Phe Dân Làng chiến thắng (+10đ). Thua trận trước Imposter: -5đ.",
-    knowsKeyword: true,
-    getsHint: false,
-    maxCount: 1,
-    defaultCount: 1,
-    enabled: true,
-    isDefault: true
-  },
-  {
-    id: "chameleon",
-    name_vi: "Tắc Kè Hoa",
-    icon: "🦎",
-    team: "evil",
-    color: "#047857",
-    desc_vi: "Nhận được 3 từ khóa giả định để chọn lọc miêu tả an toàn.",
-    ability_vi: "Phe Ác. Không biết từ thật nhưng có 3 lựa chọn manh mối giúp ngụy trang phát biểu hoàn hảo.",
-    win_vi: "Phe Kẻ Giả Mạo chiến thắng (+15đ). Bị bắt hoặc phe Ác thua: -10đ.",
-    knowsKeyword: false,
-    getsHint: true,
-    maxCount: 1,
-    defaultCount: 1,
-    enabled: true,
-    isDefault: true
-  },
-  {
-    id: "witch",
-    name_vi: "Phù Thủy",
-    icon: "🧙‍♀️",
-    team: "neutral",
-    color: "#9333EA",
-    desc_vi: "Có bình cứu và bình độc dùng 1 lần trong ván.",
-    ability_vi: "Phe Trung Lập. Có thể hủy kết quả bầu chọn HOẶC chọn loại thêm 1 người nghi vấn.",
-    win_vi: "Sống sót đến cuối ván cùng phe chiến thắng (+15đ). Bị loại: -5đ.",
     knowsKeyword: true,
     getsHint: false,
     maxCount: 1,

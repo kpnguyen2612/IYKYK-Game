@@ -174,7 +174,7 @@
               <div class="setting-icon-box" style="color: #8b5cf6; background: rgba(139, 92, 246, 0.12);">🎴</div>
               <div class="setting-texts">
                 <h4 data-i18n="setting_roles">Tất cả vai trò</h4>
-                <p id="label-roles-preview" data-i18n="setting_roles_desc">20 vai trò mặc định & tự tạo</p>
+                <p id="label-roles-preview" data-i18n="setting_roles_desc">7 vai trò cốt lõi & tự tạo</p>
               </div>
             </div>
             <div class="setting-action-right">
@@ -428,7 +428,7 @@
 
         <!-- Filter Chips -->
         <div class="role-filter-scroll">
-          <button class="filter-chip active" data-filter="all" data-i18n="filter_all">Tất cả (20+)</button>
+          <button class="filter-chip active" data-filter="all" data-i18n="filter_all">Tất cả (7)</button>
           <button class="filter-chip" data-filter="fixed" style="border-color: rgba(16, 185, 129, 0.4); color: #10b981;">📌 Cố định (<span id="filter-fixed-count">0</span>)</button>
           <button class="filter-chip" data-filter="good" data-i18n="filter_good">Phe Dân</button>
           <button class="filter-chip" data-filter="evil" data-i18n="filter_evil">Phe Ác</button>
@@ -436,9 +436,9 @@
           <button class="filter-chip" data-filter="custom" data-i18n="filter_custom">Tự tạo</button>
         </div>
 
-        <!-- 20 Roles Render Container -->
+        <!-- 7 Roles Render Container -->
         <div id="roles-container" class="roles-scroll-list">
-          <!-- Roles will be injected dynamically via roles_data.js -->
+          <!-- Roles will be injected dynamically via data_roles.js -->
         </div>
 
         <div class="sticky-bottom-action-bar">
@@ -1376,7 +1376,7 @@
       </div>
 
       <div id="toolbox-content" style="display: flex; flex-direction: column; gap: 14px;">
-        <!-- Injected dynamically based on active match roles (Detective, Spy, Fortune Teller, Hacker) -->
+        <!-- Injected dynamically based on active match roles (Spy, etc.) -->
       </div>
     </div>
   </div>
@@ -1800,14 +1800,6 @@
             </thead>
             <tbody>
               <tr>
-                <td>🔍 <strong>Thám Tử (Detective)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Ban đêm soi trúng Kẻ Giả Mạo / phe Ác</span></td>
-                <td class="pts-plus">+5 điểm<br><span style="font-size: 10px; color: var(--text-muted);">(Hưởng thêm điểm thắng/thua phe Dân)</span></td>
-              </tr>
-              <tr>
-                <td>💉 <strong>Bác Sĩ (Doctor)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Ban đêm cứu sống thành công đồng đội bị loại</span></td>
-                <td class="pts-plus">+10 điểm<br><span style="font-size: 10px; color: var(--text-muted);">(Hưởng thêm điểm thắng/thua phe Dân)</span></td>
-              </tr>
-              <tr>
                 <td>🤪 <strong>Kẻ Ngu (Jester) bị vote loại</strong><br><span style="font-size: 10px; color: var(--text-muted);">Biết từ khóa, lừa cả làng thành công (Thắng độc lập)</span></td>
                 <td class="pts-plus" style="color: #ec4899; font-weight: 800; font-size: 13px;">+30 điểm<br><span style="font-size: 10px; color: #10b981;">(Tất cả người khác: 0đ)</span></td>
               </tr>
@@ -1820,20 +1812,16 @@
                 <td><span class="pts-plus">+25 điểm</span> (Sống sót thắng)<br><span class="pts-minus">-10 điểm</span> (Bị phát hiện/loại)</td>
               </tr>
               <tr>
-                <td>🧙‍♀️ <strong>Phù Thủy (Witch)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Sống sót cùng phe chiến thắng cuối ván</span></td>
-                <td><span class="pts-plus">+15 điểm</span> (Sống sót)<br><span class="pts-minus">-5 điểm</span> (Bị loại)</td>
+                <td>🗡️ <strong>Kẻ Phản Bội (Traitor)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Phe Ác nhưng BIẾT từ khóa bí mật để dẫn dắt dư luận gây chia rẽ</span></td>
+                <td><span class="pts-plus">+15 điểm</span> (Phe Ác thắng)<br><span class="pts-minus">-10 điểm</span> (Bị bắt/thua)</td>
               </tr>
               <tr>
-                <td>🎭 <strong>Điệp Viên Hai Mang (Double Agent)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Giúp Imposter thắng hoặc là người sống cuối cùng</span></td>
-                <td><span class="pts-plus">+15 điểm</span> (Thắng)<br><span class="pts-minus">-5 điểm</span> (Thất bại)</td>
-              </tr>
-              <tr>
-                <td>🗡️ <strong>Phe Ác (Phản Bội, Tắc Kè Hoa)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Đồng minh của Kẻ Giả Mạo</span></td>
-                <td><span class="pts-plus">+15 điểm</span> (Phe thắng)<br><span class="pts-minus">-10 điểm</span> (Bị bắt/thua)</td>
-              </tr>
-              <tr>
-                <td>🍺 <strong>Kẻ Say Rượu, Thị Trưởng...</strong><br><span style="font-size: 10px; color: var(--text-muted);">Các vai trò hỗ trợ phe Dân Làng</span></td>
+                <td>🍺 <strong>Kẻ Say Rượu (Drunkard)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Tưởng mình là Dân nhưng nhận từ khóa bị biến dạng nhẹ</span></td>
                 <td><span class="pts-plus">+10 điểm</span> (Thắng ván)<br><span class="pts-minus">-5 điểm</span> (Thua trận)</td>
+              </tr>
+              <tr>
+                <td>🎭 <strong>Điệp Viên Hai Mang (Double Agent)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Biết ai là Imposter, thắng nếu Imposter sống sót hoặc là người sống cuối</span></td>
+                <td><span class="pts-plus">+15 điểm</span> (Thắng)<br><span class="pts-minus">-5 điểm</span> (Thất bại)</td>
               </tr>
             </tbody>
           </table>

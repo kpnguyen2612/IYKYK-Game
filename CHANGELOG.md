@@ -11,7 +11,45 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ---
 
-## [2026-10-16] - Cập Nhật Logic Tính Điểm Kẻ Ngu (+30đ Khi Được Vote, 0đ Cho Người Khác & Khi Không Bị Vote)
+## [2026-10-16] - Tinh Gọn Bộ Vai Trò Còn 7 Vai Trò Cốt Lõi & Đồng Bộ Toàn Bộ Dữ Liệu
+
+### 🎭 1. Loại Bỏ 5 Vai Trò Thừa & Chuẩn Hóa 7 Vai Trò Cốt Lõi
+- **5 vai trò đã xóa hoàn toàn khỏi hệ thống**:
+  - `mayor` (Thị Trưởng)
+  - `doctor` (Bác Sĩ)
+  - `detective` (Thám Tử)
+  - `witch` (Phù Thủy)
+  - `chameleon` (Tắc Kè Hoa)
+- **7 vai trò cốt lõi chính thức (Core Roster)**:
+  1. 👤 **Dân Thường** (`civilian` - Phe Dân): Nhận từ khóa bí mật, suy luận tìm Kẻ Giả Mạo & Kẻ Ngu.
+  2. 🎭 **Kẻ Giả Mạo** (`imposter` - Phe Ác): Biết chủ đề nhưng không biết từ, hòa nhập và kích hoạt cơ chế Lật Kèo 30s khi bị bắt.
+  3. 🕵️ **Gián Điệp** (`spy` - Phe Ác): Đồng minh của Imposter, nhận từ gợi ý của Imposter, bí mật ra hiệu và sống sót đến cuối ván (+25đ).
+  4. 🗡️ **Kẻ Phản Bội** (`traitor` - Phe Ác): Phe Ác nhưng **biết từ khóa bí mật** của phe Dân để tung hỏa mù dẫn dắt dư luận chia rẽ (+15đ / -10đ).
+  5. 🤪 **Kẻ Ngu** (`jester` - Trung Lập): Biết từ khóa bí mật, mục tiêu là bị cả làng vote loại để thắng độc lập (+30đ, người khác 0đ; không bị vote vẫn được 0đ).
+  6. 🍺 **Kẻ Say Rượu** (`drunkard` - Trung Lập): Tưởng mình là Dân nhưng nhận từ khóa bị biến dạng nhẹ (+10đ / -5đ).
+  7. 🎭 **Điệp Viên Hai Mang** (`double_agent` - Trung Lập): Biết ai là Kẻ Giả Mạo, thắng nếu Imposter sống sót hoặc là người sống cuối cùng (+15đ / -5đ).
+
+### ⚙️ 2. Đồng Bộ Hóa Toàn Diện Logic & Giao Diện
+- **`data_roles.js`**:
+  - Dọn sạch 5 vai trò đã xóa khỏi `DEFAULT_ROLES`, cập nhật metadata và comment hệ thống 7 vai trò cốt lõi.
+- **`app.js`**:
+  - **Cân bằng tự động (`autoBalanceRoles`)**: Phân bổ linh hoạt theo bậc số lượng người chơi chỉ dùng các vai trò đang hoạt động (`spy`, `jester`, `traitor`, `drunkard`, `double_agent`).
+  - **Quy trình Lật thẻ & Đêm (`showRevealStep`, `hasActiveNightRoles`, `showNightStep`)**:
+    - Lược bỏ các màn hình lật thẻ phụ của Chameleon/Witch.
+    - Giai đoạn Ban Đêm chỉ kích hoạt khi ván đấu có Gián Điệp (`spy`). Nếu không có Gián Điệp, hệ thống tự động bỏ qua Đêm chuyển thẳng sang Vòng Thảo Luận.
+  - **Biểu quyết & Hộp công cụ (`renderVotingScreen`, `submitVotingOutcome`, `openSpecialAbilityToolbox`)**:
+    - Lược bỏ phù hiệu và logic x2 phiếu của Thị Trưởng.
+    - Lược bỏ kiểm tra khiên bảo vệ của Bác Sĩ và bình cứu của Phù Thủy khi tính kết quả loại người chơi.
+    - Hộp công cụ năng lực bí mật (`#modal-special-toolbox`) tinh gọn phục vụ Gián Điệp.
+  - **Tính điểm (`calculateMatchScores`)**: Loại bỏ toàn bộ các nhánh cộng/trừ điểm phụ của Witch, Detective, Doctor, Mayor.
+  - **Cài đặt & Thông báo**: Cập nhật nhãn đếm vai trò `label-roles-preview`, thông báo bật tất cả vai trò sang số lượng động `this.roles.length` (7 vai trò cốt lõi & tự tạo).
+- **`index.html`**:
+  - Cập nhật filter chip vai trò: `Tất cả (7)`.
+  - Cập nhật nhãn mặc định: `7 vai trò cốt lõi & tự tạo`.
+  - Cập nhật bảng điểm chi tiết vai trò đặc biệt (`#modal-deep-rules`): Hiển thị chuẩn xác 5 vai trò đặc biệt còn lại kèm điểm số minh bạch.
+- **`ARCHITECTURE.md`**: Cập nhật sơ đồ vai trò và bảng tra cứu tính năng theo 7 vai trò cốt lõi.
+
+---
 
 ### 🤪 1. Logic Tính Điểm Chuẩn Thân Thiện & Cân Bằng (Option 2)
 - **Quy tắc tính điểm Kẻ Ngu (Jester)**:

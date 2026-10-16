@@ -12,7 +12,7 @@ vuive/
 ├── styles.css           # Toàn bộ hệ thống giao diện Obsidian Arcade & Hiệu ứng 
 ├── app.js               # Logic điều khiển chính, máy trạng thái, đồng hồ, tính điểm
 ├── audio.js             # Bộ tổng hợp âm thanh Web Audio API & rung phản hồi haptic
-├── data_roles.js        # Dữ liệu 20 vai trò mặc định (phe Dân, phe Ác, Trung lập)
+├── data_roles.js        # Dữ liệu 7 vai trò cốt lõi (phe Dân, phe Ác, Trung lập)
 ├── data_categories.js   # Danh mục từ vựng tiếng Việt/Anh, bảng màu avatar, tên ngẫu nhiên
 ├── ARCHITECTURE.md      # Bản đồ tra cứu code (Tài liệu này)
 └── tools_stitch/        # Thư mục lưu trữ các file kịch bản & schema API tạm thời
@@ -41,9 +41,9 @@ vuive/
 | **Vai trò cố định kèm số lượng (Fixed Roles & Stepper)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `[SEC 04.4]` hoặc `syncFixedRolesWithDeck`, `setFixedRoleCount`, `renderFixedRolesChips` |
 | **Giao diện Vai trò cố định & Modal 2.2** | [`index.html`](file:///c:/Users/Windows/Documents/APP%20code/vuive/index.html) | Tìm: `#card-fixed-roles`, `#modal-fixed-roles`, `#btn-open-fixed-roles-modal` |
 | **Quản lý cặp từ vựng tự tạo (Word Pairs)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `[SEC 04.5]` hoặc `openWordPairsModal`, `addCustomWordPair`, `deleteCustomWordPair` |
-| **Kỹ năng 12 vai trò đặc biệt (Special Role Abilities)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `openSpecialAbilityToolbox`, `submitVotingOutcome`, `showRevealStep` |
-| **Cứu/Độc Phù Thủy & Thám Tử / Bác Sĩ** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `witchSavedPlayerId`, `witchUsedPoisonPotion`, `doctorShieldedPlayerId` |
-| **Tắc Kè Hoa, Gián Điệp, Thị Trưởng** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `getChameleonDecoys`, `aliveSpies`, `aliveMayors` |
+| **Kỹ năng các vai trò đặc biệt (Special Role Abilities)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `openSpecialAbilityToolbox`, `showRevealStep` |
+| **Gián Điệp, Kẻ Phản Bội, Kẻ Ngu** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `aliveSpies`, `traitor`, `jester` |
+| **Kẻ Say Rượu & Điệp Viên Hai Mang** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `getDrunkardWord`, `double_agent` |
 | **Cài đặt hệ thống (Theme & Âm thanh)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) & [`index.html`](file:///c:/Users/Windows/Documents/APP%20code/vuive/index.html) | Tìm: `#btn-open-settings` (Góc trên bên phải), `#modal-settings`, `openSettingsModal` |
 | **Bản địa hóa 100% Tiếng Việt** | Toàn bộ ứng dụng | Không sử dụng song ngữ Anh-Việt, khóa cứng ngôn ngữ tiếng Việt thuần túy |
 | **Thêm / Sửa từ vựng mặc định (Word Pairs)** | [`data_categories.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/data_categories.js) | Tìm: `CATEGORIES` (Cặp từ: `{ civilian, imposter }`) |
