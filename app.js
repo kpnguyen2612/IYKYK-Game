@@ -991,7 +991,7 @@ class ImposterGame {
               </span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px; margin-top: 3px;">
-              <input type="text" class="player-name-input form-input" data-index="${i}" value="${currentName}" list="datalist-party-roster" placeholder="Người chơi ${i + 1}" style="padding: 6px 10px; font-weight: 700; font-size: 14px; flex: 1;" />
+              <input type="text" class="player-name-input form-input" data-index="${i}" value="${this.escapeHtml(currentName)}" list="datalist-party-roster" placeholder="Người chơi ${i + 1}" style="padding: 6px 10px; font-weight: 700; font-size: 14px; flex: 1;" />
             </div>
           </div>
         </div>
@@ -2354,7 +2354,7 @@ class ImposterGame {
         <div class="vote-player-avatar" style="background: ${p.avatarBg};">
           ${p.avatar}
         </div>
-        <div class="vote-player-name">${p.name}</div>
+        <div class="vote-player-name">${this.escapeHtml(p.name)}</div>
         <div style="font-size: 11px; color: var(--text-muted);">${'Nghi phạm'}</div>
         ${isMayor ? `<span class="hero-badge" style="background: rgba(245, 158, 11, 0.25); color: #f59e0b; font-size: 10px; margin-top: 4px; padding: 2px 6px;">👑 x2 Phiếu</span>` : ''}
       `;
@@ -2712,9 +2712,47 @@ class ImposterGame {
   }
 
   skipVotingRound() {
-    sound.playToggle();
-    this.roundNumber++;
-    this.prepareRoundStart();
+    if (typeof sound !== 'undefined') {
+      sound.playToggle?.() || sound.playClick?.();
+    }
+    const nextRound = (this.roundNumber || 1) + 1;
+
+    let hasTransitioned = false;
+    const proceedToNextRound = () => {
+      if (hasTransitioned) return;
+      hasTransitioned = true;
+      if (this.tieVoteAutoTimer) {
+        clearTimeout(this.tieVoteAutoTimer);
+        this.tieVoteAutoTimer = null;
+      }
+      this.roundNumber++;
+      this.prepareRoundStart();
+    };
+
+    this.showActionNotice({
+      icon: '⚖️',
+      title: 'KẾT QUẢ: HÒA PHIẾU',
+      targetName: 'Không ai bị loại',
+      type: 'neutral',
+      heading: '⚖️ HÒA PHIẾU BỎ PHIẾU',
+      message: `Số phiếu bầu hòa nhau hoặc cả nhóm chưa đồng thuận được nghi phạm!<br><strong>Không có bất kỳ người chơi nào bị loại ở vòng này.</strong><br>Hệ thống tự động chuyển sang <strong>Vòng ${nextRound} Thảo Luận</strong>.`,
+      note: 'Mọi người hãy chú ý thêm các biểu cảm và manh mối mới trong lượt phát biểu sắp tới!',
+      btnText: `Tiến vào Vòng ${nextRound} Thảo Luận →`,
+      onClose: () => {
+        proceedToNextRound();
+      }
+    });
+
+    // Tự động chuyển đến vòng thảo luận kế tiếp sau 2.8 giây nếu không ai bấm
+    if (this.tieVoteAutoTimer) clearTimeout(this.tieVoteAutoTimer);
+    this.tieVoteAutoTimer = setTimeout(() => {
+      const modal = document.getElementById('modal-action-notice');
+      if (modal && modal.classList.contains('open')) {
+        document.getElementById('btn-close-action-notice')?.click();
+      } else {
+        proceedToNextRound();
+      }
+    }, 2800);
   }
 
   showComebackStage(suspect) {
@@ -5044,97 +5082,7 @@ class ImposterGame {
       this.showToast(`🎯 Đã tạo QR ủng hộ nhóm: ${splitTotal.toLocaleString('vi-VN')}đ`, 'success');
     });
 
-    // Toggle Panels (+ Bổ sung số tiền & Chia tiền)
-    let currentSplitPlayers = this.playerCount || 6;
-    const updateAdvancedSplitCalc = () => {
-      const perPerson = parseInt(document.getElementById('select-split-per-person')?.value || '10000', 10);
-      const total = currentSplitPlayers * perPerson;
-      const valEl = document.getElementById('val-split-calculated-total');
-      if (valEl) valEl.textContent = `${total.toLocaleString('vi-VN')}đ`;
-    };
 
-    document.getElementById('btn-toggle-custom-amount')?.addEventListener('click', () => {
-      if (typeof sound !== 'undefined') sound.playClick();
-      const p1 = document.getElementById('panel-custom-amount');
-      const p2 = document.getElementById('panel-split-money');
-      if (p2) p2.style.display = 'none';
-      if (p1) {
-        const isShown = p1.style.display === 'block';
-        p1.style.display = isShown ? 'none' : 'block';
-        if (!isShown) document.getElementById('input-custom-donate-amount')?.focus();
-      }
-    });
-
-    document.getElementById('btn-close-custom-amount')?.addEventListener('click', () => {
-      document.getElementById('panel-custom-amount').style.display = 'none';
-    });
-
-    document.getElementById('btn-submit-custom-amount')?.addEventListener('click', () => {
-      if (typeof sound !== 'undefined') sound.playClick();
-      const input = document.getElementById('input-custom-donate-amount');
-      const val = parseInt(input?.value || '0', 10);
-      if (!val || val < 1000) {
-        this.showToast('Vui lòng nhập số tiền từ 1.000đ trở lên!', 'warning');
-        return;
-      }
-      amountChips.forEach(c => c.classList.remove('active'));
-      this.updateDonateQr(val, `${val.toLocaleString('vi-VN')}đ`);
-      document.getElementById('panel-custom-amount').style.display = 'none';
-      this.showToast(`✓ Đã tạo mã QR: ${val.toLocaleString('vi-VN')}đ`, 'success');
-    });
-
-    document.getElementById('btn-toggle-split-money')?.addEventListener('click', () => {
-      if (typeof sound !== 'undefined') sound.playClick();
-      const p1 = document.getElementById('panel-custom-amount');
-      const p2 = document.getElementById('panel-split-money');
-      if (p1) p1.style.display = 'none';
-      if (p2) {
-        const isShown = p2.style.display === 'block';
-        p2.style.display = isShown ? 'none' : 'block';
-        currentSplitPlayers = this.playerCount || 6;
-        const valEl = document.getElementById('val-split-players');
-        if (valEl) valEl.textContent = currentSplitPlayers;
-        updateAdvancedSplitCalc();
-      }
-    });
-
-    document.getElementById('btn-close-split-money')?.addEventListener('click', () => {
-      document.getElementById('panel-split-money').style.display = 'none';
-    });
-
-    document.getElementById('btn-split-dec-players')?.addEventListener('click', () => {
-      if (currentSplitPlayers > 2) {
-        if (typeof sound !== 'undefined') sound.playClick();
-        currentSplitPlayers--;
-        const valEl = document.getElementById('val-split-players');
-        if (valEl) valEl.textContent = currentSplitPlayers;
-        updateAdvancedSplitCalc();
-      }
-    });
-
-    document.getElementById('btn-split-inc-players')?.addEventListener('click', () => {
-      if (currentSplitPlayers < 30) {
-        if (typeof sound !== 'undefined') sound.playClick();
-        currentSplitPlayers++;
-        const valEl = document.getElementById('val-split-players');
-        if (valEl) valEl.textContent = currentSplitPlayers;
-        updateAdvancedSplitCalc();
-      }
-    });
-
-    document.getElementById('select-split-per-person')?.addEventListener('change', () => {
-      updateAdvancedSplitCalc();
-    });
-
-    document.getElementById('btn-confirm-advanced-split')?.addEventListener('click', () => {
-      if (typeof sound !== 'undefined') sound.playClick();
-      const perPerson = parseInt(document.getElementById('select-split-per-person')?.value || '10000', 10);
-      const total = currentSplitPlayers * perPerson;
-      amountChips.forEach(c => c.classList.remove('active'));
-      this.updateDonateQr(total, `Nhóm ${currentSplitPlayers} người (${total.toLocaleString('vi-VN')}đ)`);
-      document.getElementById('panel-split-money').style.display = 'none';
-      this.showToast(`🎯 Đã tạo QR chia tiền nhóm: ${total.toLocaleString('vi-VN')}đ`, 'success');
-    });
 
     // Deep Rules Modal Events
     document.getElementById('btn-open-rules')?.addEventListener('click', () => {
@@ -6286,9 +6234,80 @@ class ImposterGame {
       [array[i], array[j]] = [array[j], array[i]];
     }
   }
+
+  escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
 }
 
-// Start Game Instance
+// Global utility helper
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ==========================================================
+// [SEC 12] GAME BOOTSTRAP & ANTI-CHEAT STATE ENCAPSULATION
+// ==========================================================
 window.addEventListener('DOMContentLoaded', () => {
-  window.gameApp = new ImposterGame();
+  // Instance nằm an toàn trong closure, không phơi bày biến trần ra window
+  const activeGame = new ImposterGame();
+
+  // Đặt bẫy chống gian lận (Anti-Cheat) khi người chơi mở F12 DevTools Console
+  const antiCheatGuard = {
+    get secretWord() {
+      console.warn('%c⚠️ [ANTI-CHEAT] Phát hiện hành vi mở DevTools tra cứu biến game! Dữ liệu từ khóa đã được mã hóa an toàn.', 'color: #ef4444; font-weight: bold; font-size: 13px;');
+      return '🔒 [ĐÃ MÃ HÓA BẢO VỆ]';
+    },
+    get imposterWord() {
+      console.warn('%c⚠️ [ANTI-CHEAT] Dữ liệu từ khóa Imposter đã được mã hóa!', 'color: #ef4444; font-weight: bold;');
+      return '🔒 [ĐÃ MÃ HÓA BẢO VỆ]';
+    },
+    get players() {
+      console.warn('%c⚠️ [ANTI-CHEAT] Danh sách vai trò và thân phận người chơi đang được bảo vệ!', 'color: #ef4444; font-weight: bold;');
+      return (activeGame.players || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        avatar: p.avatar,
+        role: '🔒 [BẢO MẬT]',
+        isImposter: '❓ [BÍ MẬT]',
+        isEliminated: p.isEliminated
+      }));
+    },
+    get isImposter() {
+      return '🔒 [BẢO MẬT]';
+    },
+    get roundNumber() {
+      return activeGame.roundNumber;
+    },
+    get playerCount() {
+      return activeGame.playerCount;
+    }
+  };
+
+  // Khóa đối tượng gameApp và app trên window bằng getter decoy
+  Object.defineProperty(window, 'gameApp', {
+    get: () => antiCheatGuard,
+    set: () => console.warn('⚠️ [ANTI-CHEAT] Nghiêm cấm ghi đè trạng thái game!'),
+    configurable: false,
+    enumerable: false
+  });
+
+  Object.defineProperty(window, 'app', {
+    get: () => antiCheatGuard,
+    set: () => console.warn('⚠️ [ANTI-CHEAT] Nghiêm cấm ghi đè trạng thái game!'),
+    configurable: false,
+    enumerable: false
+  });
 });

@@ -11,6 +11,26 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ---
 
+## [2026-10-16] - Tự Động Chuyển Vòng Khi Hòa Phiếu & Nâng Cấp Che Giấu State (Anti-Cheat) + Hàm escapeHtml
+
+### ⚖️ 1. Cơ Chế Hòa Phiếu Thông Minh (Tie-Vote Auto-Transition)
+- Khi bấm **"Hòa phiếu / Bỏ qua vòng này"** (`#btn-skip-vote`) do số phiếu bằng nhau:
+  - Hệ thống hiển thị hộp thông báo Action Notice trang trọng: **"⚖️ KẾT QUẢ: HÒA PHIẾU"** kèm giải thích rõ ràng **không ai bị loại**.
+  - Tự động đếm ngược 2.8 giây chuyển mượt mà sang **Vòng Thảo Luận kế tiếp** (hoặc người chơi có thể bấm nút "Tiến vào Vòng thảo luận tiếp theo →" ngay tức thì).
+  - Tăng số vòng (`roundNumber++`), làm mới các lượt bảo vệ/kỹ năng và khởi động vòng mới mà không làm treo game.
+
+### 🛡️ 2. Nâng Cấp Che Giấu State & Chống Gian Lận (Anti-Cheat DevTools Protection)
+- Đóng gói toàn bộ đối tượng instance của game (`activeGame`) trong phạm vi đóng kín (lexical closure).
+- Thiết lập bẫy kiểm tra thông minh qua `Object.defineProperty`:
+  - Nếu bất kỳ người chơi nào mở Console (F12) gõ `window.gameApp` hoặc `app.secretWord`, hệ thống sẽ chặn đứng việc đọc biến trần, in ra cảnh báo đỏ: `⚠️ [ANTI-CHEAT] Phát hiện hành vi mở DevTools tra cứu biến game!`.
+  - Trả về dữ liệu ngụy trang (`🔒 [ĐÃ MÃ HÓA BẢO VỆ]`), giấu kín hoàn toàn thân phận Imposter và từ khóa bí mật.
+
+### 🔤 3. Bổ Sung Hàm `escapeHtml()` Chống XSS
+- Thêm phương thức `escapeHtml(str)` dùng để khử toàn bộ ký tự đặc biệt (`&`, `<`, `>`, `"`, `'`) của tên người chơi và dữ liệu tự tạo khi render động vào HTML template.
+- Triệt tiêu 100% rủi ro tiêm mã độc hoặc lỗi vỡ giao diện khi người chơi nhập tên có chứa dấu ngoặc nhọn hoặc dấu nháy kép.
+
+---
+
 ## [2026-10-16] - Loại Bỏ 100% Logo "v" Khỏi Mã QR & Xây Dựng Modal Ủng Hộ (Donate) Sang Trọng
 
 ### 🎁 1. Xóa Bỏ Logo "v" Khỏi Mã QR Code (100% Unobstructed Scan)
@@ -25,8 +45,8 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ### ☕ 3. Xây Dựng Modal Thông Tin Ủng Hộ Dự Án (Techcombank)
 - **Tối Giản Thẻ QR - Chỉ Giữ Logo Techcombank**:
-  - Tích hợp trực tiếp logo nhận diện chính thức của **Techcombank** (`techcombank_logo.png`) đặt trang trọng phía trên mã QR.
-  - Lược bỏ hoàn toàn các dòng text thừa, rườm rà xung quanh khung mã QR ("Mã QR sạch 100% không che logo", "Quét bằng mọi app Ngân hàng..."), giữ cho khung thẻ thanh toán tối giản, sang trọng và chuẩn mực ngân hàng.
+  - Tích hợp trực tiếp logo nhận diện chính thức của **Techcombank** (`techcombank_logo.png`) đặt trang trọng phía trên mã QR, căn chỉnh kích thước lớn rõ nét và cân đối.
+  - Lược bỏ hoàn toàn các dòng text thừa, rườm rà xung quanh khung mã QR, giữ cho khung thẻ thanh toán tối giản, sang trọng và chuẩn mực ngân hàng.
 - **Giao diện Modal Bottom Sheet cao cấp (`#modal-donate`)**:
   - Khung thẻ mã QR viền trắng sắc nét, tương phản tối đa cho camera điện thoại quét.
   - Khối chi tiết tài khoản thụ hưởng:
@@ -35,9 +55,7 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
     - **Số tài khoản**: 9964823876
     - **Nội dung chuyển khoản**: Faker Party
   - Nút **[ 📋 Sao chép STK ]** và **[ 📋 Sao chép Nội dung ]** tiện lợi: Tự động sao chép vào clipboard và đổi trạng thái sang `✓ Đã chép!` kèm thông báo Toast.
-  - **Nút Bổ sung số tiền (+)** và **Chia tiền (➗)**: Mở bảng tùy biến số tiền hoặc bảng chia tiền nhóm nhanh chóng.
-  - **Mức ủng hộ gợi ý nhanh**: Tùy tâm 💝, 10k (Trà đá 🥤), 20k (Bánh mì 🥖), 50k (Cà phê ☕), 100k (Bữa trưa 🍱).
-  - **Nút Tạo QR tối giản**: Lược bỏ hoàn toàn tiêu đề và câu chữ "Chia tiền nhóm chơi", chỉ giữ lại duy nhất nút bấm nổi bật: **"Tạo QR"**.
+  - **Tối giản cấu trúc**: Loại bỏ 2 nút "Bổ sung số tiền" và "Chia tiền" không cần thiết, chuyển thẳng tới các chip gợi ý mức ủng hộ (Tùy tâm, 10k, 20k, 50k, 100k) và nút **Tạo QR**.
 
 ---
 
