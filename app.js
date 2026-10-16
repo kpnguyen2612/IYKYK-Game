@@ -150,6 +150,8 @@ class ImposterGame {
     this.roundUsedAbilities = new Set();
     this.firstEliminatedPlayer = null;
     this.allEliminatedPlayers = [];
+    this.selectedDonateAmount = 0;
+    this.selectedDonateLabel = 'Tùy tâm';
 
     // Custom Categories & Word Pairs Management
     this.customCategories = JSON.parse(localStorage.getItem('gti_custom_categories') || '[]');
@@ -4030,6 +4032,14 @@ class ImposterGame {
     if (typeof sound !== 'undefined') sound.playClick();
     const modal = document.getElementById('modal-donate');
     if (!modal) return;
+
+    // Cập nhật số người chơi cho chip cả nhóm
+    const players = this.playerCount || (this.players ? this.players.length : 6) || 6;
+    const groupChip = document.getElementById('chip-donate-group');
+    if (groupChip) {
+      groupChip.textContent = `Cả nhóm (${(players * 10).toLocaleString('vi-VN')}k 👥)`;
+    }
+
     modal.classList.add('open');
   }
 
@@ -4755,6 +4765,38 @@ class ImposterGame {
       });
     });
 
+    // Helper function to update donate button & QR
+    const applySelectedDonateOption = (amount, label, showNotification = true) => {
+      this.selectedDonateAmount = amount;
+      this.selectedDonateLabel = label;
+
+      const activeLabel = document.getElementById('donate-active-amount-label');
+      if (activeLabel) {
+        activeLabel.textContent = label;
+      }
+
+      const generateBtn = document.getElementById('btn-apply-group-split');
+      if (generateBtn) {
+        if (amount === 0) {
+          generateBtn.textContent = 'Tạo QR (Tùy tâm 💝)';
+        } else {
+          generateBtn.textContent = `Tạo QR (${amount.toLocaleString('vi-VN')}đ)`;
+        }
+      }
+
+      this.updateDonateQr(amount, label);
+
+      if (showNotification) {
+        if (amount === 0) {
+          this.showToast('🎯 Đã tạo mã QR: Ủng hộ Tùy tâm 💝', 'success');
+        } else if (label.startsWith('Cả nhóm') || label.startsWith('Nhóm')) {
+          this.showToast(`🎯 Đã tạo QR ủng hộ cả nhóm: ${amount.toLocaleString('vi-VN')}đ (10k/người)`, 'success');
+        } else {
+          this.showToast(`🎯 Đã tạo QR ủng hộ: ${amount.toLocaleString('vi-VN')}đ (${label})`, 'success');
+        }
+      }
+    };
+
     // Amount Selection Chips
     const amountChips = document.querySelectorAll('.amount-chip');
     amountChips.forEach(chip => {
@@ -4762,20 +4804,45 @@ class ImposterGame {
         if (typeof sound !== 'undefined') sound.playClick();
         amountChips.forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
-        const amount = parseInt(chip.getAttribute('data-amount') || '0', 10);
-        const label = chip.textContent.trim();
-        this.updateDonateQr(amount, label);
+
+        const rawAmount = chip.getAttribute('data-amount');
+        let amount = 0;
+        let label = chip.textContent.trim();
+
+        if (rawAmount === 'group') {
+          const players = this.playerCount || (this.players ? this.players.length : 6) || 6;
+          amount = players * 10000;
+          label = `Cả nhóm ${players} người (${amount.toLocaleString('vi-VN')}đ)`;
+        } else {
+          amount = parseInt(rawAmount || '0', 10);
+        }
+
+        applySelectedDonateOption(amount, label, true);
       });
     });
 
-    // Group Split Button (Quick)
+    // Button Tạo QR
     document.getElementById('btn-apply-group-split')?.addEventListener('click', () => {
       if (typeof sound !== 'undefined') sound.playClick();
-      const players = this.playerCount || 6;
-      const splitTotal = players * 10000;
-      amountChips.forEach(c => c.classList.remove('active'));
-      this.updateDonateQr(splitTotal, `Nhóm ${players} người (${splitTotal.toLocaleString('vi-VN')}đ)`);
-      this.showToast(`🎯 Đã tạo QR ủng hộ nhóm: ${splitTotal.toLocaleString('vi-VN')}đ`, 'success');
+
+      // Lấy theo chip đang được chọn hiện tại
+      const activeChip = document.querySelector('.amount-chip.active');
+      let amount = this.selectedDonateAmount || 0;
+      let label = this.selectedDonateLabel || 'Tùy tâm 💝';
+
+      if (activeChip) {
+        const rawAmount = activeChip.getAttribute('data-amount');
+        if (rawAmount === 'group') {
+          const players = this.playerCount || (this.players ? this.players.length : 6) || 6;
+          amount = players * 10000;
+          label = `Cả nhóm ${players} người (${amount.toLocaleString('vi-VN')}đ)`;
+        } else {
+          amount = parseInt(rawAmount || '0', 10);
+          label = activeChip.textContent.trim();
+        }
+      }
+
+      applySelectedDonateOption(amount, label, true);
     });
 
 

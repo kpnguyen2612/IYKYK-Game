@@ -11,6 +11,24 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ---
 
+## [2026-10-16] - Khắc Phục Lỗi Thông Báo Toast & Tạo Mã QR Donate Luôn Bị Cố Định 60.000đ
+
+### 🎯 1. Nguyên Nhân Sự Cố
+- Trước đó, nút cam **`Tạo QR`** (`#btn-apply-group-split`) vẫn giữ mã nguồn cũ của chức năng "Ủng hộ theo nhóm". Khi bấm nút này, hệ thống luôn tự động tính `số người chơi × 10.000đ = 60.000đ`, bỏ chọn các chip người dùng đã bấm và luôn hiển thị thông báo cố định: `🎯 Đã tạo QR ủng hộ nhóm: 60.000đ`.
+- Các nút chọn mức ủng hộ nhanh (Tùy tâm, 10k, 20k, 50k, 100k) khi bấm chưa hiển thị thông báo toast xác nhận riêng, khiến người dùng bấm tiếp nút "Tạo QR" và bị ghi đè thành 60k.
+
+### 🛠️ 2. Giải Pháp Hoàn Thiện
+- **Đồng bộ hóa 100% lựa chọn**: Thêm hàm điều phối `applySelectedDonateOption` lưu trữ `selectedDonateAmount` và `selectedDonateLabel`.
+- **Phản hồi tức thì khi bấm chip**: Khi chọn bất kỳ mức nào (Tùy tâm, 10k, 20k, 50k, 100k hoặc Cả nhóm), hệ thống:
+  - Cập nhật mã QR tức thì theo số tiền tương ứng.
+  - Cập nhật nhãn phụ ở góc trên (ví dụ: `50k (Cà phê ☕)`).
+  - Cập nhật text trên nút cam: `Tạo QR (50.000đ)`.
+  - Hiển thị Toast thông báo chính xác cho mức đó (ví dụ: `🎯 Đã tạo QR ủng hộ: 50.000đ (50k (Cà phê ☕))`, `🎯 Đã tạo mã QR: Ủng hộ Tùy tâm 💝`).
+- **Nút "Tạo QR" chuẩn xác**: Bấm nút "Tạo QR" sẽ luôn lấy đúng mức tiền đang được chọn thay vì ép buộc thành 60k.
+- **Bổ sung chip "Cả nhóm 👥"**: Đưa tùy chọn ủng hộ theo cả nhóm thành 1 chip trực quan (`#chip-donate-group`) tự động hiển thị số tiền tương ứng với số người chơi trong ván (`playerCount × 10k`).
+
+---
+
 ## [2026-10-16] - Xây Dựng Hoàn Thiện Vai Trò Dự Bị (Thám Tử, Bác Sĩ, Thị Trưởng) - Chưa Public Lên App
 
 ### 🔍 1. Thám Tử (Detective - Phe Dân)
