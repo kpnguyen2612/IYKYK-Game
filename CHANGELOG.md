@@ -25,7 +25,9 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 - **Phản hồi tức thì khi bấm chip**: Khi chọn bất kỳ mức nào, hệ thống:
   - Cập nhật mã QR tức thì theo số tiền tương ứng.
   - Cập nhật text trên nút cam: `Tạo QR (50.000đ)`.
-  - Hiển thị Toast thông báo chính xác cho mức đó (ví dụ: `🎯 Đã tạo QR ủng hộ: 50.000đ (50k (Cà phê ☕))`, `🎯 Đã tạo mã QR: Ủng hộ Tùy tâm 💝`).
+  - Hiển thị Toast thông báo ngắn gọn, thanh lịch, xóa bỏ hoàn toàn hiện tượng lặp số tiền hay ngoặc kép lồng nhau: ví dụ `🎯 Đã tạo mã QR: 100.000đ (Bữa trưa 🍱)` thay vì `100.000đ (100k (Bữa trưa 🍱 ))`.
+  - Mức tùy tâm hiển thị: `🎯 Đã tạo mã QR: Tùy tâm 💝`.
+  - Mức cả nhóm hiển thị: `🎯 Đã tạo mã QR: Cả nhóm (60.000đ 👥)`.
 - **Nút "Tạo QR" chuẩn xác**: Bấm nút "Tạo QR" sẽ luôn lấy đúng mức tiền đang được chọn thay vì ép buộc thành 60k.
 - **Bổ sung chip "Cả nhóm 👥"**: Đưa tùy chọn ủng hộ theo cả nhóm thành 1 chip trực quan (`#chip-donate-group`) tự động hiển thị số tiền tương ứng với số người chơi trong ván (`playerCount × 10k`).
 

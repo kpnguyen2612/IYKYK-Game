@@ -4050,14 +4050,17 @@ class ImposterGame {
 
     if (activeChip) {
       const rawAmount = activeChip.getAttribute('data-amount');
-      let amount = 0;
-      let label = activeChip.textContent.trim();
+      const amount = parseInt(rawAmount || '0', 10) || 0;
+      let label = 'Tùy tâm 💝';
       if (rawAmount === 'group') {
-        amount = players * 10000;
-        label = `Cả nhóm (${amount.toLocaleString('vi-VN')}đ)`;
-      } else {
-        amount = parseInt(rawAmount || '0', 10);
+        const total = players * 10000;
+        label = `Cả nhóm (${total.toLocaleString('vi-VN')}đ 👥)`;
+      } else if (amount > 0) {
+        const noteMatch = activeChip.textContent.match(/\(([^)]+)\)/);
+        const note = noteMatch ? noteMatch[1].trim() : '';
+        label = note ? `${amount.toLocaleString('vi-VN')}đ (${note})` : `${amount.toLocaleString('vi-VN')}đ`;
       }
+
       this.selectedDonateAmount = amount;
       this.selectedDonateLabel = label;
 
@@ -4797,8 +4800,42 @@ class ImposterGame {
       });
     });
 
+    // Helper format clean donate label & toast without duplication
+    const formatDonateInfo = (rawAmount, chipText) => {
+      if (rawAmount === 'group') {
+        const players = this.playerCount || (this.players ? this.players.length : 6) || 6;
+        const total = players * 10000;
+        const label = `Cả nhóm (${total.toLocaleString('vi-VN')}đ 👥)`;
+        return {
+          amount: total,
+          label: label,
+          toastText: `🎯 Đã tạo mã QR: ${label}`
+        };
+      }
+
+      const amount = parseInt(rawAmount || '0', 10);
+      if (amount === 0) {
+        return {
+          amount: 0,
+          label: 'Tùy tâm 💝',
+          toastText: '🎯 Đã tạo mã QR: Tùy tâm 💝'
+        };
+      }
+
+      const noteMatch = chipText.match(/\(([^)]+)\)/);
+      const note = noteMatch ? noteMatch[1].trim() : '';
+      const displayLabel = note ? `${amount.toLocaleString('vi-VN')}đ (${note})` : `${amount.toLocaleString('vi-VN')}đ`;
+
+      return {
+        amount: amount,
+        label: displayLabel,
+        toastText: `🎯 Đã tạo mã QR: ${displayLabel}`
+      };
+    };
+
     // Helper function to update donate button & QR
-    const applySelectedDonateOption = (amount, label, showNotification = true) => {
+    const applySelectedDonateOption = (info, showNotification = true) => {
+      const { amount, label, toastText } = info;
       this.selectedDonateAmount = amount;
       this.selectedDonateLabel = label;
 
@@ -4819,13 +4856,7 @@ class ImposterGame {
       this.updateDonateQr(amount, label);
 
       if (showNotification) {
-        if (amount === 0) {
-          this.showToast('🎯 Đã tạo mã QR: Ủng hộ Tùy tâm 💝', 'success');
-        } else if (label.startsWith('Cả nhóm') || label.startsWith('Nhóm')) {
-          this.showToast(`🎯 Đã tạo QR ủng hộ cả nhóm: ${amount.toLocaleString('vi-VN')}đ (10k/người)`, 'success');
-        } else {
-          this.showToast(`🎯 Đã tạo QR ủng hộ: ${amount.toLocaleString('vi-VN')}đ (${label})`, 'success');
-        }
+        this.showToast(toastText, 'success');
       }
     };
 
@@ -4838,18 +4869,8 @@ class ImposterGame {
         chip.classList.add('active');
 
         const rawAmount = chip.getAttribute('data-amount');
-        let amount = 0;
-        let label = chip.textContent.trim();
-
-        if (rawAmount === 'group') {
-          const players = this.playerCount || (this.players ? this.players.length : 6) || 6;
-          amount = players * 10000;
-          label = `Cả nhóm (${amount.toLocaleString('vi-VN')}đ)`;
-        } else {
-          amount = parseInt(rawAmount || '0', 10);
-        }
-
-        applySelectedDonateOption(amount, label, true);
+        const info = formatDonateInfo(rawAmount, chip.textContent.trim());
+        applySelectedDonateOption(info, true);
       });
     });
 
@@ -4859,22 +4880,11 @@ class ImposterGame {
 
       // Lấy theo chip đang được chọn hiện tại
       const activeChip = document.querySelector('.amount-chip.active');
-      let amount = this.selectedDonateAmount || 0;
-      let label = this.selectedDonateLabel || 'Tùy tâm 💝';
+      const rawAmount = activeChip ? activeChip.getAttribute('data-amount') : '0';
+      const chipText = activeChip ? activeChip.textContent.trim() : 'Tùy tâm 💝';
 
-      if (activeChip) {
-        const rawAmount = activeChip.getAttribute('data-amount');
-        if (rawAmount === 'group') {
-          const players = this.playerCount || (this.players ? this.players.length : 6) || 6;
-          amount = players * 10000;
-          label = `Cả nhóm (${amount.toLocaleString('vi-VN')}đ)`;
-        } else {
-          amount = parseInt(rawAmount || '0', 10);
-          label = activeChip.textContent.trim();
-        }
-      }
-
-      applySelectedDonateOption(amount, label, true);
+      const info = formatDonateInfo(rawAmount, chipText);
+      applySelectedDonateOption(info, true);
     });
 
 
