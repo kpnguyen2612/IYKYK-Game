@@ -119,6 +119,63 @@ const DEFAULT_ROLES = [
   }
 ];
 
+// ==========================================================
+// VAI TRÒ DỰ BỊ / CHƯA PUBLIC LÊN APP (UPCOMING ROLES)
+// Đã xây dựng hoàn thiện cấu trúc dữ liệu, kỹ năng & thông số
+// Sẵn sàng kích hoạt vào DEFAULT_ROLES bất kỳ khi nào muốn public!
+// ==========================================================
+const UPCOMING_ROLES = [
+  {
+    id: "detective",
+    name_vi: "Thám Tử",
+    icon: "🔍",
+    team: "good",
+    color: "#3B82F6",
+    desc_vi: "Có khả năng điều tra hành tung bí mật của người chơi khác.",
+    ability_vi: "Mỗi vòng dùng Hộp Công Cụ để soi danh tính 1 người chơi. Soi trúng Kẻ Giả Mạo / phe Ác được thưởng ngay +5 điểm!",
+    win_vi: "Phe Dân Làng chiến thắng (+10đ; còn sống vote đúng +5đ/kẻ lũy kế). Soi trúng phe Ác: +5đ/lần. Thua ván: -5đ.",
+    knowsKeyword: true,
+    getsHint: false,
+    maxCount: 2,
+    defaultCount: 1,
+    enabled: false,
+    isPublic: false
+  },
+  {
+    id: "doctor",
+    name_vi: "Bác Sĩ",
+    icon: "💉",
+    team: "good",
+    color: "#06B6D4",
+    desc_vi: "Có khả năng che chở và bảo vệ người chơi khỏi bị trục xuất.",
+    ability_vi: "Mỗi vòng dùng Hộp Công Cụ đặt Khiên Bảo Vệ cho 1 người (kể cả bản thân). Nếu người đó bị cả làng vote loại, án tử sẽ được hóa giải và Bác Sĩ nhận thưởng ngay +10 điểm!",
+    win_vi: "Phe Dân Làng chiến thắng (+10đ; còn sống vote đúng +5đ/kẻ lũy kế). Cứu sống thành công: +10đ/lần. Thua ván: -5đ.",
+    knowsKeyword: true,
+    getsHint: false,
+    maxCount: 2,
+    defaultCount: 1,
+    enabled: false,
+    isPublic: false
+  },
+  {
+    id: "mayor",
+    name_vi: "Thị Trưởng",
+    icon: "👑",
+    team: "good",
+    color: "#F59E0B",
+    desc_vi: "Nhà lãnh đạo có lá phiếu mang trọng lượng gấp đôi.",
+    ability_vi: "Lá phiếu biểu quyết có giá trị x2 khi bỏ phiếu trục xuất nghi phạm.",
+    win_vi: "Phe Dân Làng chiến thắng (+10đ; còn sống vote đúng +5đ/kẻ lũy kế). Thua ván: -5đ.",
+    knowsKeyword: true,
+    getsHint: false,
+    maxCount: 1,
+    defaultCount: 1,
+    enabled: false,
+    isPublic: false
+  }
+];
+
 if (typeof window !== "undefined") {
   window.DEFAULT_ROLES = DEFAULT_ROLES;
+  window.UPCOMING_ROLES = UPCOMING_ROLES;
 }

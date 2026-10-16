@@ -11,6 +11,29 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ---
 
+## [2026-10-16] - Xây Dựng Hoàn Thiện Vai Trò Dự Bị (Thám Tử, Bác Sĩ, Thị Trưởng) - Chưa Public Lên App
+
+### 🔍 1. Thám Tử (Detective - Phe Dân)
+- **Cấu trúc dữ liệu**: `UPCOMING_ROLES[0]` trong `data_roles.js` (`enabled: false, isPublic: false`).
+- **Kỹ năng**: Điều tra danh tính người chơi khác (soi phe Dân / phe Ác). Kích hoạt thông qua Hộp Công Cụ Ban Ngày hoặc Ban Đêm bí mật. Soi trúng phe Ác (Imposter/Traitor) nhận thưởng ngay `+5 điểm` trong ván.
+- **Điều kiện thắng/thua**: Phe Dân thắng (+10đ; còn sống vote đúng +5đ/kẻ). Soi trúng phe Ác: +5đ/lần. Thua ván: -5đ.
+
+### 💉 2. Bác Sĩ (Doctor - Phe Dân)
+- **Cấu trúc dữ liệu**: `UPCOMING_ROLES[1]` trong `data_roles.js` (`enabled: false, isPublic: false`).
+- **Kỹ năng**: Tiêm huyết thanh bảo hộ / đặt Khiên Bảo Vệ cho 1 người (kể cả bản thân). Nếu người đó bị cả làng vote loại, án tử được hóa giải ngay, không ai bị loại và Bác Sĩ nhận thưởng ngay `+10 điểm`.
+- **Điều kiện thắng/thua**: Phe Dân thắng (+10đ; còn sống vote đúng +5đ/kẻ). Cứu sống thành công: +10đ/lần. Thua ván: -5đ.
+
+### 👑 3. Thị Trưởng (Mayor - Phe Dân)
+- **Cấu trúc dữ liệu**: `UPCOMING_ROLES[2]` trong `data_roles.js` (`enabled: false, isPublic: false`).
+- **Kỹ năng**: Lá phiếu biểu quyết có giá trị x2 khi bỏ phiếu trục xuất nghi phạm (hiển thị huy hiệu `👑 x2 Phiếu` trên thẻ biểu quyết).
+- **Điều kiện thắng/thua**: Phe Dân thắng (+10đ; còn sống vote đúng +5đ/kẻ). Thua ván: -5đ.
+
+### 🔒 4. Trạng Thái Ngầm & Cách Thức Kích Hoạt (Dormant Logic)
+- **Không gây nhiễu giao diện live**: Danh sách vai trò mặc định đang hiển thị trên app vẫn giữ chuẩn 7 vai trò cốt lõi (`DEFAULT_ROLES`, filter chip `Tất cả (7)`).
+- **Sẵn sàng kích hoạt**: Toàn bộ logic hook đã cài đặt sẵn trong `app.js` (Hộp công cụ, Khiên bảo vệ, Soi danh tính, Huy hiệu Thị trưởng, Thưởng điểm hành động). Khi muốn public, chỉ cần chuyển từ `UPCOMING_ROLES` sang `DEFAULT_ROLES`.
+
+---
+
 ## [2026-10-16] - Tạm Ẩn Chế Độ Ban Đêm & Công Tắc Màn Đêm Để Trải Nghiệm Game Cơ Bản, Tinh Gọn
 
 ### 🌙 1. Tạm Ẩn Giao Diện Công Tắc Ban Đêm

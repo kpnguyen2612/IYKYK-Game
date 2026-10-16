@@ -12,7 +12,7 @@ vuive/
 ├── styles.css           # Toàn bộ hệ thống giao diện Obsidian Arcade & Hiệu ứng 
 ├── app.js               # Logic điều khiển chính, máy trạng thái, đồng hồ, tính điểm
 ├── audio.js             # Bộ tổng hợp âm thanh Web Audio API & rung phản hồi haptic
-├── data_roles.js        # Dữ liệu 7 vai trò cốt lõi (phe Dân, phe Ác, Trung lập)
+├── data_roles.js        # Dữ liệu 7 vai trò cốt lõi (phe Dân, phe Ác, Trung lập) & UPCOMING_ROLES
 ├── data_categories.js   # Danh mục từ vựng tiếng Việt/Anh, bảng màu avatar, tên ngẫu nhiên
 ├── ARCHITECTURE.md      # Bản đồ tra cứu code (Tài liệu này)
 └── tools_stitch/        # Thư mục lưu trữ các file kịch bản & schema API tạm thời
@@ -45,6 +45,7 @@ vuive/
 | **Kẻ Phản Bội, Kẻ Ngu** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `traitor`, `jester` |
 | **Kẻ Say Rượu (Phe Dân - Đối Trọng Gián Điệp)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `drunkard`, `getDrunkardWord` (Phe Dân nhận từ đồng nghĩa, bị vote không sao, Dân thắng sống +20đ / chết +10đ, Gián Điệp sống phạt -10đ, Imposter thắng 0đ) |
 | **Điệp Viên Hai Mang** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `double_agent` |
+| **Vai trò dự bị (Chưa public: Thám Tử, Bác Sĩ, Thị Trưởng)** | [`data_roles.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/data_roles.js) & [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `UPCOMING_ROLES`, `aliveDetectives`, `aliveDoctors`, `isMayor`, `doctorShieldedPlayerIds` |
 | **Cài đặt hệ thống (Theme & Âm thanh)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) & [`index.html`](file:///c:/Users/Windows/Documents/APP%20code/vuive/index.html) | Tìm: `#btn-open-settings` (Góc trên bên phải), `#modal-settings`, `openSettingsModal` |
 | **Bản địa hóa 100% Tiếng Việt** | Toàn bộ ứng dụng | Không sử dụng song ngữ Anh-Việt, khóa cứng ngôn ngữ tiếng Việt thuần túy |
 | **Thêm / Sửa từ vựng mặc định (Word Pairs)** | [`data_categories.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/data_categories.js) | Tìm: `CATEGORIES` (Cặp từ: `{ civilian, imposter }`) |
@@ -83,14 +84,36 @@ Mỗi màn hình được bọc trong thẻ `<section id="screen-..." class="vie
    - Đồng hồ đếm ngược ván chơi.
    - Thanh HUD người đang phát biểu (`#current-speaker-hud`) có avatar, tên, đồng hồ đếm ngược từng lượt và nút **Xong lượt ⏭️**.
    - Dải avatar chạm để chuyển lượt phát biểu, nút hộp đồ năng lực bí mật.
-7. **`#screen-voting` (Screen 6 - Bỏ phiếu loại)**:
+8. **`#screen-voting` (Screen 6 - Bỏ phiếu loại)**:
    - Lưới chọn người bị tình nghi, cảnh báo trừ 5 điểm nếu vote nhầm, nút bỏ qua/hòa phiếu.
-8. **`#screen-comeback` (Screen 6.5 - Cơ hội lật kèo kín đáo của Imposter)**:
+9. **`#screen-comeback` (Screen 6.5 - Cơ hội lật kèo kín đáo của Imposter)**:
    - Màn hình bí mật tách biệt dành riêng cho Imposter cầm máy gõ từ khóa mà không nhìn thấy đáp án.
-9. **`#screen-results` (Screen 7 - Kết quả ván & Bảng điểm)**:
-   - Bảng điểm 2 tab: `⚡ Điểm ván này` & `👑 Tổng tích lũy giải đấu`.
-   - Nút `🔄 Đặt lại tất cả điểm`.
-   - **Thanh thao tác cố định ở dưới (`.results-actions-bar`)**:
-     - Bên trái: `🏠` (`#btn-back-to-home` - Về trang chủ).
-     - Ở giữa: `🔄` (`#btn-play-again` - Chơi lại ván mới).
-     - Bên phải: `🗑️` (`#btn-discard-round-score` - **Button Thùng Rác: Không tính điểm số ván này**; hoàn tác điểm cộng/trừ của ván đấu khỏi BXH giải đấu).
+10. **`#screen-results` (Screen 7 - Kết quả ván & Bảng điểm)**:
+    - Bảng điểm 2 tab: `⚡ Điểm ván này` & `👑 Tổng tích lũy giải đấu`.
+    - Nút `🔄 Đặt lại tất cả điểm`.
+    - **Thanh thao tác cố định ở dưới (`.results-actions-bar`)**:
+      - Bên trái: `🏠` (`#btn-back-to-home` - Về trang chủ).
+      - Ở giữa: `🔄` (`#btn-play-again` - Chơi lại ván mới).
+      - Bên phải: `🗑️` (`#btn-discard-round-score` - **Button Thùng Rác: Không tính điểm số ván này**; hoàn tác điểm cộng/trừ của ván đấu khỏi BXH giải đấu).
+
+---
+
+## 🔮 4. Kiến Trúc Vai Trò Dự Bị (Upcoming Roles - Chưa Public)
+
+Hệ thống đã xây dựng sẵn sàng 100% cấu trúc dữ liệu và logic hook ngầm cho 3 vai trò dự bị nhưng chưa đưa lên giao diện ứng dụng công khai:
+
+1. **`detective` (Thám Tử - Phe Dân 🔍)**:
+   - Dữ liệu: `UPCOMING_ROLES[0]` trong [`data_roles.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/data_roles.js) (`enabled: false, isPublic: false`).
+   - Kỹ năng: Soi danh tính 1 người chơi qua Hộp Công Cụ (`#modal-toolbox`) hoặc Đêm bí mật (`#screen-night`). Soi trúng phe Ác (Imposter/Traitor) nhận thưởng ngay `+5 điểm` trong ván.
+   - Thắng/Thua: Phe Dân thắng `+10đ` (còn sống vote đúng `+5đ/kẻ`); Soi trúng phe Ác `+5đ/lần`; Thua ván `-5đ`.
+2. **`doctor` (Bác Sĩ - Phe Dân 💉)**:
+   - Dữ liệu: `UPCOMING_ROLES[1]` trong [`data_roles.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/data_roles.js) (`enabled: false, isPublic: false`).
+   - Kỹ năng: Đặt Khiên Bảo Vệ (`doctorShieldedPlayerIds`) cho 1 người (kể cả bản thân) qua Hộp Công Cụ hoặc Đêm bí mật. Nếu mục tiêu bị cả làng vote loại, án tử được hóa giải ngay, không ai bị loại và Bác Sĩ nhận thưởng ngay `+10 điểm`.
+   - Thắng/Thua: Phe Dân thắng `+10đ` (còn sống vote đúng `+5đ/kẻ`); Cứu sống thành công `+10đ/lần`; Thua ván `-5đ`.
+3. **`mayor` (Thị Trưởng - Phe Dân 👑)**:
+   - Dữ liệu: `UPCOMING_ROLES[2]` trong [`data_roles.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/data_roles.js) (`enabled: false, isPublic: false`).
+   - Kỹ năng: Lá phiếu biểu quyết có trọng số gấp đôi (`x2 Phiếu`) khi bỏ phiếu trục xuất nghi phạm.
+   - Thắng/Thua: Phe Dân thắng `+10đ` (còn sống vote đúng `+5đ/kẻ`); Thua ván `-5đ`.
+
+> 💡 **Cách Kích Hoạt / Public Lên Ứng Dụng Khi Muốn**:
+> Chỉ cần chuyển các vai trò từ `UPCOMING_ROLES` sang `DEFAULT_ROLES` trong [`data_roles.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/data_roles.js) và cập nhật số đếm chip trên `index.html`. Toàn bộ logic kỹ năng, bảo hộ, soi danh tính và tính điểm trong [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) sẽ tự động kích hoạt lập tức mà không cần viết thêm bất kỳ mã nguồn nào.
