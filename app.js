@@ -4033,13 +4033,6 @@ class ImposterGame {
     const modal = document.getElementById('modal-donate');
     if (!modal) return;
 
-    // Cập nhật số người chơi cho chip cả nhóm
-    const players = this.playerCount || (this.players ? this.players.length : 6) || 6;
-    const groupChip = document.getElementById('chip-donate-group');
-    if (groupChip) {
-      groupChip.textContent = `Cả nhóm (${(players * 10).toLocaleString('vi-VN')}k 👥)`;
-    }
-
     // Luôn đồng bộ trạng thái hiển thị chuẩn xác với chip đang chọn
     const amountChips = modal.querySelectorAll('.amount-chip');
     let activeChip = modal.querySelector('.amount-chip.active');
@@ -4052,10 +4045,7 @@ class ImposterGame {
       const rawAmount = activeChip.getAttribute('data-amount');
       const amount = parseInt(rawAmount || '0', 10) || 0;
       let label = 'Tùy tâm 💝';
-      if (rawAmount === 'group') {
-        const total = players * 10000;
-        label = `Cả nhóm (${total.toLocaleString('vi-VN')}đ 👥)`;
-      } else if (amount > 0) {
+      if (amount > 0) {
         const noteMatch = activeChip.textContent.match(/\(([^)]+)\)/);
         const note = noteMatch ? noteMatch[1].trim() : '';
         label = note ? `${amount.toLocaleString('vi-VN')}đ (${note})` : `${amount.toLocaleString('vi-VN')}đ`;
@@ -4802,17 +4792,6 @@ class ImposterGame {
 
     // Helper format clean donate label & toast without duplication
     const formatDonateInfo = (rawAmount, chipText) => {
-      if (rawAmount === 'group') {
-        const players = this.playerCount || (this.players ? this.players.length : 6) || 6;
-        const total = players * 10000;
-        const label = `Cả nhóm (${total.toLocaleString('vi-VN')}đ 👥)`;
-        return {
-          amount: total,
-          label: label,
-          toastText: `🎯 Đã tạo mã QR: ${label}`
-        };
-      }
-
       const amount = parseInt(rawAmount || '0', 10);
       if (amount === 0) {
         return {
