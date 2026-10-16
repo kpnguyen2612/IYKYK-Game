@@ -41,8 +41,8 @@ vuive/
 | **Vai trò cố định kèm số lượng (Fixed Roles & Stepper)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `[SEC 04.4]` hoặc `syncFixedRolesWithDeck`, `setFixedRoleCount`, `renderFixedRolesChips` |
 | **Giao diện Vai trò cố định & Modal 2.2** | [`index.html`](file:///c:/Users/Windows/Documents/APP%20code/vuive/index.html) | Tìm: `#card-fixed-roles`, `#modal-fixed-roles`, `#btn-open-fixed-roles-modal` |
 | **Quản lý cặp từ vựng tự tạo (Word Pairs)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `[SEC 04.5]` hoặc `openWordPairsModal`, `addCustomWordPair`, `deleteCustomWordPair` |
-| **Kỹ năng các vai trò đặc biệt (Special Role Abilities)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `openSpecialAbilityToolbox`, `showRevealStep` |
-| **Gián Điệp, Kẻ Phản Bội, Kẻ Ngu** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `aliveSpies`, `traitor`, `jester` |
+| **Gián Điệp (Trung Lập - Từ Đồng Nghĩa)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `aliveSpies`, `spyWord`, `imposterWord` (Trung Lập, nhận từ đồng nghĩa trong cặp, sống sót +20đ, bị loại -10đ) |
+| **Kẻ Phản Bội, Kẻ Ngu** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `traitor`, `jester` |
 | **Kẻ Say Rượu & Điệp Viên Hai Mang** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `getDrunkardWord`, `double_agent` |
 | **Cài đặt hệ thống (Theme & Âm thanh)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) & [`index.html`](file:///c:/Users/Windows/Documents/APP%20code/vuive/index.html) | Tìm: `#btn-open-settings` (Góc trên bên phải), `#modal-settings`, `openSettingsModal` |
 | **Bản địa hóa 100% Tiếng Việt** | Toàn bộ ứng dụng | Không sử dụng song ngữ Anh-Việt, khóa cứng ngôn ngữ tiếng Việt thuần túy |

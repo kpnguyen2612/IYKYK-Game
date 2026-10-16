@@ -11,7 +11,33 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ---
 
-## [2026-10-16] - Tinh Gọn Bộ Vai Trò Còn 7 Vai Trò Cốt Lõi & Đồng Bộ Toàn Bộ Dữ Liệu
+## [2026-10-16] - Chuyển Gián Điệp Sang Phe Trung Lập (Chỉ Biết Từ Đồng Nghĩa & Thắng Độc Lập Khi Sống Sót)
+
+### 🕵️ 1. Chuẩn Hóa Gián Điệp (Spy) Sang Phe Trung Lập
+- **Chuyển phe chính thức**: Gián Điệp chuyển từ **Phe Ác** (`team: 'evil'`) sang **Phe Trung Lập** (`team: 'neutral'`).
+  - Không còn là đồng minh của Kẻ Giả Mạo, không biết ai là Imposter hay Dân Thường.
+  - Phù hiệu hiển thị: `[TRUNG LẬP]`.
+- **Manh mối & Từ ngữ**:
+  - Gián Điệp nhận **từ đồng nghĩa / từ cặp tương tự** trong cặp từ (`this.imposterWord`), khác với từ khóa chính của phe Dân (`this.secretWord`).
+  - Trên thẻ lật hiển thị nhãn rõ ràng: `TỪ ĐỒNG NGHĨA TRONG CẶP:`.
+  - Nhiệm vụ: Khéo léo miêu tả từ của mình sao cho vừa hòa nhập với phe Dân, vừa che giấu sự khác biệt tinh tế của từ đồng nghĩa để sống sót.
+
+### 🏆 2. Điều Kiện Thắng & Tính Điểm Độc Lập (User Confirmed)
+- **Thắng độc lập khi SỐNG SÓT đến cuối ván**: Nhận ngay **+20 điểm** (bất kể phe Dân hay Imposter thắng ván chung cuộc).
+- **Khi bị biểu quyết loại**: Nhận **-10 điểm**.
+- **Bỏ phiếu**: Biểu quyết đúng hay sai đều **0 điểm** (không được thưởng vote bắt Kẻ Ác, không bị trừ phạt vote oan Dân làng).
+
+### ⚖️ 3. Đồng Bộ Toàn Bộ Logic Xử Lý Ván Chơi
+- **`data_roles.js`**: Cập nhật `team: 'neutral'`, mô tả `desc_vi`, kỹ năng `ability_vi`, và điều kiện thắng `win_vi` (+20đ sống sót / -10đ bị loại / 0đ vote).
+- **`app.js`**:
+  - `showRevealStep`: Hiển thị nhãn `TỪ ĐỒNG NGHĨA TRONG CẶP:` với từ ngữ `imposterWord` phát sáng tím trung lập.
+  - `submitVotingOutcome`: Khi Gián Điệp bị trục xuất, hiển thị thông báo thuộc **Phe Trung Lập (Gián Điệp)**. Ván chơi tiếp tục sang vòng sau nếu Kẻ Giả Mạo vẫn còn sống. Dân còn sống được tính thưởng +5đ bắt Kẻ Trung Lập.
+  - `calculateMatchScores`: Xóa bỏ các nhánh Gián Điệp cũ trong Phe Ác; tích hợp tính điểm Gián Điệp Trung Lập độc lập (+20đ sống sót, -10đ bị loại, 0đ khi Kẻ Ngu thắng hoặc vote oan).
+  - `openSpecialAbilityToolbox` & `showNightStep`: Đồng bộ hiển thị từ đồng nghĩa trong cặp.
+- **`index.html`**: Cập nhật bảng tra cứu điểm số chi tiết (`#modal-deep-rules`): `🕵️ Gián Điệp (Spy - Trung Lập)` nhận +20đ / -10đ.
+- **`ARCHITECTURE.md`**: Cập nhật bảng tra cứu tính năng theo vai trò Gián Điệp Trung Lập.
+
+---
 
 ### 🎭 1. Loại Bỏ 5 Vai Trò Thừa & Chuẩn Hóa 7 Vai Trò Cốt Lõi
 - **5 vai trò đã xóa hoàn toàn khỏi hệ thống**:

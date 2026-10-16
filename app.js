@@ -1366,9 +1366,11 @@ class ImposterGame {
       const imposterNames = this.players.filter(p => p.isImposter && p.id !== player.id).map(p => p.name).join(', ') || 'Đang ẩn nấp';
       keywordCat.textContent = `Chủ đề: ${catName} • Imposter: ${imposterNames}`;
     } else if (player.role.id === 'spy') {
-      keywordLabel.textContent = 'TỪ GỢI Ý CỦA IMPOSTER:';
-      keywordText.className = 'secret-keyword-text imposter';
-      const spyWord = this.imposterWord || 'Cùng từ với Kẻ Giả Mạo';
+      keywordLabel.textContent = 'TỪ ĐỒNG NGHĨA TRONG CẶP:';
+      keywordText.className = 'secret-keyword-text';
+      keywordText.style.color = '#a855f7';
+      keywordText.style.textShadow = '0 0 16px rgba(168, 85, 247, 0.4)';
+      const spyWord = this.imposterWord || 'Từ đồng nghĩa trong cặp';
       keywordText.textContent = spyWord;
       keywordCat.textContent = `Chủ đề: ${catName}`;
     } else if (player.role.knowsKeyword) {
@@ -1910,13 +1912,13 @@ class ImposterGame {
 
     switch (player.role.id) {
       case 'spy': {
-        const spyWord = this.imposterWord || 'Từ cùng Kẻ Giả Mạo';
+        const spyWord = this.imposterWord || 'Từ đồng nghĩa trong cặp';
         cardContent.innerHTML = `
           <div style="text-align: center; padding: 10px;">
             <span style="font-size: 26px;">🕵️</span>
-            <div style="font-size: 13px; font-weight: 700; color: #8b5cf6; margin: 4px 0;">Từ Của Imposter (Gián Điệp)</div>
+            <div style="font-size: 13px; font-weight: 700; color: #8b5cf6; margin: 4px 0;">Từ Đồng Nghĩa Trong Cặp (Gián Điệp)</div>
             <div style="font-size: 18px; font-weight: 800; color: #fff; margin: 6px 0;">"${spyWord}"</div>
-            <div style="font-size: 12px; color: var(--text-muted);">Chủ đề: ${this.categoryData.name_vi} • Bạn nhận từ của Imposter để trà trộn cùng Imposter.</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Chủ đề: ${this.categoryData.name_vi} • Bạn thuộc Phe Trung Lập nhận từ đồng nghĩa trong cặp từ. Hãy khéo léo hòa nhập để sống sót!</div>
           </div>
         `;
         break;
@@ -2153,18 +2155,18 @@ class ImposterGame {
       }
     }
 
-    // Spy (Gián Điệp): Phe Ác nhận từ của Imposter, KHÔNG có khả năng đoán từ khi bị phát hiện như Imposter thường!
+    // Spy (Gián Điệp): Phe Trung Lập nhận từ đồng nghĩa trong cặp từ, không có khả năng đoán từ khi bị phát hiện!
     if (suspect.role.id === 'spy') {
       const remainingNormalImposters = this.players.filter(p => p.role.id === 'imposter' && !p.isEliminated);
       if (remainingNormalImposters.length === 0) {
         this.winningTeam = 'good';
         this.showActionNotice({
           icon: '🕵️',
-          title: 'VẠCH MẶT GIÁN ĐIỆP',
+          title: 'TRỤC XUẤT GIÁN ĐIỆP',
           targetName: suspect.name,
-          type: 'evil',
+          type: 'neutral',
           heading: '🕵️ GIÁN ĐIỆP BỊ TRỤC XUẤT',
-          message: `<strong>${suspect.name}</strong> thuộc <strong>Phe Ác (Gián Điệp)</strong> và đã bị trục xuất!<br>Gián Điệp <strong>không có khả năng đoán từ khi bị phát hiện như Imposter thường</strong>, chỉ có thể cố gắng sống sót đến cuối.<br><strong>Toàn bộ Phe Ác đã bị loại bỏ! Phe Dân Làng giành chiến thắng!</strong>`,
+          message: `<strong>${suspect.name}</strong> thuộc <strong>Phe Trung Lập (Gián Điệp)</strong> và đã bị trục xuất!<br>Gián Điệp nắm giữ từ đồng nghĩa trong cặp từ nhưng đã bị phát hiện.<br><strong>Kẻ Giả Mạo đã bị loại bỏ trước đó! Phe Dân Làng giành chiến thắng!</strong>`,
           note: 'Phe Dân Làng bảo toàn chiến thắng!',
           onClose: () => {
             this.showResultsScreen(suspect);
@@ -2174,11 +2176,11 @@ class ImposterGame {
       } else {
         this.showActionNotice({
           icon: '🕵️',
-          title: 'VẠCH MẶT GIÁN ĐIỆP',
+          title: 'TRỤC XUẤT GIÁN ĐIỆP',
           targetName: suspect.name,
-          type: 'evil',
+          type: 'neutral',
           heading: '🕵️ GIÁN ĐIỆP BỊ TRỤC XUẤT',
-          message: `<strong>${suspect.name}</strong> thuộc <strong>Phe Ác (Gián Điệp)</strong> và đã bị trục xuất!<br>Gián Điệp <strong>không có khả năng đoán từ khi bị phát hiện như Imposter thường</strong> (chỉ có thể cố gắng sống sót đến cuối).<br>Tuy nhiên, Kẻ Giả Mạo vẫn đang ẩn nấp trong phòng.`,
+          message: `<strong>${suspect.name}</strong> thuộc <strong>Phe Trung Lập (Gián Điệp)</strong> và đã bị trục xuất!<br>Gián Điệp nắm giữ từ đồng nghĩa trong cặp từ nhưng đã bị phát hiện.<br>Tuy nhiên, Kẻ Giả Mạo vẫn đang ẩn nấp trong phòng.`,
           note: 'Phe Dân tiếp tục cảnh giác và truy tìm Kẻ Giả Mạo!',
           onClose: () => {
             this.showRoundIntermission(suspect, true);
@@ -2671,15 +2673,7 @@ class ImposterGame {
       // ========================================================
       if (this.winningTeam === 'good') {
         // Phe Ác Thua
-        if (p.role.id === 'spy') {
-          // Gián điệp: -10đ nếu chết, vote đúng/sai 0đ, không điểm thắng
-          if (p.isEliminated) {
-            delta -= 10;
-            reasons.push('Gián Điệp bị loại (-10đ)');
-          } else {
-            reasons.push('Phe Ác thua ván (0đ)');
-          }
-        } else if (p.isImposter || (p.role && p.role.team === 'evil') || (p.role && p.role.id === 'imposter')) {
+        if (p.isImposter || (p.role && p.role.team === 'evil') || (p.role && p.role.id === 'imposter')) {
           const isCaughtOne = this.caughtImposter ? (p.id === this.caughtImposter.id) : p.isEliminated;
           const elimRound = p.eliminatedInRound || (isCaughtOne ? this.roundNumber : 1) || 1;
           const isRound1 = elimRound === 1;
@@ -2742,15 +2736,7 @@ class ImposterGame {
         // ========================================================
         // PHE ÁC THẮNG (IMPOSTER THẮNG / DÂN THƯỜNG THUA)
         // ========================================================
-        if (p.role.id === 'spy') {
-          // Gián điệp: +25đ nếu thắng, -10đ nếu chết, vote đúng/sai 0đ
-          delta += 25;
-          reasons.push('Gián Điệp thắng cùng phe Ác (+25đ)');
-          if (p.isEliminated) {
-            delta -= 10;
-            reasons.push('Gián Điệp bị loại (-10đ)');
-          }
-        } else if (p.isImposter) {
+        if (p.isImposter) {
           if (this.imposterWonByComeback) {
             delta += 20;
             const isHero = this.caughtImposter ? (p.id === this.caughtImposter.id) : true;
@@ -2799,6 +2785,16 @@ class ImposterGame {
           }
         }
 
+        // C. Gián Điệp (Spy) - Phe Trung Lập: Thắng độc lập khi SỐNG SÓT (+20đ), bị loại (-10đ), vote ai cũng 0đ
+        if (p.role.id === 'spy') {
+          if (!p.isEliminated) {
+            delta += 20;
+            reasons.push('Gián Điệp sống sót thành công (+20đ)');
+          } else {
+            delta -= 10;
+            reasons.push('Gián Điệp bị phát hiện & trục xuất (-10đ)');
+          }
+        }
 
         // E. Phạt biểu quyết oan sai (Wrong vote penalty): tất cả dân còn sống -5đ (không tính dân đã chết)
         // Kẻ Ngu và Gián Điệp: vote đúng hay sai đều không tăng giảm điểm!
@@ -3641,7 +3637,7 @@ class ImposterGame {
       item.dataset.playerId = spy.id;
 
       const titleNum = aliveSpies.length > 1 ? `#${idx + 1} ` : '';
-      const spyWord = this.imposterWord || 'Từ cùng Kẻ Giả Mạo';
+      const spyWord = this.imposterWord || 'Từ đồng nghĩa trong cặp';
 
       item.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
@@ -3649,7 +3645,7 @@ class ImposterGame {
             <span style="font-size: 24px;">🕵️</span>
             <div>
               <strong>${`Gián Điệp ${titleNum}(${spy.name})`}</strong>
-              <p style="font-size: 11px; color: #8b5cf6; margin: 0;">${'Xem lại từ khóa của Imposter'}</p>
+              <p style="font-size: 11px; color: #8b5cf6; margin: 0;">${'Xem lại từ đồng nghĩa trong cặp'}</p>
             </div>
           </div>
           <button id="btn-spy-${spy.id}" class="ctrl-btn" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-medium); color: var(--text-primary); min-width: 88px;">
@@ -3664,12 +3660,12 @@ class ImposterGame {
 
         this.showActionNotice({
           icon: '🕵️',
-          title: 'TỪ CỦA IMPOSTER',
+          title: 'TỪ ĐỒNG NGHĨA TRONG CẶP',
           targetName: spy.name,
-          type: 'evil',
-          heading: `🕵️ TỪ CỦA IMPOSTER: "${spyWord}"`,
-          message: `Từ nhận được từ Imposter cho Gián Điệp <strong>${spy.name}</strong>:<br><strong>"${spyWord}"</strong><br>Chủ đề: <em>${this.categoryData.name_vi}</em>`,
-          note: 'Hãy hòa nhập cùng Imposter để lừa gạt phe Dân!'
+          type: 'neutral',
+          heading: `🕵️ TỪ ĐỒNG NGHĨA: "${spyWord}"`,
+          message: `Từ đồng nghĩa trong cặp nhận được cho Gián Điệp <strong>${spy.name}</strong>:<br><strong>"${spyWord}"</strong><br>Chủ đề: <em>${this.categoryData.name_vi}</em>`,
+          note: 'Hãy khéo léo hòa nhập để không bị phát hiện và sống sót đến cuối ván!'
         });
         dismissCard(item);
       });
