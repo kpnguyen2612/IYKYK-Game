@@ -1396,7 +1396,7 @@
           <strong>Hệ thống điểm giải đấu:</strong><br />
           • Thắng ván: +10đ (Phe Dân) / +10đ ~ +30đ (Imposter)<br />
           • Imposter lật kèo đoán đúng từ: +15đ ~ +25đ<br />
-          • Bắt Kẻ Giả Mạo & Trung Lập: +5đ/kẻ (Lũy kế) • Kẻ Ngu: +25đ • Gián Điệp: +25đ<br />
+          • Bắt Kẻ Giả Mạo & Trung Lập: +5đ/kẻ (Lũy kế) • Kẻ Ngu: +30đ • Gián Điệp: +25đ<br />
           • Điểm phạt (Âm điểm): -5đ khi vote nhầm Dân, -15đ khi Imposter bị bắt ngay Vòng 1, -5đ khi Thua trận.
         </div>
       </div>
@@ -1702,7 +1702,7 @@
             <li><strong>Phe Dân Thắng:</strong> Trục xuất được toàn bộ Kẻ Giả Mạo (và Imposter không đoán được từ khóa ở màn Lật Kèo).</li>
             <li><strong>Kẻ Giả Mạo Thắng:</strong> Sống sót cho đến khi số Imposter bằng hoặc nhiều hơn số Dân Thường còn lại (do Dân vote nhầm nhau).</li>
             <li><strong>Lật Kèo (Comeback):</strong> Nếu bị bắt, Imposter có 1 cơ hội duy nhất gõ đúng từ khóa bí mật để cướp chiến thắng!</li>
-            <li><strong>Kẻ Ngu (Jester):</strong> Phe Trung Lập biết từ khóa bí mật, chiến thắng độc lập ngay lập tức nếu bị cả làng vote trục xuất (+25đ)!</li>
+            <li><strong>Kẻ Ngu (Jester):</strong> Phe Trung Lập biết từ khóa bí mật, chiến thắng độc lập ngay lập tức nếu bị cả làng vote trục xuất (+30đ, tất cả người khác 0đ)! Nếu không bị vote đến cuối ván vẫn không bị trừ điểm (0đ).</li>
           </ul>
         </div>
 
@@ -1809,11 +1809,11 @@
               </tr>
               <tr>
                 <td>🤪 <strong>Kẻ Ngu (Jester) bị vote loại</strong><br><span style="font-size: 10px; color: var(--text-muted);">Biết từ khóa, lừa cả làng thành công (Thắng độc lập)</span></td>
-                <td class="pts-plus" style="color: #ec4899; font-weight: 800; font-size: 13px;">+25 điểm<br><span style="font-size: 10px; color: #ef4444;">(Tất cả người khác: -5đ)</span></td>
+                <td class="pts-plus" style="color: #ec4899; font-weight: 800; font-size: 13px;">+30 điểm<br><span style="font-size: 10px; color: #10b981;">(Tất cả người khác: 0đ)</span></td>
               </tr>
               <tr>
-                <td>🤪 <strong>Kẻ Ngu không bị vote loại</strong><br><span style="font-size: 10px; color: var(--text-muted);">Thất bại mục tiêu bị vote loại (vote đúng/sai 0đ)</span></td>
-                <td style="color: var(--text-secondary); font-size: 11px; font-weight: 600;">0 điểm<br><span style="font-size: 10px; color: var(--text-muted);">(Không mất điểm)</span></td>
+                <td>🤪 <strong>Kẻ Ngu không bị vote loại</strong><br><span style="font-size: 10px; color: var(--text-muted);">Không bị vote đến cuối ván (vote đúng/sai 0đ)</span></td>
+                <td style="color: var(--text-secondary); font-size: 11px; font-weight: 600;">0 điểm<br><span style="font-size: 10px; color: var(--text-muted);">(Không bị trừ điểm)</span></td>
               </tr>
               <tr>
                 <td>🕵️ <strong>Gián Điệp (Spy)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Nhận từ của Imposter, không thể đoán từ khi bị phát hiện như Imposter thường, chỉ có thể cố gắng sống sót đến cuối (vote đúng/sai 0đ)</span></td>

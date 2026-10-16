@@ -11,6 +11,23 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ---
 
+## [2026-10-16] - Cập Nhật Logic Tính Điểm Kẻ Ngu (+30đ Khi Được Vote, 0đ Cho Người Khác & Khi Không Bị Vote)
+
+### 🤪 1. Logic Tính Điểm Chuẩn Thân Thiện & Cân Bằng (Option 2)
+- **Quy tắc tính điểm Kẻ Ngu (Jester)**:
+  - **Khi Kẻ Ngu bị cả làng vote loại (Thắng độc lập)**:
+    - Kẻ Ngu bị loại nhận ngay **+30 điểm** (nâng từ +25đ lên +30đ cho chiến thắng lừa cả làng xuất sắc).
+    - **Toàn bộ người chơi khác nhận 0 điểm** (Không bị phạt, không ai bị trừ điểm - giữ trọn bầu không khí vui vẻ cho buổi tiệc).
+  - **Khi Kẻ Ngu không bị vote đến cuối ván (Phe Dân hoặc Imposter thắng)**:
+    - Kẻ Ngu bảo toàn điểm số với **0 điểm** (hoàn toàn không bị trừ điểm).
+  - **Hỗ trợ ván có nhiều Kẻ Ngu**: Chỉ Kẻ Ngu nào bị biểu quyết loại mới nhận +30đ, Kẻ Ngu chưa bị loại nhận 0đ.
+- **Các thành phần được đồng bộ**:
+  - `app.js`: Cập nhật thuật toán tính điểm ván `calculateMatchScores` (`this.winningTeam === 'jester'`).
+  - `data_roles.js`: Đồng bộ thuộc tính `ability_vi`, `win_vi` và cho phép tối đa 2 Kẻ Ngu (`maxCount: 2`).
+  - `index.html`: Đồng bộ bảng giải thích luật sâu sắc (`#modal-deep-rules`) và banner tóm tắt điểm giải đấu (`#modal-cumulative-leaderboard`).
+
+---
+
 ## [2026-10-16] - Lược Bỏ Lựa Chọn "Cả Phe Dân" Khỏi Bảng Phạt Oan Sai (Logic Thân Phận Ẩn)
 
 ### ⚖️ 1. Chuẩn Hóa Logic Phạt Biểu Quyết Oan Sai

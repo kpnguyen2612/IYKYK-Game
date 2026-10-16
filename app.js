@@ -3041,22 +3041,16 @@ class ImposterGame {
           }
         }
       } else if (this.winningTeam === 'jester') {
-        // Kẻ Ngu thắng độc lập: Kẻ Ngu +25đ và TẤT CẢ người khác -5đ
-        if (p.role.id === 'jester') {
-          delta = 25;
-          reasons = ['Kẻ Ngu chiến thắng khi bị vote loại (+25đ)'];
+        // Kẻ Ngu thắng độc lập: Kẻ Ngu bị vote loại nhận +30đ, tất cả người chơi khác (kể cả Kẻ Ngu chưa bị vote) nhận 0đ (không bị trừ điểm)
+        if (p.role.id === 'jester' && p.isEliminated) {
+          delta = 30;
+          reasons = ['Kẻ Ngu chiến thắng khi bị vote loại (+30đ)'];
+        } else if (p.role.id === 'jester') {
+          delta = 0;
+          reasons = ['Kẻ Ngu không bị vote loại (0đ)'];
         } else {
-          // Toàn bộ người chơi khác bị Kẻ Ngu dắt mũi: -5đ
-          delta = -5;
-          reasons = ['Mắc bẫy Kẻ Ngu (-5đ)'];
-
-          // Dân còn sống vote đúng Kẻ Giả Mạo & Trung Lập (kể cả Kẻ Ngu): +5đ/kẻ lũy kế
-          if (!p.isEliminated && (p.role.team === 'good' || p.role.id === 'drunkard') && caughtCount > 0) {
-            delta += voteBonusPerLivingGood;
-            reasons.push(caughtCount > 1
-              ? `Dân còn sống vote đúng ${caughtCount} Kẻ Giả Mạo & Trung Lập (+${voteBonusPerLivingGood}đ)`
-              : `Dân còn sống vote đúng Kẻ Giả Mạo & Trung Lập (+${voteBonusPerLivingGood}đ)`);
-          }
+          delta = 0;
+          reasons = ['Kẻ Ngu đã chiến thắng ván đấu (0đ)'];
         }
       } else {
         // ========================================================
