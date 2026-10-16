@@ -4040,6 +4040,38 @@ class ImposterGame {
       groupChip.textContent = `Cả nhóm (${(players * 10).toLocaleString('vi-VN')}k 👥)`;
     }
 
+    // Luôn đồng bộ trạng thái hiển thị chuẩn xác với chip đang chọn
+    const amountChips = modal.querySelectorAll('.amount-chip');
+    let activeChip = modal.querySelector('.amount-chip.active');
+    if (!activeChip && amountChips.length > 0) {
+      activeChip = amountChips[0]; // Mặc định là Tùy tâm
+      activeChip.classList.add('active');
+    }
+
+    if (activeChip) {
+      const rawAmount = activeChip.getAttribute('data-amount');
+      let amount = 0;
+      let label = activeChip.textContent.trim();
+      if (rawAmount === 'group') {
+        amount = players * 10000;
+        label = `Cả nhóm (${amount.toLocaleString('vi-VN')}đ)`;
+      } else {
+        amount = parseInt(rawAmount || '0', 10);
+      }
+      this.selectedDonateAmount = amount;
+      this.selectedDonateLabel = label;
+
+      const activeLabel = document.getElementById('donate-active-amount-label');
+      if (activeLabel) {
+        activeLabel.textContent = label;
+      }
+
+      const generateBtn = document.getElementById('btn-apply-group-split');
+      if (generateBtn) {
+        generateBtn.textContent = amount === 0 ? 'Tạo QR (Tùy tâm 💝)' : `Tạo QR (${amount.toLocaleString('vi-VN')}đ)`;
+      }
+    }
+
     modal.classList.add('open');
   }
 
@@ -4812,7 +4844,7 @@ class ImposterGame {
         if (rawAmount === 'group') {
           const players = this.playerCount || (this.players ? this.players.length : 6) || 6;
           amount = players * 10000;
-          label = `Cả nhóm ${players} người (${amount.toLocaleString('vi-VN')}đ)`;
+          label = `Cả nhóm (${amount.toLocaleString('vi-VN')}đ)`;
         } else {
           amount = parseInt(rawAmount || '0', 10);
         }
@@ -4835,7 +4867,7 @@ class ImposterGame {
         if (rawAmount === 'group') {
           const players = this.playerCount || (this.players ? this.players.length : 6) || 6;
           amount = players * 10000;
-          label = `Cả nhóm ${players} người (${amount.toLocaleString('vi-VN')}đ)`;
+          label = `Cả nhóm (${amount.toLocaleString('vi-VN')}đ)`;
         } else {
           amount = parseInt(rawAmount || '0', 10);
           label = activeChip.textContent.trim();

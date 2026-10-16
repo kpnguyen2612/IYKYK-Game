@@ -19,9 +19,11 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ### 🛠️ 2. Giải Pháp Hoàn Thiện
 - **Đồng bộ hóa 100% lựa chọn**: Thêm hàm điều phối `applySelectedDonateOption` lưu trữ `selectedDonateAmount` và `selectedDonateLabel`.
-- **Phản hồi tức thì khi bấm chip**: Khi chọn bất kỳ mức nào (Tùy tâm, 10k, 20k, 50k, 100k hoặc Cả nhóm), hệ thống:
+- **Đồng bộ tiêu đề phụ khi mở modal & khi bấm chip (`#donate-active-amount-label`)**:
+  - Khi mở Modal: Mặc định hiển thị chuẩn xác `Tùy tâm 💝` (hoặc chip đang chọn), tuyệt đối không bị kẹt ở nhãn cũ `Nhóm 6 người (60.000đ)`.
+  - Khi bấm bất kỳ mức nào (10k, 20k, 50k, 100k, Tùy tâm, Cả nhóm): Tiêu đề phụ cạnh *"✨ Chọn nhanh mức ủng hộ:"* đổi ngay lập tức thành đúng tên và số tiền của lựa chọn đó (ví dụ: `50k (Cà phê ☕)`).
+- **Phản hồi tức thì khi bấm chip**: Khi chọn bất kỳ mức nào, hệ thống:
   - Cập nhật mã QR tức thì theo số tiền tương ứng.
-  - Cập nhật nhãn phụ ở góc trên (ví dụ: `50k (Cà phê ☕)`).
   - Cập nhật text trên nút cam: `Tạo QR (50.000đ)`.
   - Hiển thị Toast thông báo chính xác cho mức đó (ví dụ: `🎯 Đã tạo QR ủng hộ: 50.000đ (50k (Cà phê ☕))`, `🎯 Đã tạo mã QR: Ủng hộ Tùy tâm 💝`).
 - **Nút "Tạo QR" chuẩn xác**: Bấm nút "Tạo QR" sẽ luôn lấy đúng mức tiền đang được chọn thay vì ép buộc thành 60k.
