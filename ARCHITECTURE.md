@@ -43,7 +43,8 @@ vuive/
 | **Quản lý cặp từ vựng tự tạo (Word Pairs)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `[SEC 04.5]` hoặc `openWordPairsModal`, `addCustomWordPair`, `deleteCustomWordPair` |
 | **Gián Điệp (Trung Lập - Từ Đồng Nghĩa)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `aliveSpies`, `spyWord`, `imposterWord` (Trung Lập, nhận từ đồng nghĩa trong cặp, sống sót +20đ, bị loại -10đ) |
 | **Kẻ Phản Bội, Kẻ Ngu** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `traitor`, `jester` |
-| **Kẻ Say Rượu & Điệp Viên Hai Mang** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `getDrunkardWord`, `double_agent` |
+| **Kẻ Say Rượu (Phe Dân - Đối Trọng Gián Điệp)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `drunkard`, `getDrunkardWord` (Phe Dân nhận từ đồng nghĩa, bị vote không sao, Dân thắng sống +20đ / chết +10đ, Gián Điệp sống phạt -10đ, Imposter thắng 0đ) |
+| **Điệp Viên Hai Mang** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) | Tìm: `double_agent` |
 | **Cài đặt hệ thống (Theme & Âm thanh)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) & [`index.html`](file:///c:/Users/Windows/Documents/APP%20code/vuive/index.html) | Tìm: `#btn-open-settings` (Góc trên bên phải), `#modal-settings`, `openSettingsModal` |
 | **Bản địa hóa 100% Tiếng Việt** | Toàn bộ ứng dụng | Không sử dụng song ngữ Anh-Việt, khóa cứng ngôn ngữ tiếng Việt thuần túy |
 | **Thêm / Sửa từ vựng mặc định (Word Pairs)** | [`data_categories.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/data_categories.js) | Tìm: `CATEGORIES` (Cặp từ: `{ civilian, imposter }`) |

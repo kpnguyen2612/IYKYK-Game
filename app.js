@@ -1349,11 +1349,12 @@ class ImposterGame {
       keywordText.textContent = this.secretWord;
       keywordCat.textContent = `Chủ đề: ${catName}`;
     } else if (player.role.id === 'drunkard') {
-      const drunkWord = this.getDrunkardWord();
-      keywordLabel.textContent = 'TỪ KHÓA CỦA BẠN (SAY XỈN 🍺):';
+      const drunkWord = this.imposterWord || this.getDrunkardWord();
+      keywordLabel.textContent = 'TỪ KHÓA CỦA BẠN (SAY RƯỢU 🍺):';
       keywordText.className = 'secret-keyword-text';
+      keywordText.style.color = '#10b981';
       keywordText.textContent = drunkWord;
-      keywordCat.textContent = `Chủ đề: ${catName}`;
+      keywordCat.textContent = `Chủ đề: ${catName} • Phe Dân (Nhận từ của Gián Điệp)`;
     } else if (player.role.id === 'traitor') {
       keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT:';
       keywordText.className = 'secret-keyword-text imposter';
@@ -2230,6 +2231,32 @@ class ImposterGame {
       }
     }
 
+    // Kẻ Say Rượu (Drunkard): Thuộc Phe Dân nhưng khi bị vote thì KHÔNG BỊ PHẠT và Dân làng cũng MIỄN PHẠT!
+    if (suspect.role.id === 'drunkard') {
+      const livingInnocents = this.players.filter(p => !p.isImposter && !p.isEliminated);
+      const livingImposters = this.players.filter(p => p.isImposter && !p.isEliminated);
+
+      if (livingImposters.length >= livingInnocents.length) {
+        this.winningTeam = 'evil';
+        this.showResultsScreen(suspect);
+        return;
+      }
+
+      this.showActionNotice({
+        icon: '🍺',
+        title: 'KẺ SAY RƯỢU BỊ TRỤC XUẤT',
+        targetName: suspect.name,
+        type: 'good',
+        heading: '🍺 KẺ SAY RƯỢU ĐÃ BỊ TRỤC XUẤT!',
+        message: `<strong>${suspect.name}</strong> là <strong>Kẻ Say Rượu (Phe Dân)</strong>!<br>Do say xỉn cầm nhầm từ của Gián Điệp nên bị hiểu lầm.<br><strong>Miễn trừ hình phạt:</strong> Kẻ Say không bị trừ điểm, cả làng cũng không bị phạt vote oan!`,
+        note: 'Ván chơi tiếp tục, phe Dân hãy truy tìm Kẻ Giả Mạo & Gián Điệp!',
+        onClose: () => {
+          this.showRoundIntermission(suspect, true);
+        }
+      });
+      return;
+    }
+
     // Suspect is INNOCENT (Civilian or good team) -> WRONG VOTE PENALTY!
     this.wrongVoteCount = (this.wrongVoteCount || 0) + 1;
 
@@ -2275,7 +2302,20 @@ class ImposterGame {
     const btnPenaltyDeselectAll = document.getElementById('btn-penalty-deselect-all');
     const penaltyDesc = document.getElementById('penalty-explainer-text');
 
-    if (isImposterCaught) {
+    if (eliminatedPlayer.role && eliminatedPlayer.role.id === 'drunkard') {
+      if (penaltyConfigEl) penaltyConfigEl.style.display = 'none';
+      if (badge) {
+        badge.textContent = '🍺 KẺ SAY RƯỢU!';
+        badge.style.background = '#059669';
+      }
+      if (title) {
+        title.textContent = `${eliminatedPlayer.name} là Kẻ Say Rượu (Phe Dân)!`;
+        title.style.color = '#10b981';
+      }
+      if (desc) {
+        desc.innerHTML = `Kẻ Say Rượu cầm nhầm từ của Gián Điệp do say xỉn.<br /><strong>Miễn trừ hình phạt:</strong> Cả làng và Kẻ Say không bị trừ điểm!<br />Còn ${livingImposters} Kẻ Giả Mạo đang ẩn nấp!`;
+      }
+    } else if (isImposterCaught) {
       if (penaltyConfigEl) penaltyConfigEl.style.display = 'none';
       if (badge) {
         badge.textContent = '🎯 BẮT TRÚNG IMPOSTER!';
@@ -2707,7 +2747,7 @@ class ImposterGame {
               reasons.push('Phe Ác thua ván (-10đ)');
             }
           }
-        } else if (p.role.team === 'good' || p.role.id === 'drunkard') {
+        } else if (p.role.team === 'good' && p.role.id !== 'drunkard') {
           // Phe Dân Thắng: tất cả +10đ
           delta += 10;
           reasons.push('Phe Dân thắng (+10đ)');
@@ -2748,8 +2788,8 @@ class ImposterGame {
             delta += 10;
             reasons.push('Phe Kẻ Giả Mạo thắng (+10đ)');
           }
-        } else if (p.role.team === 'good' || p.role.id === 'drunkard') {
-          // DÂN THƯỜNG & KẺ SAY RƯỢU THUA TRẬN TRƯỚC IMPOSTER: XỬ THUA & TRỪ ĐIỂM
+        } else if (p.role.team === 'good' && p.role.id !== 'drunkard') {
+          // DÂN THƯỜNG THUA TRẬN TRƯỚC IMPOSTER: XỬ THUA & TRỪ ĐIỂM
           delta -= 5;
           reasons.push('Thua trận trước Imposter (-5đ)');
 
@@ -2796,9 +2836,33 @@ class ImposterGame {
           }
         }
 
+        // D. Kẻ Say Rượu (Drunkard) - Thuộc Phe Dân nhưng nhận từ Gián Điệp
+        if (p.role.id === 'drunkard') {
+          const anySpySurvived = this.players.some(pl => pl.role.id === 'spy' && !pl.isEliminated);
+          if (anySpySurvived) {
+            // Gián Điệp sống sót thắng ván: Kẻ Say bị phạt -10đ
+            delta = -10;
+            reasons = ['Gián Điệp sống sót thắng ván, Kẻ Say bị phạt (-10đ)'];
+          } else if (this.winningTeam === 'good') {
+            if (!p.isEliminated) {
+              // Phe Dân thắng & Kẻ Say còn sống: +20đ
+              delta = 20;
+              reasons = ['Kẻ Say Rượu sống sót cùng Phe Dân thắng (+20đ)'];
+            } else {
+              // Phe Dân thắng nhưng Kẻ Say đã bị loại trước đó: +10đ (hưởng điểm chung phe Dân)
+              delta = 10;
+              reasons = ['Phe Dân thắng ván chung cuộc (+10đ)'];
+            }
+          } else if (this.winningTeam === 'evil') {
+            // Imposter thắng: Kẻ Say không bị trừ điểm (0đ)
+            delta = 0;
+            reasons = ['Imposter thắng ván, Kẻ Say Rượu không bị trừ điểm (0đ)'];
+          }
+        }
+
         // E. Phạt biểu quyết oan sai (Wrong vote penalty): tất cả dân còn sống -5đ (không tính dân đã chết)
-        // Kẻ Ngu và Gián Điệp: vote đúng hay sai đều không tăng giảm điểm!
-        if (!p.isEliminated && p.penalty && p.penalty > 0 && p.role.id !== 'jester' && p.role.id !== 'spy') {
+        // Kẻ Ngu, Gián Điệp và Kẻ Say Rượu: vote đúng hay sai đều không tăng giảm điểm!
+        if (!p.isEliminated && p.penalty && p.penalty > 0 && p.role.id !== 'jester' && p.role.id !== 'spy' && p.role.id !== 'drunkard') {
           delta -= p.penalty;
           reasons.push(`Vote sai dân làng (-${p.penalty}đ)`);
         }

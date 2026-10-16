@@ -11,7 +11,32 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ---
 
-## [2026-10-16] - Chuyển Gián Điệp Sang Phe Trung Lập (Chỉ Biết Từ Đồng Nghĩa & Thắng Độc Lập Khi Sống Sót)
+## [2026-10-16] - Cải Tiến Kẻ Say Rượu: Phe Dân Đối Trọng Gián Điệp, Bị Vote Miễn Phạt & Tính Điểm Đột Phá
+
+### 🍺 1. Bản Chất Mới Của Kẻ Say Rượu (Drunkard)
+- **Thuộc Phe Dân chính thức**: Kẻ Say Rượu thuộc **Phe Dân** (`team: 'good'`), không còn là Trung Lập.
+- **Manh mối / Từ ngữ**:
+  - Nhận **từ của Gián Điệp** (từ đồng nghĩa trong cặp từ `this.imposterWord`).
+  - Là **đối trọng trực diện của Gián Điệp**: Cả 2 cùng cầm chung một từ đồng nghĩa, nhưng một người thuộc Phe Dân (Kẻ Say) và một người thuộc Phe Trung Lập (Gián Điệp).
+- **Thẻ lật**: Huy hiệu `[PHE DÂN]`, nhãn: `TỪ KHÓA CỦA BẠN (SAY RƯỢU 🍺): [Từ đồng nghĩa]`.
+
+### 🛡️ 2. Cơ Chế "Bị Vote Không Sao Cả" & Miễn Phạt Toàn Diện
+- **Khi Kẻ Say Rượu bị biểu quyết loại**:
+  - Kẻ Say Rượu nhận: **0 điểm** (bảo toàn điểm, không bị phạt).
+  - **Cả làng Phe Dân được MIỄN PHẠT vote oan sai**: Hoàn toàn không bị trừ -5 điểm trách nhiệm tập thể.
+  - Thông báo hiển thị hài hước: *"Kẻ Say Rượu cầm nhầm từ do say xỉn, miễn trừ hình phạt oan sai cho cả làng!"*.
+  - Ván chơi tiếp tục bình thường để tìm Kẻ Giả Mạo & Gián Điệp.
+- **Quyền biểu quyết**: Kẻ Say Rượu vote đúng hay sai đều **0 điểm** (không nhận thưởng vote bắt kẻ ác, không bị trừ phạt vote oan).
+
+### 🏆 3. Quy Tắc Tính Điểm Chuẩn Xác Theo Cơ Chế Đối Trọng
+- **Khi Phe Dân Thắng**:
+  - Kẻ Say Rượu **còn sống**: Nhận **+20 điểm** (thưởng lớn cho khả năng sinh tồn tài tình khi cầm từ lệch).
+  - Kẻ Say Rượu **đã bị loại trước đó**: Nhận **+10 điểm** (hưởng trọn điểm thắng chung cuộc của Phe Dân).
+- **Khi Gián Điệp Sống Sót Thắng Ván**: Kẻ Say Rượu bị **phạt trừ -10 điểm** (thất bại trước đối thủ truyền kiếp Gián Điệp).
+- **Khi Kẻ Giả Mạo (Imposter) Thắng Ván**: Kẻ Say Rượu **không bị trừ điểm (0 điểm)**.
+- **Khi Kẻ Ngu Thắng Ván**: Nhận **0 điểm** như toàn bộ người chơi khác.
+
+---
 
 ### 🕵️ 1. Chuẩn Hóa Gián Điệp (Spy) Sang Phe Trung Lập
 - **Chuyển phe chính thức**: Gián Điệp chuyển từ **Phe Ác** (`team: 'evil'`) sang **Phe Trung Lập** (`team: 'neutral'`).
