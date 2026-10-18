@@ -1,9 +1,3 @@
-// ==========================================================
-// GUESS THE IMPOSTER - DANH MỤC CẶP TỪ VỰNG THUẦN TIẾNG VIỆT
-// Dành riêng cho game Kẻ Giả Mạo / Undercover Party Game
-// Mỗi mục là một Cặp Từ: Từ của Dân Làng ⟷ Từ của Kẻ Giả Mạo
-// ==========================================================
-
 const CATEGORIES = [
   {
     id: "food_drink",
@@ -19,7 +13,7 @@ const CATEGORIES = [
       { civilian: "chè", imposter: "cháo" },
       { civilian: "nem chua", imposter: "chả giò" },
       { civilian: "bún bò", imposter: "bún riêu" },
-      { civilian: "phở cuốn", imposter: "bì cuốn" },
+      { civilian: "phở cuốn", imposter: "bánh xèo" },
       { civilian: "xôi", imposter: "nếp cẩm" },
       { civilian: "cháo lòng", imposter: "cháo sườn" },
       { civilian: "bánh cuốn", imposter: "bánh xèo" },
@@ -69,55 +63,55 @@ const CATEGORIES = [
     name_vi: "Động vật",
     icon: "🐾",
     words: [
-      { civilian: "con chó", imposter: "con bò" },
-      { civilian: "con mèo", imposter: "con hổ" },
-      { civilian: "con voi", imposter: "con tê giác" },
-      { civilian: "con khỉ", imposter: "con vượn" },
-      { civilian: "con rùa", imposter: "con ba ba" },
-      { civilian: "con ếch", imposter: "con cóc" },
-      { civilian: "con gà", imposter: "con vịt" },
-      { civilian: "con chó", imposter: "con sói" },
-      { civilian: "con hổ", imposter: "con báo" },
-      { civilian: "con cua", imposter: "con ghẹ" },
-      { civilian: "con ong", imposter: "con ruồi" },
-      { civilian: "con dơi", imposter: "con chim" },
-      { civilian: "con nhím", imposter: "con chuột" },
-      { civilian: "con bò", imposter: "con bê" },
-      { civilian: "con vịt", imposter: "con ngỗng" },
-      { civilian: "con heo", imposter: "con dê" },
-      { civilian: "con dê", imposter: "con cừu" },
-      { civilian: "con ngựa", imposter: "con lừa" },
-      { civilian: "con cá heo", imposter: "con cá voi" },
-      { civilian: "con cá chép", imposter: "con cá rô" },
-      { civilian: "con gấu", imposter: "con gấu trúc" },
-      { civilian: "con thỏ", imposter: "con sóc" },
-      { civilian: "con rắn", imposter: "con thằn lằn" },
-      { civilian: "con bướm", imposter: "con chuồn chuồn" },
-      { civilian: "con kiến", imposter: "con mối" },
-      { civilian: "con muỗi", imposter: "con ruồi " },
-      { civilian: "con công", imposter: "con gà tây" },
-      { civilian: "con cú", imposter: "con đại bàng" },
-      { civilian: "con sư tử", imposter: "con báo" },
-      { civilian: "con cá mập", imposter: "con cá đuối" },
-      { civilian: "con cá vàng", imposter: "con cá cảnh" },
-      { civilian: "con ngỗng", imposter: "con thiên nga" },
-      { civilian: "con nhện", imposter: "con sâu" },
-      { civilian: "con cừu", imposter: "con lạc đà" },
-      { civilian: "con lạc đà", imposter: "con ngựa vằn" },
-      { civilian: "con bồ câu", imposter: "con chim sẻ" },
-      { civilian: "con khỉ đột", imposter: "con đười ươi" },
-      { civilian: "con dế", imposter: "con châu chấu" },
-      { civilian: "con tắc kè", imposter: "con thạch sùng" },
-      { civilian: "con cá thu", imposter: "con cá ngừ" },
-      { civilian: "con cáo", imposter: "con chó rừng" },
-      { civilian: "con hươu", imposter: "con nai" },
-      { civilian: "con sứa", imposter: "con mực" },
-      { civilian: "con bạch tuộc", imposter: "con mực" },
-      { civilian: "con chim én", imposter: "con chim yến" },
-      { civilian: "con vẹt", imposter: "con chim sáo" },
-      { civilian: "con tằm", imposter: "con sâu bướm" },
-      { civilian: "con hến", imposter: "con sò" },
-      { civilian: "con sóc", imposter: "con chồn" },
+      { civilian: "chó", imposter: "bò" },
+      { civilian: "mèo", imposter: "hổ" },
+      { civilian: "voi", imposter: "tê giác" },
+      { civilian: "khỉ", imposter: "vượn" },
+      { civilian: "rùa", imposter: "ba ba" },
+      { civilian: "ếch", imposter: "cóc" },
+      { civilian: "gà", imposter: "vịt" },
+      { civilian: "chó", imposter: "sói" },
+      { civilian: "hổ", imposter: "báo" },
+      { civilian: "cua", imposter: "ghẹ" },
+      { civilian: "ong", imposter: "ruồi" },
+      { civilian: "dơi", imposter: "chim" },
+      { civilian: "nhím", imposter: "chuột" },
+      { civilian: "bò", imposter: "bê" },
+      { civilian: "vịt", imposter: "ngỗng" },
+      { civilian: "heo", imposter: "dê" },
+      { civilian: "dê", imposter: "cừu" },
+      { civilian: "ngựa", imposter: "lừa" },
+      { civilian: "cá heo", imposter: "cá voi" },
+      { civilian: "cá chép", imposter: "cá rô" },
+      { civilian: "gấu", imposter: "gấu trúc" },
+      { civilian: "thỏ", imposter: "sóc" },
+      { civilian: "rắn", imposter: "thằn lằn" },
+      { civilian: "bướm", imposter: "chuồn chuồn" },
+      { civilian: "kiến", imposter: "mối" },
+      { civilian: "muỗi", imposter: "ruồi" },
+      { civilian: "công", imposter: "gà tây" },
+      { civilian: "cú", imposter: "đại bàng" },
+      { civilian: "sư tử", imposter: "báo" },
+      { civilian: "cá mập", imposter: "cá đuối" },
+      { civilian: "cá vàng", imposter: "cá cảnh" },
+      { civilian: "ngỗng", imposter: "thiên nga" },
+      { civilian: "nhện", imposter: "sâu" },
+      { civilian: "cừu", imposter: "lạc đà" },
+      { civilian: "lạc đà", imposter: "ngựa vằn" },
+      { civilian: "bồ câu", imposter: "chim sẻ" },
+      { civilian: "khỉ đột", imposter: "đười ươi" },
+      { civilian: "dế", imposter: "châu chấu" },
+      { civilian: "tắc kè", imposter: "thạch sùng" },
+      { civilian: "cá thu", imposter: "cá ngừ" },
+      { civilian: "cáo", imposter: "chó rừng" },
+      { civilian: "hươu", imposter: "nai" },
+      { civilian: "sứa", imposter: "mực" },
+      { civilian: "bạch tuộc", imposter: "mực" },
+      { civilian: "chim én", imposter: "chim yến" },
+      { civilian: "vẹt", imposter: "chim sáo" },
+      { civilian: "tằm", imposter: "sâu bướm" },
+      { civilian: "hến", imposter: "sò" },
+      { civilian: "sóc", imposter: "chồn" },
     ]
   },
   {
@@ -163,7 +157,7 @@ const CATEGORIES = [
       { civilian: "sân vận động", imposter: "nhà thi đấu" },
       { civilian: "ngân hàng", imposter: "bưu điện" },
       { civilian: "khách sạn", imposter: "nhà nghỉ" },
-      { civilian: "trung tâm thương mại", imposter: "chợ đêm" },
+      { civilian: "mall", imposter: "chợ đêm" },
       { civilian: "Tam Đảo", imposter: "Ba Vì" },
       { civilian: "Mù Cang Chải", imposter: "Mộc Châu" },
       { civilian: "Phong Nha", imposter: "Tràng An" },
@@ -172,7 +166,7 @@ const CATEGORIES = [
       { civilian: "Bãi Sao", imposter: "Bãi Dài" },
       { civilian: "Vũng Tàu", imposter: "Long Hải" },
       { civilian: "nhà hàng", imposter: "quán ăn" },
-      { civilian: "quán net", imposter: "tiệm game" },
+      { civilian: "home stay", imposter: "quán net" },
       { civilian: "phòng gym", imposter: "phòng yoga" },
       { civilian: "tiệm cắt tóc", imposter: "tiệm nail" },
       { civilian: "bưu điện", imposter: "ngân hàng" },
@@ -231,15 +225,15 @@ const CATEGORIES = [
       { civilian: "đũa", imposter: "nĩa" },
       { civilian: "ly", imposter: "cốc" },
       { civilian: "chai", imposter: "lọ" },
-      { civilian: "thùng rác", imposter: "giỏ rác" },
+      { civilian: "thùng rác", imposter: "tủ đồ" },
       { civilian: "búa", imposter: "cưa" },
       { civilian: "tua vít", imposter: "kìm" },
       { civilian: "bóng đèn", imposter: "đèn ống" },
       { civilian: "ổ cắm", imposter: "phích cắm" },
       { civilian: "điều hòa", imposter: "quạt trần" },
-      { civilian: "cặp sách", imposter: "ba lô học sinh" },
+      { civilian: "balo", imposter: "túi xách" },
       { civilian: "son môi", imposter: "phấn má" },
-      { civilian: "nước hoa", imposter: "xịt thơm" },
+      { civilian: "nước hoa", imposter: "nến thơm" },
       { civilian: "ô tô", imposter: "xe tải" }
     ]
   },
@@ -393,8 +387,6 @@ const CATEGORIES = [
       { civilian: "golf", imposter: "pickal ball" },
       { civilian: "trượt ván", imposter: "trượt patin" },
       { civilian: "đạp xe", imposter: "chạy bộ" },
-
-
       { civilian: "xem bóng đá", imposter: "xem bóng rổ" },
       { civilian: "cắm trại", imposter: "picnic" },
       { civilian: "concert", imposter: "festival" },
@@ -402,12 +394,7 @@ const CATEGORIES = [
   }
 ];
 
-const RANDOM_NAMES_VI = [
-  "Bảo Long", "Minh Anh", "Thỏ Ngọc", "Khánh Vy", "Gia Huy",
-  "Tú Linh", "Đức Bo", "Trúc Mây", "Hoàng Nam", "Diệu Nhi",
-  "Tuấn Kiệt", "Mai Phương", "Quang Hải", "Hà My", "Hải Đăng",
-  "Thanh Hằng", "Duy Mạnh", "Bích Phương", "Tiến Dũng", "Ngọc Trinh"
-];
+
 
 const AVATAR_PALETTES = [
   { bg: "#FEE2E2", text: "#DC2626", emoji: "🦊" },
@@ -424,6 +411,5 @@ const AVATAR_PALETTES = [
 
 if (typeof window !== "undefined") {
   window.CATEGORIES = CATEGORIES;
-  window.RANDOM_NAMES_VI = RANDOM_NAMES_VI;
   window.AVATAR_PALETTES = AVATAR_PALETTES;
 }

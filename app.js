@@ -381,8 +381,13 @@ class ImposterGame {
     const target = document.getElementById(screenId);
     if (target) {
       target.classList.add('active');
-      target.scrollTop = 0;
     }
+
+    const screenContainer = document.querySelector('.screen-container');
+    if (screenContainer) {
+      screenContainer.scrollTop = 0;
+    }
+    window.scrollTo(0, 0);
 
     this.updateStageProgressUI(screenId);
 
@@ -2927,8 +2932,8 @@ class ImposterGame {
             const isHero = this.caughtImposter ? (p.id === this.caughtImposter.id) : true;
             reasons.push((isHero ? 'Lật kèo đoán trúng từ (+20đ, miễn trừ mọi hình phạt)' : 'Đồng đội lật kèo cứu ván (+20đ)'));
           } else if (!p.isEliminated) {
-            delta += 15;
-            reasons.push('Kẻ Giả Mạo sống sót thắng ván (+15đ)');
+            delta += 20;
+            reasons.push('Kẻ Giả Mạo sống sót thắng ván (+20đ)');
           } else {
             delta += 10;
             reasons.push('Phe Kẻ Giả Mạo thắng (+10đ)');
@@ -3005,9 +3010,9 @@ class ImposterGame {
           }
         }
 
-        // E. Phạt biểu quyết oan sai (Wrong vote penalty): tất cả dân còn sống -5đ (không tính dân đã chết)
-        // Kẻ Ngu, Gián Điệp và Kẻ Say Rượu: vote đúng hay sai đều không tăng giảm điểm!
-        if (!p.isEliminated && p.penalty && p.penalty > 0 && p.role.id !== 'jester' && p.role.id !== 'spy' && p.role.id !== 'drunkard') {
+        // E. Phạt biểu quyết oan sai (Wrong vote penalty): chỉ áp dụng cho Dân làng còn sống (Phe Dân: team === 'good', trừ Kẻ Say Rượu)
+        // Tuyệt đối KHÔNG phạt Imposter (Phe Ác), Kẻ Ngu hay Gián Điệp!
+        if (!p.isEliminated && p.penalty && p.penalty > 0 && p.role.team === 'good' && p.role.id !== 'drunkard') {
           delta -= p.penalty;
           reasons.push(`Vote sai dân làng (-${p.penalty}đ)`);
         }
@@ -4720,14 +4725,14 @@ class ImposterGame {
       // Apply pending wrong vote penalties if this intermission was for an innocent civilian
       if (!this.lastIntermissionWasImposter) {
         if (this.pendingWrongVotePenaltyMode === 'custom') {
-          this.players.filter(p => !p.isEliminated).forEach(p => {
+          this.players.filter(p => !p.isEliminated && p.role && p.role.team === 'good' && p.role.id !== 'drunkard').forEach(p => {
             if (this.pendingCustomPenalizedPlayerIds && this.pendingCustomPenalizedPlayerIds.has(p.id)) {
               p.penalty = (p.penalty || 0) + 5;
             }
           });
         } else {
-          // Mặc định trách nhiệm tập thể: Tất cả người chơi còn sống cùng chịu phạt vì vote theo số đông
-          this.players.filter(p => !p.isEliminated).forEach(p => {
+          // Mặc định trách nhiệm tập thể: Tất cả người chơi phe Dân còn sống cùng chịu phạt vì vote theo số đông
+          this.players.filter(p => !p.isEliminated && p.role && p.role.team === 'good' && p.role.id !== 'drunkard').forEach(p => {
             p.penalty = (p.penalty || 0) + 5;
           });
         }

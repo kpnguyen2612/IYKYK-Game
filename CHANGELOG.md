@@ -11,6 +11,34 @@ Tài liệu này lưu trữ toàn bộ các ghi chú thay đổi (backnotes) cho
 
 ---
 
+## [2026-10-19] - Khắc Phục Lỗi Trừ Điểm Kẻ Giả Mạo & Tối Ưu Hiển Thị Màn Kết Quả
+
+### ⚖️ 1. Sửa Lỗi Imposter Thắng Ván Nhưng Bị Trừ Điểm "Vote Sai Dân Làng (-10đ)"
+- **Hiện tượng (như trong ảnh chụp)**: Người chơi làm Kẻ Giả Mạo (Imposter - Nguyên) sống sót thắng ván được +15đ, nhưng bị gán thêm dòng `Vote sai dân làng (-10đ)`, dẫn đến điểm ván bị giảm xuống còn `+5đ` và danh hiệu `MVP: Nguyên (+5đ)`.
+- **Nguyên nhân**:
+  - Khi quản trò chuyển vòng sau khi trục xuất nhầm dân vô tội, cơ chế trách nhiệm tập thể gán `p.penalty = (p.penalty || 0) + 5` cho toàn bộ người sống (`!p.isEliminated`) mà không kiểm tra phe `p.role.team === 'good'`.
+  - Trong hàm `calculateScores()`, điều kiện trừ điểm vote sai chỉ kiểm tra `!p.isEliminated && p.penalty > 0 && p.role.id !== 'jester' && p.role.id !== 'spy' && p.role.id !== 'drunkard'`, bỏ quên phe Ác (`imposter`, `double_agent`).
+- **Khắc phục**:
+  - Ràng buộc nghiêm ngặt: Chỉ có **Phe Dân Làng còn sống** (`p.role.team === 'good' && p.role.id !== 'drunkard'`) mới phải chịu phạt biểu quyết oan sai khi loại nhầm dân.
+  - Tuyệt đối **KHÔNG BAO GIỜ** trừ điểm Imposter (Phe Ác), Kẻ Ngu hay Gián Điệp vì việc dân làng bị loại.
+  - Imposter sống sót thắng ván nhận trọn vẹn điểm thưởng và hiển thị MVP chính xác.
+
+### 🎭 2. Nâng Điểm Thưởng Cho Kẻ Giả Mạo Sống Sót: +20 Điểm
+- Cập nhật điểm thưởng khi **Kẻ Giả Mạo (Imposter) sống sót đến cuối ván** từ `+15 điểm` lên `+20 điểm` (`delta += 20`).
+- Đồng bộ hiển thị `+20đ` trên dòng lý do bảng điểm (`Kẻ Giả Mạo sống sót thắng ván (+20đ)`), mô tả vai trò trong `data_roles.js` và bảng điểm luật chơi (`#modal-deep-rules` trong `index.html`).
+
+### 📱 2. Tối Ưu Giao Diện Màn Kết Quả & Thanh Thao Tác Mobile
+- **Hiện tượng (trong ảnh chụp)**:
+  - Khi vừa vào màn kết quả, màn hình bị trôi lửng lơ ở giữa trang, để lộ đường viền cong đỏ của thẻ lộ diện Kẻ Giả Mạo (`.unmask-reveal-box`) cắt ngang dưới thanh header.
+  - Dưới đáy màn hình, thanh địa chỉ Safari (`faker-ashy.vercel.app`) đè lên danh sách người chơi và che khuất hoàn toàn 3 nút thao tác (*Về trang chủ*, *Tiếp tục chơi*, *Không tính điểm*).
+- **Khắc phục**:
+  - Sửa `switchScreen()`: Tự động cuộn `.screen-container` và cửa sổ về đỉnh trang (`scrollTop = 0`), đảm bảo khi kết thúc ván người chơi luôn nhìn thấy trọn vẹn thông báo ai là Imposter và từ khóa bí mật.
+  - Sửa thanh nút bấm mobile `.results-actions-bar`: Chuyển từ `bottom: -28px` thành `position: sticky; bottom: 0;` cùng khoảng đệm `padding: 12px 16px max(18px, env(safe-area-inset-bottom, 18px))` và bổ sung `padding-bottom: 32px` cho `#screen-results`, giúp 3 nút luôn nổi bật rõ ràng, không bao giờ bị thanh trình duyệt Safari che mất.
+  - Thêm `overflow: hidden;` cho `.unmask-reveal-box` và nâng độ mờ của thanh header lên `0.95` để loại bỏ hoàn toàn viền đỏ lem nhem khi cuộn trang.
+  - Nâng phiên bản cache busting stylesheet lên `styles.css?v=1.3`.
+
+---
+
 ## [2026-10-16] - Khắc Phục Lỗi Thông Báo Toast & Tạo Mã QR Donate Luôn Bị Cố Định 60.000đ
 
 ### 🎯 1. Nguyên Nhân Sự Cố
