@@ -13,7 +13,7 @@
   <!-- Canvas Confetti CDN with Local Fallback -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=1.2" />
 </head>
 <body>
 
@@ -498,7 +498,7 @@
         <div class="pass-phone-container">
           
           <!-- Phase Indicator Header -->
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; width: 100%;">
             <span class="hero-badge" id="reveal-progress-pill">Người chơi 1 / 6</span>
           </div>
 
@@ -506,7 +506,7 @@
           <div id="reveal-curtain-box" class="privacy-curtain-card">
             <div class="privacy-lock-icon">🤫</div>
             <div class="curtain-middle-content">
-              <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;" data-i18n="pass_phone_to">Chuyền điện thoại cho:</div>
+              <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;" data-i18n="pass_phone_to">Chuyển điện thoại cho:</div>
               <h2 id="curtain-player-name" class="target-player-title" style="margin-top: 4px; margin-bottom: 12px;">Player 1</h2>
               <p class="privacy-warning-text" data-i18n="curtain_warning">
                 Đảm bảo những người xung quanh không nhìn thấy màn hình trước khi bấm lật thẻ!
@@ -574,7 +574,7 @@
                     <span>🙈</span> <span id="label-btn-hide-role" data-i18n="btn_hide_role">Đã nhớ, giấu vai trò</span>
                   </button>
                   <div style="font-size: 10.5px; color: var(--text-muted); text-align: center; margin-top: 2px;">
-                    Chạm thẻ để úp lại • Tự chuyển sau <span id="reveal-timer-sec-hint">30s</span>
+                    Chạm thẻ để giấu vai trò • Tự chuyển sau <span id="reveal-timer-sec-hint">30s</span>
                   </div>
                 </div>
               </div>

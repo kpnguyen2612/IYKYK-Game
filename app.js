@@ -1490,7 +1490,7 @@ class ImposterGame {
   }
 
   flipCardOpen() {
-    if (this.isCardFlipped || this.isRevealTransitioning) return;
+    if (this.isRevealTransitioning) return;
     this.isRevealTransitioning = true;
     sound.playFlipCard();
 
@@ -1503,25 +1503,27 @@ class ImposterGame {
 
     setTimeout(() => {
       this.isRevealTransitioning = false;
-    }, 400);
+    }, 250);
   }
 
   hideRoleAndAdvance() {
-    if (!this.isCardFlipped || this.isRevealTransitioning) return;
+    if (this.isRevealTransitioning) return;
     this.isRevealTransitioning = true;
     this.stopRevealTimer();
-    sound.playFlipCard();
+    sound.playClick();
 
+    const cardViewport = document.getElementById('reveal-card-viewport');
     const card = document.getElementById('flip-card-inner');
+
+    // Ẩn ngay thẻ vai trò, tuyệt đối không lật lại mặt ổ khóa
+    if (cardViewport) cardViewport.style.display = 'none';
     if (card) card.classList.remove('flipped');
     this.isCardFlipped = false;
 
-    // Chờ hiệu ứng úp thẻ hoàn tất rồi mới chuyển sang màn che quyền riêng tư của người tiếp theo
-    setTimeout(() => {
-      this.currentRevealIndex++;
-      this.showRevealStep(this.currentRevealIndex);
-      this.isRevealTransitioning = false;
-    }, 350);
+    // Tự động chuyển thẳng sang màn che cho người chơi tiếp theo (hoặc kết thúc lật thẻ)
+    this.currentRevealIndex++;
+    this.showRevealStep(this.currentRevealIndex);
+    this.isRevealTransitioning = false;
   }
 
   getDrunkardWord() {
@@ -4412,18 +4414,15 @@ class ImposterGame {
       sound.playClick();
       document.getElementById('reveal-curtain-box').style.display = 'none';
       document.getElementById('reveal-card-viewport').style.display = 'block';
+      this.flipCardOpen();
     });
 
     document.getElementById('flip-card-inner')?.addEventListener('click', (e) => {
       // Nếu bấm trúng nút Đã nhớ, giấu vai trò thì để listener của nút xử lý
       if (e.target.closest('#btn-hide-role')) return;
 
-      if (!this.isCardFlipped) {
-        this.flipCardOpen();
-      } else {
-        // Người chơi chạm vào thẻ để úp lại -> giấu vai trò an toàn và chuyển sang màn che người tiếp theo (tránh lộ)
-        this.hideRoleAndAdvance();
-      }
+      // Người chơi chạm vào thẻ -> giấu vai trò an toàn và tự động chuyển ngay sang người tiếp theo
+      this.hideRoleAndAdvance();
     });
 
     document.getElementById('btn-hide-role')?.addEventListener('click', (e) => {
