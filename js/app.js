@@ -2907,7 +2907,10 @@ class ImposterGame {
 
     const imposters = this.players.filter(p => p.isImposter).map(p => p.name).join(', ');
     document.getElementById('result-imposter-names').textContent = imposters || eliminatedPlayer.name;
-    document.getElementById('result-keyword').textContent = this.secretWord;
+    const resultKwEl = document.getElementById('result-keyword');
+    if (resultKwEl) resultKwEl.textContent = '••••••••';
+    const kwWrapper = document.getElementById('result-keyword-wrapper');
+    if (kwWrapper) kwWrapper.style.display = 'none';
 
     const comebackBadge = document.getElementById('results-comeback-badge');
     if (comebackBadge) {
@@ -2920,7 +2923,7 @@ class ImposterGame {
         if (this.imposterGuessResult === 'wrong') {
           comebackBadge.style.color = '#ef4444';
           const guessDisplay = this.imposterGuessText ? `"${this.imposterGuessText}"` : ('Đoán sai');
-          comebackBadge.textContent = `❌ Lật kèo thất bại: Imposter đoán sai từ khóa (${guessDisplay} ≠ "${this.secretWord}") ➔ Phạt thêm -10đ`;
+          comebackBadge.textContent = `❌ Lật kèo thất bại: Imposter đoán không chính xác từ khóa (${guessDisplay}) ➔ Phạt thêm -10đ`;
         } else {
           comebackBadge.style.color = 'var(--text-muted)';
           const reasonText = this.imposterGuessText ? ` (${this.imposterGuessText})` : '';
@@ -2978,12 +2981,12 @@ class ImposterGame {
     let comebackTimelineNote = '';
     if (this.imposterWonByComeback) {
       const heroName = this.caughtImposter ? this.caughtImposter.name : elimName;
-      comebackTimelineNote = `<div>• <strong>🔥 Cơ hội lật kèo:</strong> ${heroName} đã xuất sắc đoán chính xác từ khóa "<strong>${this.secretWord}</strong>"! Phe Kẻ Giả Mạo giành chiến thắng chung cuộc (+20đ cho Imposter, miễn trừ mọi phạt bị bắt hay lộ vòng 1; Dân Làng bị trừ -5đ thua ván).</div>`;
+      comebackTimelineNote = `<div>• <strong>🔥 Cơ hội lật kèo:</strong> ${heroName} đã xuất sắc đoán chính xác từ khóa! Phe Kẻ Giả Mạo giành chiến thắng chung cuộc (+20đ cho Imposter, miễn trừ mọi phạt bị bắt hay lộ vòng 1; Dân Làng bị trừ -5đ thua ván).</div>`;
     } else if (this.caughtImposter) {
       const heroName = this.caughtImposter.name;
       if (this.imposterGuessResult === 'wrong') {
         const guessDisp = this.imposterGuessText ? `"${this.imposterGuessText}"` : ('Đoán sai');
-        comebackTimelineNote = `<div>• <strong>❌ Cơ hội lật kèo:</strong> ${heroName} đã đoán ${guessDisp} (không chính xác, từ đúng là "${this.secretWord}") ➔ Phạt thêm -10đ đoán sai (Tổng phạt -20đ; nếu Vòng 1 là -25đ). Phe Dân Làng bảo toàn chiến thắng (Tất cả Dân +10đ${voteBonusSuffix})!</div>`;
+        comebackTimelineNote = `<div>• <strong>❌ Cơ hội lật kèo:</strong> ${heroName} đã đoán ${guessDisp} (không chính xác) ➔ Phạt thêm -10đ đoán sai (Tổng phạt -20đ; nếu Vòng 1 là -25đ). Phe Dân Làng bảo toàn chiến thắng (Tất cả Dân +10đ${voteBonusSuffix})!</div>`;
       } else {
         const skipDetail = this.imposterGuessText ? ` (${this.imposterGuessText})` : '';
         comebackTimelineNote = `<div>• <strong>🏳️ Cơ hội lật kèo:</strong> ${heroName} đã chọn không đoán từ${skipDetail} ➔ Bảo toàn điểm, không bị phạt -10đ đoán sai (chỉ chịu -10đ bị bắt; nếu Vòng 1 là -15đ). Phe Dân Làng bảo toàn chiến thắng (Tất cả Dân +10đ${voteBonusSuffix})!</div>`;
@@ -2992,7 +2995,7 @@ class ImposterGame {
 
     logBox.innerHTML = `
       <div>• <strong>${'Bắt đầu ván:'}</strong> ${this.players.length || 6} ${'người chơi tham gia'}.</div>
-      <div>• <strong>${'Chủ đề từ khóa:'}</strong> ${this.categoryData.name_vi} (${this.secretWord}).</div>
+      <div>• <strong>${'Chủ đề từ khóa:'}</strong> ${this.categoryData.name_vi}.</div>
       <div>• <strong>${'Kết quả bỏ phiếu:'}</strong> ${elimName} (${elimRole}) ${'đã bị đa số trục xuất.'}</div>
       ${comebackTimelineNote}
     `;
@@ -3919,7 +3922,7 @@ class ImposterGame {
     const record = {
       date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       category: this.categoryData.name_vi,
-      keyword: this.secretWord,
+      keyword: '••••••••',
       winner: this.winningTeam,
       playersCount: this.players.length,
       imposters: this.players.filter(p => p.isImposter).map(p => p.name).join(', ')
@@ -3961,7 +3964,7 @@ class ImposterGame {
             ${item.date} • ${item.playersCount} ${'người'} • Imposter: ${item.imposters}
           </div>
         </div>
-        <span class="setting-badge-val" style="color: var(--text-primary);">${item.keyword}</span>
+        <span class="setting-badge-val" style="color: var(--text-muted); letter-spacing: 2px;">••••••••</span>
       `;
       container.appendChild(row);
     });
