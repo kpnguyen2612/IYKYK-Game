@@ -1,0 +1,32 @@
+{
+  "name": "Faker: Kẻ Giả Mạo - Game Suy Luận Party",
+  "short_name": "Faker",
+  "description": "Game suy luận tìm Kẻ Giả Mạo (Imposter) dành cho nhóm bạn, hỗ trợ chơi chuyền tay Pass & Play trên cùng một thiết bị với đồ họa Obsidian Arcade và âm thanh tổng hợp 100% offline.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f1013",
+  "theme_color": "#0f1013",
+  "lang": "vi",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/app_logo.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

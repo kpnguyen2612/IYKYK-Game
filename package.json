@@ -1,0 +1,34 @@
+{
+  "name": "faker-vuive-android",
+  "version": "1.3.0",
+  "description": "Faker (Guess The Imposter) - Android Mobile Game Edition",
+  "main": "index.html",
+  "scripts": {
+    "android:init": "npx @capacitor/cli add android",
+    "android:sync": "npx @capacitor/cli sync android",
+    "android:open": "npx @capacitor/cli open android",
+    "android:build": "npx @capacitor/cli copy android",
+    "serve": "powershell -ExecutionPolicy Bypass -File .\\server.ps1"
+  },
+  "keywords": [
+    "boardgame",
+    "party-game",
+    "imposter",
+    "android",
+    "offline"
+  ],
+  "author": "Faker Dev Team",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/app": "^6.0.1",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/haptics": "^6.0.1",
+    "@capacitor/screen-orientation": "^6.0.1",
+    "@capacitor/splash-screen": "^6.0.1",
+    "@capacitor/status-bar": "^6.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2"
+  }
+}

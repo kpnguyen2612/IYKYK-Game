@@ -49,6 +49,24 @@ class SoundManager {
 
   vibrate(pattern = 25) {
     if (!this.hapticEnabled) return;
+    // 1. Capacitor Native Android Haptic Engine
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics) {
+      try {
+        if (typeof pattern === 'number') {
+          if (pattern <= 20) {
+            window.Capacitor.Plugins.Haptics.impact({ style: 'LIGHT' });
+          } else if (pattern <= 50) {
+            window.Capacitor.Plugins.Haptics.impact({ style: 'MEDIUM' });
+          } else {
+            window.Capacitor.Plugins.Haptics.vibrate({ duration: pattern });
+          }
+        } else {
+          window.Capacitor.Plugins.Haptics.vibrate({ duration: 40 });
+        }
+        return;
+      } catch (e) {}
+    }
+    // 2. Standard Web Navigator Vibrate Fallback
     if (navigator.vibrate) {
       try { navigator.vibrate(pattern); } catch (e) {}
     }

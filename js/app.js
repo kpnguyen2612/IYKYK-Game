@@ -264,6 +264,7 @@ class ImposterGame {
     this.applyTheme();
     this.applyLanguage();
     this.setupDeviceAdaptation();
+    this.initAndroidHardware();
     this.bindEvents();
     this.updateSoundSettingsUI();
 
@@ -369,6 +370,108 @@ class ImposterGame {
     if (window.matchMedia) {
       window.matchMedia('(min-width: 769px)').addEventListener('change', handleAdaptation);
     }
+  }
+
+  initAndroidHardware() {
+    this.lastBackPressTime = 0;
+
+    // 1. Cố định chiều xoay màn hình sang chế độ dọc (Portrait Lock)
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('portrait').catch(() => {});
+      }
+    } catch (e) {}
+
+    // 2. Thiết lập cơ chế chặn nút Back trên trình duyệt di động & Webview qua History API
+    const pushBackState = () => {
+      try {
+        history.pushState({ gtiHardwareBack: true, timestamp: Date.now() }, '', window.location.href);
+      } catch (e) {}
+    };
+
+    // Đẩy state ban đầu
+    pushBackState();
+
+    // Lắng nghe sự kiện Back từ hệ điều hành Android qua Popstate (Browser / PWA / Webview)
+    window.addEventListener('popstate', () => {
+      this.handleHardwareBack();
+      pushBackState(); // Luôn giữ state để tiếp tục bắt lần bấm Back tiếp theo
+    });
+
+    // 3. Lắng nghe sự kiện Back từ Capacitor Android Native (khi chạy dưới dạng app Native)
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+      window.Capacitor.Plugins.App.addListener('backButton', () => {
+        this.handleHardwareBack();
+      });
+    }
+
+    // 4. Cấu hình Status Bar nếu chạy trên Capacitor
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar) {
+      try {
+        window.Capacitor.Plugins.StatusBar.setBackgroundColor({ color: '#0f1013' });
+      } catch (e) {}
+    }
+  }
+
+  handleHardwareBack() {
+    // Ưu tiên 1: Đóng các Modal / Bottom Sheet đang mở
+    const openModals = Array.from(document.querySelectorAll('.modal-overlay.open'));
+    if (openModals.length > 0) {
+      const topModal = openModals[openModals.length - 1];
+      topModal.classList.remove('open');
+      if (typeof sound !== 'undefined') sound.playClick();
+      return true;
+    }
+
+    // Ưu tiên 2: Kiểm tra màn hình hiện tại
+    const currentScreen = document.querySelector('.view-screen.active')?.id || 'screen-setup';
+
+    // 2.1 Màn hình phụ (Quản lý vai trò, Nhập tên, Lịch sử, Kết quả) -> Quay về Cài đặt chính
+    if (currentScreen === 'screen-roles' || currentScreen === 'screen-players' || currentScreen === 'screen-history' || currentScreen === 'screen-results') {
+      this.switchScreen('screen-setup');
+      return true;
+    }
+
+    // 2.2 Các màn hình đang diễn ra trận đấu -> Xác nhận trước khi hủy ván
+    const inMatchScreens = [
+      'screen-reveal',
+      'screen-roulette',
+      'screen-night',
+      'screen-discussion',
+      'screen-voting',
+      'screen-comeback'
+    ];
+    if (inMatchScreens.includes(currentScreen)) {
+      const confirmExit = window.confirm('⚠️ Bạn có chắc muốn hủy ván chơi hiện tại để quay về màn hình chính không?');
+      if (confirmExit) {
+        if (this.timerInterval) clearInterval(this.timerInterval);
+        if (this.speechTimerInterval) clearInterval(this.speechTimerInterval);
+        if (this.revealCountdownInterval) clearInterval(this.revealCountdownInterval);
+        if (this.comebackTimerInterval) clearInterval(this.comebackTimerInterval);
+        this.switchScreen('screen-setup');
+      }
+      return true;
+    }
+
+    // 2.3 Màn hình chính (#screen-setup) -> Double-tap Back to exit (chuẩn Android UX)
+    if (currentScreen === 'screen-setup') {
+      const now = Date.now();
+      if (this.lastBackPressTime && (now - this.lastBackPressTime < 2000)) {
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+          window.Capacitor.Plugins.App.exitApp();
+        } else {
+          window.history.go(-2);
+        }
+        return false;
+      } else {
+        this.lastBackPressTime = now;
+        this.showToast('📱 Nhấn Back lần nữa để thoát game', 'info');
+        if (typeof sound !== 'undefined') sound.vibrate(20);
+        return true;
+      }
+    }
+
+    return true;
   }
 
   switchScreen(screenId) {
@@ -1320,15 +1423,7 @@ class ImposterGame {
     document.getElementById('flip-front-player-name').textContent = player.name;
 
     const backCard = document.getElementById('flip-card-back');
-    backCard.style.setProperty('--role-color', player.role.color);
-
     const cardTimerStroke = document.getElementById('card-timer-stroke');
-    if (cardTimerStroke) {
-      cardTimerStroke.style.stroke = player.role.color || '#10b981';
-      cardTimerStroke.style.filter = `drop-shadow(0 0 10px ${player.role.color || '#10b981'})`;
-      cardTimerStroke.style.strokeDashoffset = '0';
-      cardTimerStroke.classList.remove('warning');
-    }
     const timerBadge = document.getElementById('reveal-timer-badge');
     if (timerBadge) {
       timerBadge.textContent = '⏱️ 30s';
@@ -1340,72 +1435,125 @@ class ImposterGame {
     }
 
     const teamTag = document.getElementById('revealed-team-tag');
-    teamTag.className = `team-tag ${player.role.team}`;
-    teamTag.textContent = player.role.team === 'good' ? 'Phe Dân'
-      : player.role.team === 'evil' ? 'Phe Ác'
-        : 'Trung Lập';
-
-    document.getElementById('revealed-icon').textContent = player.role.icon;
-    document.getElementById('revealed-name').textContent = player.role.name_vi;
-
+    const revealedIcon = document.getElementById('revealed-icon');
+    const roleNameEl = document.getElementById('revealed-name');
+    const abilityBox = document.getElementById('revealed-ability-box');
     const keywordLabel = document.getElementById('keyword-label');
     const keywordText = document.getElementById('keyword-text');
     const keywordCat = document.getElementById('keyword-category');
-
     const catName = this.categoryData?.name_vi || this.categoryData?.name || 'Chung';
 
-    if (player.role.id === 'jester') {
+    const isBlindRole = (player.role.id === 'civilian' || player.role.id === 'spy');
+
+    if (isBlindRole) {
+      // Dân Thường & Gián Điệp: Không hiện role, chỉ cung cấp từ khóa bí mật
+      backCard.style.setProperty('--role-color', '#10b981');
+      if (cardTimerStroke) {
+        cardTimerStroke.style.stroke = '#10b981';
+        cardTimerStroke.style.filter = 'drop-shadow(0 0 10px #10b981)';
+        cardTimerStroke.style.strokeDashoffset = '0';
+        cardTimerStroke.classList.remove('warning');
+      }
+
+      teamTag.style.display = 'none';
+      revealedIcon.textContent = '🤫';
+      roleNameEl.textContent = 'Từ Khóa Bí Mật';
+      roleNameEl.style.display = 'block';
+
       keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT:';
-      keywordText.className = 'secret-keyword-text';
-      keywordText.textContent = this.secretWord;
-      keywordCat.textContent = `Chủ đề: ${catName}`;
-    } else if (player.role.id === 'drunkard') {
-      const drunkWord = this.imposterWord || this.getDrunkardWord();
-      keywordLabel.textContent = 'TỪ KHÓA CỦA BẠN (SAY RƯỢU 🍺):';
       keywordText.className = 'secret-keyword-text';
       keywordText.style.color = '#10b981';
-      keywordText.textContent = drunkWord;
-      keywordCat.textContent = `Chủ đề: ${catName} • Phe Dân (Nhận từ của Gián Điệp)`;
-    } else if (player.role.id === 'traitor') {
-      keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT:';
-      keywordText.className = 'secret-keyword-text imposter';
-      keywordText.textContent = this.secretWord;
+      keywordText.style.textShadow = '0 0 16px rgba(16, 185, 129, 0.4)';
+
+      if (player.role.id === 'civilian') {
+        keywordText.textContent = this.secretWord;
+      } else {
+        // Gián Điệp nhận từ đồng nghĩa trong cặp từ nhưng không biết mình là Gián Điệp
+        keywordText.textContent = this.imposterWord || this.secretWord;
+      }
       keywordCat.textContent = `Chủ đề: ${catName}`;
-    } else if (player.role.id === 'double_agent') {
-      keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT:';
-      keywordText.className = 'secret-keyword-text';
-      keywordText.textContent = this.secretWord;
-      const imposterNames = this.players.filter(p => p.isImposter && p.id !== player.id).map(p => p.name).join(', ') || 'Đang ẩn nấp';
-      keywordCat.textContent = `Chủ đề: ${catName} • Imposter: ${imposterNames}`;
-    } else if (player.role.id === 'spy') {
-      keywordLabel.textContent = 'TỪ ĐỒNG NGHĨA TRONG CẶP:';
-      keywordText.className = 'secret-keyword-text';
-      keywordText.style.color = '#a855f7';
-      keywordText.style.textShadow = '0 0 16px rgba(168, 85, 247, 0.4)';
-      const spyWord = this.imposterWord || 'Từ đồng nghĩa trong cặp';
-      keywordText.textContent = spyWord;
-      keywordCat.textContent = `Chủ đề: ${catName}`;
-    } else if (player.role.knowsKeyword) {
-      keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT:';
-      keywordText.className = 'secret-keyword-text';
-      keywordText.textContent = this.secretWord;
-      keywordCat.textContent = `Chủ đề: ${catName}`;
+
+      if (abilityBox) abilityBox.style.display = 'none';
     } else {
-      // Kẻ Giả Mạo (Imposter)
-      if (this.hintsEnabled && this.imposterWord) {
-        keywordLabel.textContent = 'TỪ GỢI Ý ĐỂ HÒA NHẬP:';
+      // Các vai trò khác: Hiển thị đầy đủ thông tin vai trò, phe & kỹ năng
+      backCard.style.setProperty('--role-color', player.role.color);
+      if (cardTimerStroke) {
+        cardTimerStroke.style.stroke = player.role.color || '#10b981';
+        cardTimerStroke.style.filter = `drop-shadow(0 0 10px ${player.role.color || '#10b981'})`;
+        cardTimerStroke.style.strokeDashoffset = '0';
+        cardTimerStroke.classList.remove('warning');
+      }
+
+      teamTag.style.display = 'inline-block';
+      teamTag.className = `team-tag ${player.role.team}`;
+      teamTag.textContent = player.role.team === 'good' ? 'Phe Dân'
+        : player.role.team === 'evil' ? 'Phe Ác'
+          : 'Trung Lập';
+
+      document.getElementById('revealed-icon').textContent = player.role.icon;
+      const roleNameEl = document.getElementById('revealed-name');
+      roleNameEl.textContent = player.role.name_vi;
+      roleNameEl.style.display = 'block';
+
+      if (abilityBox) abilityBox.style.display = 'block';
+      document.getElementById('revealed-ability').textContent = player.role.ability_vi;
+
+      if (player.role.id === 'jester') {
+        keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT:';
+        keywordText.className = 'secret-keyword-text';
+        keywordText.style.color = '#ffffff';
+        keywordText.style.textShadow = '';
+        keywordText.textContent = this.secretWord;
+        keywordCat.textContent = `Chủ đề: ${catName}`;
+      } else if (player.role.id === 'drunkard') {
+        const drunkWord = this.imposterWord || this.getDrunkardWord();
+        keywordLabel.textContent = 'TỪ KHÓA CỦA BẠN (SAY RƯỢU 🍺):';
+        keywordText.className = 'secret-keyword-text';
+        keywordText.style.color = '#10b981';
+        keywordText.style.textShadow = '';
+        keywordText.textContent = drunkWord;
+        keywordCat.textContent = `Chủ đề: ${catName} • Phe Dân (Nhận từ của Gián Điệp)`;
+      } else if (player.role.id === 'traitor') {
+        keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT:';
         keywordText.className = 'secret-keyword-text imposter';
-        keywordText.textContent = this.imposterWord;
+        keywordText.style.color = '';
+        keywordText.style.textShadow = '';
+        keywordText.textContent = this.secretWord;
+        keywordCat.textContent = `Chủ đề: ${catName}`;
+      } else if (player.role.id === 'double_agent') {
+        keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT:';
+        keywordText.className = 'secret-keyword-text';
+        keywordText.style.color = '#ffffff';
+        keywordText.style.textShadow = '';
+        keywordText.textContent = this.secretWord;
+        const imposterNames = this.players.filter(p => p.isImposter && p.id !== player.id).map(p => p.name).join(', ') || 'Đang ẩn nấp';
+        keywordCat.textContent = `Chủ đề: ${catName} • Imposter: ${imposterNames}`;
+      } else if (player.role.knowsKeyword) {
+        keywordLabel.textContent = 'TỪ KHÓA BÍ MẬT:';
+        keywordText.className = 'secret-keyword-text';
+        keywordText.style.color = '#ffffff';
+        keywordText.style.textShadow = '';
+        keywordText.textContent = this.secretWord;
         keywordCat.textContent = `Chủ đề: ${catName}`;
       } else {
-        keywordLabel.textContent = 'MANH MỐI BÍ MẬT:';
-        keywordText.className = 'secret-keyword-text imposter';
-        keywordText.textContent = '❓ KHÔNG BIẾT TỪ KHÓA';
-        keywordCat.textContent = `Chủ đề: ${catName}`;
+        // Kẻ Giả Mạo (Imposter)
+        if (this.hintsEnabled && this.imposterWord) {
+          keywordLabel.textContent = 'TỪ GỢI Ý ĐỂ HÒA NHẬP:';
+          keywordText.className = 'secret-keyword-text imposter';
+          keywordText.style.color = '';
+          keywordText.style.textShadow = '';
+          keywordText.textContent = this.imposterWord;
+          keywordCat.textContent = `Chủ đề: ${catName}`;
+        } else {
+          keywordLabel.textContent = 'MANH MỐI BÍ MẬT:';
+          keywordText.className = 'secret-keyword-text imposter';
+          keywordText.style.color = '';
+          keywordText.style.textShadow = '';
+          keywordText.textContent = '❓ KHÔNG BIẾT TỪ KHÓA';
+          keywordCat.textContent = `Chủ đề: ${catName}`;
+        }
       }
     }
-
-    document.getElementById('revealed-ability').textContent = player.role.ability_vi;
   }
 
   startRevealTimer(durationSec = 30) {
@@ -4081,7 +4229,7 @@ class ImposterGame {
     if (activeLabel) activeLabel.textContent = label;
 
     if (!amount || amount === 0) {
-      if (qrImg) qrImg.src = 'vietqr_donate.png';
+      if (qrImg) qrImg.src = 'assets/images/vietqr_donate.png';
       return;
     }
 
@@ -4109,11 +4257,11 @@ class ImposterGame {
           const cleanUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=20&format=png&data=${encodeURIComponent(data.data.qrCode)}`;
           if (qrImg) qrImg.src = cleanUrl;
         } else {
-          if (qrImg) qrImg.src = 'vietqr_donate.png';
+          if (qrImg) qrImg.src = 'assets/images/vietqr_donate.png';
         }
       })
       .catch(() => {
-        if (qrImg) qrImg.src = 'vietqr_donate.png';
+        if (qrImg) qrImg.src = 'assets/images/vietqr_donate.png';
       });
   }
 
@@ -4161,6 +4309,33 @@ class ImposterGame {
     document.getElementById('btn-close-settings')?.addEventListener('click', () => {
       document.getElementById('modal-settings')?.classList.remove('open');
     });
+    // Restart Match & Exit to Home from Settings
+    document.getElementById('btn-settings-restart-match')?.addEventListener('click', () => {
+      sound.playClick();
+      document.getElementById('modal-settings')?.classList.remove('open');
+
+      if (this.timerInterval) clearInterval(this.timerInterval);
+      if (this.speechTimerInterval) clearInterval(this.speechTimerInterval);
+      if (this.revealCountdownInterval) clearInterval(this.revealCountdownInterval);
+      if (this.comebackTimerInterval) clearInterval(this.comebackTimerInterval);
+
+      this.startMatchSession();
+      this.showToast('🔄 Đã bắt đầu ván mới!', 'success');
+    });
+
+    document.getElementById('btn-settings-exit-home')?.addEventListener('click', () => {
+      sound.playClick();
+      document.getElementById('modal-settings')?.classList.remove('open');
+
+      if (this.timerInterval) clearInterval(this.timerInterval);
+      if (this.speechTimerInterval) clearInterval(this.speechTimerInterval);
+      if (this.revealCountdownInterval) clearInterval(this.revealCountdownInterval);
+      if (this.comebackTimerInterval) clearInterval(this.comebackTimerInterval);
+
+      this.switchScreen('screen-setup');
+      this.showToast('🏠 Đã quay về màn hình chính', 'info');
+    });
+
     document.getElementById('btn-close-settings-done')?.addEventListener('click', () => {
       document.getElementById('modal-settings')?.classList.remove('open');
     });

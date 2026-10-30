@@ -56,6 +56,149 @@
 }
 
 /* Light Mode Overrides */
+html[data-theme="light"] h1,
+html[data-theme="light"] h2,
+html[data-theme="light"] h3,
+html[data-theme="light"] h4,
+html[data-theme="light"] h5,
+html[data-theme="light"] h6 {
+  color: #0f172a;
+}
+
+html[data-theme="light"] .sheet-title {
+  color: #0f172a;
+}
+
+html[data-theme="light"] .settings-group-card {
+  background: #f8fafc !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html[data-theme="light"] .theme-option-btn {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #0f172a;
+}
+
+html[data-theme="light"] .theme-option-btn.active {
+  background: #fff7ed;
+  border-color: #ea580c;
+  color: #c2410c;
+  box-shadow: 0 2px 10px rgba(234, 88, 12, 0.18);
+}
+
+html[data-theme="light"] .theme-option-btn.restart-match-btn {
+  background: #fef2f2 !important;
+  border-color: #fca5a5 !important;
+}
+
+html[data-theme="light"] .theme-option-btn.restart-match-btn span {
+  color: #b91c1c !important;
+}
+
+html[data-theme="light"] .theme-option-btn.exit-home-btn span {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .switch-toggle-btn {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.14);
+  color: #0f172a;
+}
+
+html[data-theme="light"] .hero-badge {
+  background: rgba(0, 0, 0, 0.08);
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] #current-speaker-hud {
+  background: #f1f5f9 !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+html[data-theme="light"] .secret-keyword-container {
+  background: #f8fafc;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+html[data-theme="light"] .secret-keyword-text {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .keyword-label {
+  color: #64748b;
+}
+
+html[data-theme="light"] .unmask-reveal-box {
+  background: radial-gradient(circle at 50% 30%, #fff1f2 0%, #ffffff 100%);
+  border-color: #fda4af;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.12);
+}
+
+html[data-theme="light"] .setting-item-row {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #0f172a;
+}
+
+html[data-theme="light"] .setting-item-row:hover {
+  background: #f8fafc;
+}
+
+html[data-theme="light"] .ctrl-btn {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.14);
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+html[data-theme="light"] .bottom-sheet-content {
+  background: #ffffff;
+  color: #0f172a;
+  border-top-color: rgba(0, 0, 0, 0.12);
+}
+
+html[data-theme="light"] .close-sheet-btn {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+html[data-theme="light"] .role-item-card {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #0f172a;
+}
+
+html[data-theme="light"] .player-input-card,
+html[data-theme="light"] .player-item-row {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #0f172a;
+}
+
+html[data-theme="light"] .player-name-input {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .scoreboard-player-card {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #0f172a;
+}
+
+html[data-theme="light"] .scoreboard-player-name {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .action-notice-card {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+html[data-theme="light"] .action-notice-title {
+  color: #0f172a;
+}
 html[data-theme="light"] {
   --bg-canvas: #f1f4f9;
   --bg-surface: #ffffff;
@@ -99,6 +242,15 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 /* Global Heading & Typography Hierarchy */
@@ -248,6 +400,21 @@ html[data-theme="light"] .global-control-bar {
   box-sizing: border-box;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+
+html[data-theme="light"] .header-stage-badge {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #0f172a !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="light"] .header-stage-badge.match-phase {
+  background: #fee2e2;
+  border-color: #f87171;
+  color: #0f172a !important;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.2);
+  font-weight: 800;
 }
 
 .header-stage-badge.match-phase {

@@ -1,11 +1,25 @@
-# Dependencies & Temp files
+# Dependencies & Mobile Build Caches
+node_modules/
+android/
+ios/
+.gradle/
+build/
+dist/
+
+# Developer Scripts & Internal Design Tools
 *.ps1
+tools/
+tools_stitch/
+stitch_exports/
 *_req.json
 *_res.json
 stitch_tools.json
 stitch_result.json
 test_stitch.mjs
-stitch_exports/
-tools_stitch/
+
+# OS & Editor Metadata
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
+*.log
