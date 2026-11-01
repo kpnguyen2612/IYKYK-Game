@@ -1,4 +1,4 @@
-﻿// ==========================================================
+// ==========================================================
 // GUESS THE IMPOSTER - ALL-IN-ONE STANDALONE CONTROLLER
 // Zero external dependencies, 100% offline & local file compatible
 // ==========================================================
@@ -329,7 +329,7 @@ class ImposterGame {
       badge.style.background = 'rgba(16, 185, 129, 0.15)';
       badge.style.color = '#10b981';
       badge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
-      if (infoText) infoText.textContent = Đang kết nối:  (Bảo mật tuyệt đối);
+      if (infoText) infoText.textContent = `Đang kết nối: ${window.FakerAPI.baseUrl} (Bảo mật tuyệt đối)`;
     } else {
       badge.textContent = '⚪ Chế độ Offline';
       badge.style.background = 'rgba(148, 163, 184, 0.15)';
