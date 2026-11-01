@@ -1630,6 +1630,27 @@
         </div>
       </div>
 
+      <!-- Settings Group 4: Backend API Server Status -->
+      <div class="settings-group-card" style="margin-bottom: 20px; background: rgba(0, 0, 0, 0.22); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div>
+            <div style="font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+              <span>🛡️</span> <span>Máy chủ bảo mật từ khóa</span>
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">Bảo vệ đáp án chống soi qua mã nguồn</div>
+          </div>
+          <span id="badge-server-status" class="hero-badge" style="font-size: 11px; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">🟢 Máy chủ API</span>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+          <input type="text" id="input-api-url" placeholder="URL Server (VD: https://api.myserver.com/api/v1)" style="flex: 1; height: 36px; padding: 0 10px; font-size: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); color: var(--text-primary);" />
+          <button type="button" id="btn-save-api-url" class="secondary-btn" style="min-height: 36px; padding: 0 12px; font-size: 12px;">Lưu</button>
+        </div>
+        <div id="text-server-info" style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
+          Đang sử dụng: Tự động kết nối máy chủ REST API
+        </div>
+      </div>
+
       <button id="btn-close-settings-done" class="primary-cta-btn" style="width: 100%; min-height: 44px; margin-top: 0;">
         <span>✓</span> <span>Xong</span>
       </button>
@@ -1993,6 +2014,7 @@
   <script src="js/audio.js"></script>
   <script src="js/data_roles.js"></script>
   <script src="js/data_categories.js"></script>
+  <script src="js/api_client.js"></script>
 
   <!-- App Main Controller -->
   <script src="js/app.js"></script>

@@ -1,4 +1,4 @@
-// ==========================================================
+﻿// ==========================================================
 // GUESS THE IMPOSTER - ALL-IN-ONE STANDALONE CONTROLLER
 // Zero external dependencies, 100% offline & local file compatible
 // ==========================================================
@@ -309,8 +309,34 @@ class ImposterGame {
 
     this.applyTheme();
     this.updateSoundSettingsUI();
+    this.updateServerSettingsUI();
 
     modal.classList.add('open');
+  }
+
+  updateServerSettingsUI() {
+    const badge = document.getElementById('badge-server-status');
+    const input = document.getElementById('input-api-url');
+    const infoText = document.getElementById('text-server-info');
+    if (!badge || typeof window === 'undefined' || !window.FakerAPI) return;
+
+    if (input && !input.value) {
+      input.value = window.FakerAPI.customUrl || '';
+    }
+
+    if (window.FakerAPI.isOnline) {
+      badge.textContent = '🟢 Máy chủ Online';
+      badge.style.background = 'rgba(16, 185, 129, 0.15)';
+      badge.style.color = '#10b981';
+      badge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+      if (infoText) infoText.textContent = Đang kết nối:  (Bảo mật tuyệt đối);
+    } else {
+      badge.textContent = '⚪ Chế độ Offline';
+      badge.style.background = 'rgba(148, 163, 184, 0.15)';
+      badge.style.color = 'var(--text-muted)';
+      badge.style.borderColor = 'rgba(148, 163, 184, 0.3)';
+      if (infoText) infoText.textContent = 'Đang dùng: Kho từ mã hóa ngoại tuyến (Không cần mạng)';
+    }
   }
 
   updateSoundSettingsUI() {
@@ -1280,7 +1306,7 @@ class ImposterGame {
     return deck;
   }
 
-  startMatchSession() {
+  async startMatchSession() {
     const inputs = document.querySelectorAll('.player-name-input');
     const names = [];
     inputs.forEach((inp, idx) => {
@@ -1318,29 +1344,35 @@ class ImposterGame {
     this.isCurrentRoundScoreDiscarded = false;
     this.roundNumber = 1;
 
-    const allCats = this.getPlayableCategories();
-    let cat;
-    if (this.categoryMode === 'random') {
-      const candidates = allCats.filter(c => c.words && c.words.length > 0);
-      cat = candidates.length > 0 ? candidates[Math.floor(Math.random() * candidates.length)] : allCats[0];
-    } else {
-      cat = allCats.find(c => c.id === this.selectedCategoryId);
-      if (!cat || !cat.words || cat.words.length === 0) {
-        cat = allCats.find(c => c.words && c.words.length > 0) || allCats[0];
-      }
-    }
-    this.categoryData = cat;
+    const reqCatId = (this.categoryMode === 'random') ? 'all' : (this.selectedCategoryId || 'all');
+    let matchPayload = null;
 
-    const randomPair = cat.words[Math.floor(Math.random() * cat.words.length)];
-    if (randomPair.civilian) {
-      this.secretWord = randomPair.civilian;
-      this.imposterWord = randomPair.imposter;
-    } else if (randomPair.vi) {
-      this.secretWord = randomPair.vi;
-      this.imposterWord = randomPair.imposter || "";
+    if (typeof window !== 'undefined' && window.FakerAPI) {
+      matchPayload = await window.FakerAPI.startMatch(reqCatId);
+    }
+
+    if (matchPayload && matchPayload.pair) {
+      this.currentMatchToken = matchPayload.matchToken;
+      this.isServerMatchMode = matchPayload.isServerMode;
+      this.categoryData = matchPayload.category;
+      this.secretWord = matchPayload.pair.civilian;
+      this.imposterWord = matchPayload.pair.imposter;
     } else {
-      this.secretWord = String(randomPair);
-      this.imposterWord = "";
+      const allCats = this.getPlayableCategories();
+      let cat;
+      if (this.categoryMode === 'random') {
+        const candidates = allCats.filter(c => c.words && c.words.length > 0);
+        cat = candidates.length > 0 ? candidates[Math.floor(Math.random() * candidates.length)] : allCats[0];
+      } else {
+        cat = allCats.find(c => c.id === this.selectedCategoryId);
+        if (!cat || !cat.words || cat.words.length === 0) {
+          cat = allCats.find(c => c.words && c.words.length > 0) || allCats[0];
+        }
+      }
+      this.categoryData = cat;
+      const pair = (typeof cat.getRandomPair === 'function') ? cat.getRandomPair() : (cat.words[0] || { civilian: 'Trà Sữa', imposter: 'Cà Phê' });
+      this.secretWord = pair.civilian;
+      this.imposterWord = pair.imposter;
     }
 
     this.roundNumber = 1;
@@ -3856,7 +3888,7 @@ class ImposterGame {
     this.showToast(`✅ Đã chọn ${this.playerCount} người chơi từ BXH vào ván đấu!`);
   }
 
-  checkImposterComebackGuess(isGiveup = false, isTimeout = false) {
+  async checkImposterComebackGuess(isGiveup = false, isTimeout = false) {
     if (this.comebackTimerInterval) {
       clearInterval(this.comebackTimerInterval);
       this.comebackTimerInterval = null;
@@ -3891,12 +3923,24 @@ class ImposterGame {
     const normCoreTarget = norm(coreTarget);
     const normCoreGuess = norm(coreGuess);
 
-    const isMatch = !isGiveup && normGuess.length > 0 && (
-      normTarget === normGuess ||
-      (normCoreTarget.length > 0 && normCoreTarget === normCoreGuess) ||
-      (normCoreTarget.length > 0 && normCoreTarget === normGuess) ||
-      (normTarget.length > 0 && normTarget === normCoreGuess)
-    );
+    let isMatch = false;
+    if (!isGiveup && normGuess.length > 0) {
+      if (typeof window !== 'undefined' && window.FakerAPI && this.currentMatchToken) {
+        try {
+          const verifyResult = await window.FakerAPI.verifyGuess(this.currentMatchToken, guess, target);
+          isMatch = Boolean(verifyResult.isCorrect);
+        } catch (e) {
+          isMatch = (normTarget === normGuess || (normCoreTarget.length > 0 && normCoreTarget === normCoreGuess));
+        }
+      } else {
+        isMatch = (
+          normTarget === normGuess ||
+          (normCoreTarget.length > 0 && normCoreTarget === normCoreGuess) ||
+          (normCoreTarget.length > 0 && normCoreTarget === normGuess) ||
+          (normTarget.length > 0 && normTarget === normCoreGuess)
+        );
+      }
+    }
 
     if (isMatch) {
       sound.playWinFanfare();
@@ -4342,6 +4386,27 @@ class ImposterGame {
     document.getElementById('btn-close-settings-done')?.addEventListener('click', () => {
       document.getElementById('modal-settings')?.classList.remove('open');
     });
+
+    document.getElementById('btn-save-api-url')?.addEventListener('click', async () => {
+      const input = document.getElementById('input-api-url');
+      if (input && typeof window !== 'undefined' && window.FakerAPI) {
+        window.FakerAPI.setBaseUrl(input.value.trim());
+        this.showToast('🔄 Đang kiểm tra kết nối máy chủ...');
+        const online = await window.FakerAPI.checkHealth(true);
+        this.updateServerSettingsUI();
+        if (online) {
+          this.showToast('✅ Kết nối máy chủ thành công!', 'success');
+        } else {
+          this.showToast('⚠️ Không thể kết nối tới server. App sẽ tự chuyển sang chế độ Offline.', 'warning');
+        }
+      }
+    });
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('faker:server-status', () => {
+        this.updateServerSettingsUI();
+      });
+    }
     document.getElementById('modal-settings')?.addEventListener('click', (e) => {
       if (e.target.id === 'modal-settings') {
         document.getElementById('modal-settings').classList.remove('open');
@@ -6278,3 +6343,7 @@ window.addEventListener('DOMContentLoaded', () => {
     enumerable: false
   });
 });
+
+
+
+

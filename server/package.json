@@ -1,0 +1,22 @@
+{
+  "name": "faker-backend-server",
+  "version": "1.0.0",
+  "description": "Secure REST API Backend for Faker / IYKYK Party Game",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "faker",
+    "boardgame",
+    "api",
+    "party-game"
+  ],
+  "author": "Faker Dev Team",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}

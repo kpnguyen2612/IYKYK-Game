@@ -1,0 +1,1419 @@
+﻿[
+    {
+        "id":  "food_drink",
+        "name_vi":  "Đồ ăn",
+        "icon":  "🍜",
+        "words":  [
+                      {
+                          "civilian":  "phở",
+                          "imposter":  "hủ tiếu"
+                      },
+                      {
+                          "civilian":  "bánh mì",
+                          "imposter":  "bánh bao"
+                      },
+                      {
+                          "civilian":  "bún chả",
+                          "imposter":  "bún thịt nướng"
+                      },
+                      {
+                          "civilian":  "cơm tấm",
+                          "imposter":  "cơm trộn"
+                      },
+                      {
+                          "civilian":  "bánh xèo",
+                          "imposter":  "bánh pía"
+                      },
+                      {
+                          "civilian":  "hủ tiếu",
+                          "imposter":  "mì quảng"
+                      },
+                      {
+                          "civilian":  "chè",
+                          "imposter":  "cháo"
+                      },
+                      {
+                          "civilian":  "nem chua",
+                          "imposter":  "chả giò"
+                      },
+                      {
+                          "civilian":  "bún bò",
+                          "imposter":  "bún riêu"
+                      },
+                      {
+                          "civilian":  "phở cuốn",
+                          "imposter":  "bánh xèo"
+                      },
+                      {
+                          "civilian":  "xôi",
+                          "imposter":  "nếp cẩm"
+                      },
+                      {
+                          "civilian":  "cháo lòng",
+                          "imposter":  "cháo sườn"
+                      },
+                      {
+                          "civilian":  "bánh cuốn",
+                          "imposter":  "bánh xèo"
+                      },
+                      {
+                          "civilian":  "lẩu",
+                          "imposter":  "nướng"
+                      },
+                      {
+                          "civilian":  "trà sữa",
+                          "imposter":  "cà phê"
+                      },
+                      {
+                          "civilian":  "bánh chưng",
+                          "imposter":  "bánh tét"
+                      },
+                      {
+                          "civilian":  "bún riêu",
+                          "imposter":  "bún mọc"
+                      },
+                      {
+                          "civilian":  "mì quảng",
+                          "imposter":  "cao lầu"
+                      },
+                      {
+                          "civilian":  "cơm chiên",
+                          "imposter":  "mì xào"
+                      },
+                      {
+                          "civilian":  "bánh flan",
+                          "imposter":  "kem"
+                      },
+                      {
+                          "civilian":  "sinh tố",
+                          "imposter":  "nước ép"
+                      },
+                      {
+                          "civilian":  "cà phê muối",
+                          "imposter":  "cà phê trứng"
+                      },
+                      {
+                          "civilian":  "bún đậu",
+                          "imposter":  "bánh tráng trộn"
+                      },
+                      {
+                          "civilian":  "bánh tráng nướng",
+                          "imposter":  "bánh tráng cuốn"
+                      },
+                      {
+                          "civilian":  "ốc",
+                          "imposter":  "sò"
+                      },
+                      {
+                          "civilian":  "thịt kho",
+                          "imposter":  "cá kho"
+                      },
+                      {
+                          "civilian":  "canh chua",
+                          "imposter":  "canh khổ qua"
+                      },
+                      {
+                          "civilian":  "chả cá",
+                          "imposter":  "chả lụa"
+                      },
+                      {
+                          "civilian":  "xúc xích",
+                          "imposter":  "lạp xưởng"
+                      },
+                      {
+                          "civilian":  "bánh bèo",
+                          "imposter":  "bánh nậm"
+                      },
+                      {
+                          "civilian":  "bún mắm",
+                          "imposter":  "bún cá"
+                      },
+                      {
+                          "civilian":  "cơm gà",
+                          "imposter":  "cơm vịt"
+                      },
+                      {
+                          "civilian":  "bánh canh",
+                          "imposter":  "hủ tiếu "
+                      },
+                      {
+                          "civilian":  "trứng vịt lộn",
+                          "imposter":  "trứng cút"
+                      },
+                      {
+                          "civilian":  "kem",
+                          "imposter":  "đá bào"
+                      },
+                      {
+                          "civilian":  "nước mía",
+                          "imposter":  "nước dừa"
+                      },
+                      {
+                          "civilian":  "sữa chua",
+                          "imposter":  "phô mai"
+                      },
+                      {
+                          "civilian":  "bánh bao",
+                          "imposter":  "bánh gối"
+                      },
+                      {
+                          "civilian":  "mực nướng",
+                          "imposter":  "gà nướng"
+                      },
+                      {
+                          "civilian":  "bánh đúc",
+                          "imposter":  "bánh giò"
+                      },
+                      {
+                          "civilian":  "bánh rán",
+                          "imposter":  "bánh xèo"
+                      },
+                      {
+                          "civilian":  "bún thang",
+                          "imposter":  "bún ốc"
+                      },
+                      {
+                          "civilian":  "miến gà",
+                          "imposter":  "miến lươn"
+                      },
+                      {
+                          "civilian":  "xôi gà",
+                          "imposter":  "xôi xéo"
+                      },
+                      {
+                          "civilian":  "cháo",
+                          "imposter":  "súp"
+                      },
+                      {
+                          "civilian":  "gà rán",
+                          "imposter":  "thị nướng"
+                      },
+                      {
+                          "civilian":  "pizza",
+                          "imposter":  "bánh mì kẹp"
+                      },
+                      {
+                          "civilian":  "hamburger",
+                          "imposter":  "sandwich"
+                      },
+                      {
+                          "civilian":  "mì tôm",
+                          "imposter":  "phở"
+                      },
+                      {
+                          "civilian":  "sầu riêng",
+                          "imposter":  "mít"
+                      },
+                      {
+                          "civilian":  "trà đào",
+                          "imposter":  "trà vải"
+                      },
+                      {
+                          "civilian":  "sữa đậu nành",
+                          "imposter":  "sữa bò"
+                      }
+                  ]
+    },
+    {
+        "id":  "animals",
+        "name_vi":  "Động vật",
+        "icon":  "🐾",
+        "words":  [
+                      {
+                          "civilian":  "chó",
+                          "imposter":  "bò"
+                      },
+                      {
+                          "civilian":  "mèo",
+                          "imposter":  "hổ"
+                      },
+                      {
+                          "civilian":  "voi",
+                          "imposter":  "tê giác"
+                      },
+                      {
+                          "civilian":  "khỉ",
+                          "imposter":  "vượn"
+                      },
+                      {
+                          "civilian":  "rùa",
+                          "imposter":  "ba ba"
+                      },
+                      {
+                          "civilian":  "ếch",
+                          "imposter":  "cóc"
+                      },
+                      {
+                          "civilian":  "gà",
+                          "imposter":  "vịt"
+                      },
+                      {
+                          "civilian":  "chó",
+                          "imposter":  "sói"
+                      },
+                      {
+                          "civilian":  "hổ",
+                          "imposter":  "báo"
+                      },
+                      {
+                          "civilian":  "cua",
+                          "imposter":  "ghẹ"
+                      },
+                      {
+                          "civilian":  "ong",
+                          "imposter":  "ruồi"
+                      },
+                      {
+                          "civilian":  "dơi",
+                          "imposter":  "chim"
+                      },
+                      {
+                          "civilian":  "nhím",
+                          "imposter":  "chuột"
+                      },
+                      {
+                          "civilian":  "bò",
+                          "imposter":  "bê"
+                      },
+                      {
+                          "civilian":  "vịt",
+                          "imposter":  "ngỗng"
+                      },
+                      {
+                          "civilian":  "heo",
+                          "imposter":  "dê"
+                      },
+                      {
+                          "civilian":  "dê",
+                          "imposter":  "cừu"
+                      },
+                      {
+                          "civilian":  "ngựa",
+                          "imposter":  "lừa"
+                      },
+                      {
+                          "civilian":  "cá heo",
+                          "imposter":  "cá voi"
+                      },
+                      {
+                          "civilian":  "cá chép",
+                          "imposter":  "cá rô"
+                      },
+                      {
+                          "civilian":  "gấu",
+                          "imposter":  "gấu trúc"
+                      },
+                      {
+                          "civilian":  "thỏ",
+                          "imposter":  "sóc"
+                      },
+                      {
+                          "civilian":  "rắn",
+                          "imposter":  "thằn lằn"
+                      },
+                      {
+                          "civilian":  "bướm",
+                          "imposter":  "chuồn chuồn"
+                      },
+                      {
+                          "civilian":  "kiến",
+                          "imposter":  "mối"
+                      },
+                      {
+                          "civilian":  "muỗi",
+                          "imposter":  "ruồi"
+                      },
+                      {
+                          "civilian":  "công",
+                          "imposter":  "gà tây"
+                      },
+                      {
+                          "civilian":  "cú",
+                          "imposter":  "đại bàng"
+                      },
+                      {
+                          "civilian":  "sư tử",
+                          "imposter":  "báo"
+                      },
+                      {
+                          "civilian":  "cá mập",
+                          "imposter":  "cá đuối"
+                      },
+                      {
+                          "civilian":  "cá vàng",
+                          "imposter":  "cá cảnh"
+                      },
+                      {
+                          "civilian":  "ngỗng",
+                          "imposter":  "thiên nga"
+                      },
+                      {
+                          "civilian":  "nhện",
+                          "imposter":  "sâu"
+                      },
+                      {
+                          "civilian":  "cừu",
+                          "imposter":  "lạc đà"
+                      },
+                      {
+                          "civilian":  "lạc đà",
+                          "imposter":  "ngựa vằn"
+                      },
+                      {
+                          "civilian":  "bồ câu",
+                          "imposter":  "chim sẻ"
+                      },
+                      {
+                          "civilian":  "khỉ đột",
+                          "imposter":  "đười ươi"
+                      },
+                      {
+                          "civilian":  "dế",
+                          "imposter":  "châu chấu"
+                      },
+                      {
+                          "civilian":  "tắc kè",
+                          "imposter":  "thạch sùng"
+                      },
+                      {
+                          "civilian":  "cá thu",
+                          "imposter":  "cá ngừ"
+                      },
+                      {
+                          "civilian":  "cáo",
+                          "imposter":  "chó rừng"
+                      },
+                      {
+                          "civilian":  "hươu",
+                          "imposter":  "nai"
+                      },
+                      {
+                          "civilian":  "sứa",
+                          "imposter":  "mực"
+                      },
+                      {
+                          "civilian":  "bạch tuộc",
+                          "imposter":  "mực"
+                      },
+                      {
+                          "civilian":  "chim én",
+                          "imposter":  "chim yến"
+                      },
+                      {
+                          "civilian":  "vẹt",
+                          "imposter":  "chim sáo"
+                      },
+                      {
+                          "civilian":  "tằm",
+                          "imposter":  "sâu bướm"
+                      },
+                      {
+                          "civilian":  "hến",
+                          "imposter":  "sò"
+                      },
+                      {
+                          "civilian":  "sóc",
+                          "imposter":  "chồn"
+                      }
+                  ]
+    },
+    {
+        "id":  "places",
+        "name_vi":  "Nơi chốn",
+        "icon":  "📍",
+        "words":  [
+                      {
+                          "civilian":  "Hà Nội",
+                          "imposter":  "Huế"
+                      },
+                      {
+                          "civilian":  "Sài Gòn",
+                          "imposter":  "Đà Nẵng"
+                      },
+                      {
+                          "civilian":  "Đà Lạt",
+                          "imposter":  "Sapa"
+                      },
+                      {
+                          "civilian":  "Phú Quốc",
+                          "imposter":  "Côn Đảo"
+                      },
+                      {
+                          "civilian":  "Hội An",
+                          "imposter":  "Hà Nội"
+                      },
+                      {
+                          "civilian":  "Sapa",
+                          "imposter":  "Mộc Châu"
+                      },
+                      {
+                          "civilian":  "chợ Bến Thành",
+                          "imposter":  "chợ Đồng Xuân"
+                      },
+                      {
+                          "civilian":  "Hồ Gươm",
+                          "imposter":  "Hồ Tây"
+                      },
+                      {
+                          "civilian":  "Huế",
+                          "imposter":  "Đà Nẵng"
+                      },
+                      {
+                          "civilian":  "Nha Trang",
+                          "imposter":  "Vũng Tàu"
+                      },
+                      {
+                          "civilian":  "Cần Thơ",
+                          "imposter":  "Cà Mau"
+                      },
+                      {
+                          "civilian":  "Mũi Né",
+                          "imposter":  "Phan Thiết"
+                      },
+                      {
+                          "civilian":  "bệnh viện",
+                          "imposter":  "phòng khám"
+                      },
+                      {
+                          "civilian":  "sân bay",
+                          "imposter":  "ga tàu"
+                      },
+                      {
+                          "civilian":  "Đà Nẵng",
+                          "imposter":  "Quy Nhơn"
+                      },
+                      {
+                          "civilian":  "Hải Phòng",
+                          "imposter":  "Quảng Ninh"
+                      },
+                      {
+                          "civilian":  "Ninh Bình",
+                          "imposter":  "Hà Giang"
+                      },
+                      {
+                          "civilian":  "Dinh Độc Lập",
+                          "imposter":  "Nhà thờ Đức Bà"
+                      },
+                      {
+                          "civilian":  "Lăng Bác",
+                          "imposter":  "Văn Miếu"
+                      },
+                      {
+                          "civilian":  "siêu thị",
+                          "imposter":  "chợ"
+                      },
+                      {
+                          "civilian":  "công viên",
+                          "imposter":  "vườn thú"
+                      },
+                      {
+                          "civilian":  "thư viện",
+                          "imposter":  "nhà sách"
+                      },
+                      {
+                          "civilian":  "rạp chiếu phim",
+                          "imposter":  "nhà hát"
+                      },
+                      {
+                          "civilian":  "bãi biển",
+                          "imposter":  "hồ bơi"
+                      },
+                      {
+                          "civilian":  "chùa",
+                          "imposter":  "nhà thờ"
+                      },
+                      {
+                          "civilian":  "trường học",
+                          "imposter":  "đại học"
+                      },
+                      {
+                          "civilian":  "quán nhậu",
+                          "imposter":  "quán cà phê"
+                      },
+                      {
+                          "civilian":  "chung cư",
+                          "imposter":  "nhà phố"
+                      },
+                      {
+                          "civilian":  "bến xe",
+                          "imposter":  "bến tàu"
+                      },
+                      {
+                          "civilian":  "Quy Nhơn",
+                          "imposter":  "Phú Yên"
+                      },
+                      {
+                          "civilian":  "Cát Bà",
+                          "imposter":  "Lý Sơn"
+                      },
+                      {
+                          "civilian":  "Mộc Châu",
+                          "imposter":  "Ba Vì"
+                      },
+                      {
+                          "civilian":  "Tràng An",
+                          "imposter":  "Bái Đính"
+                      },
+                      {
+                          "civilian":  "Địa đạo Củ Chi",
+                          "imposter":  "Địa đạo Vịnh Mốc"
+                      },
+                      {
+                          "civilian":  "nhà thờ",
+                          "imposter":  "thánh đường"
+                      },
+                      {
+                          "civilian":  "sân vận động",
+                          "imposter":  "nhà thi đấu"
+                      },
+                      {
+                          "civilian":  "ngân hàng",
+                          "imposter":  "bưu điện"
+                      },
+                      {
+                          "civilian":  "khách sạn",
+                          "imposter":  "nhà nghỉ"
+                      },
+                      {
+                          "civilian":  "trung tâm thương mại",
+                          "imposter":  "chợ đêm"
+                      },
+                      {
+                          "civilian":  "Tam Đảo",
+                          "imposter":  "Ba Vì"
+                      },
+                      {
+                          "civilian":  "Mù Cang Chải",
+                          "imposter":  "Mộc Châu"
+                      },
+                      {
+                          "civilian":  "Phong Nha",
+                          "imposter":  "Tràng An"
+                      },
+                      {
+                          "civilian":  "Cầu Rồng",
+                          "imposter":  "Cầu Nhật Tân"
+                      },
+                      {
+                          "civilian":  "Vũng Tàu",
+                          "imposter":  "Hạ long"
+                      },
+                      {
+                          "civilian":  "nhà hàng",
+                          "imposter":  "quán ăn"
+                      },
+                      {
+                          "civilian":  "home stay",
+                          "imposter":  "quán net"
+                      },
+                      {
+                          "civilian":  "phòng gym",
+                          "imposter":  "phòng yoga"
+                      },
+                      {
+                          "civilian":  "tiệm cắt tóc",
+                          "imposter":  "tiệm nail"
+                      },
+                      {
+                          "civilian":  "bưu điện",
+                          "imposter":  "ngân hàng"
+                      },
+                      {
+                          "civilian":  "công ty",
+                          "imposter":  "văn phòng"
+                      },
+                      {
+                          "civilian":  "nhà máy",
+                          "imposter":  "xưởng"
+                      },
+                      {
+                          "civilian":  "nhà ga",
+                          "imposter":  "sân bay"
+                      }
+                  ]
+    },
+    {
+        "id":  "items",
+        "name_vi":  "Vật dụng",
+        "icon":  "🎒",
+        "words":  [
+                      {
+                          "civilian":  "nón lá",
+                          "imposter":  "mũ bảo hiểm"
+                      },
+                      {
+                          "civilian":  "xe máy",
+                          "imposter":  "xe đạp"
+                      },
+                      {
+                          "civilian":  "dép tông",
+                          "imposter":  "giày sandal"
+                      },
+                      {
+                          "civilian":  "quạt",
+                          "imposter":  "máy lạnh"
+                      },
+                      {
+                          "civilian":  "tủ lạnh",
+                          "imposter":  "tủ đông"
+                      },
+                      {
+                          "civilian":  "bàn ủi",
+                          "imposter":  "máy sấy tóc"
+                      },
+                      {
+                          "civilian":  "ô dù",
+                          "imposter":  "áo mưa"
+                      },
+                      {
+                          "civilian":  "gối ôm",
+                          "imposter":  "gối nằm"
+                      },
+                      {
+                          "civilian":  "điều khiển",
+                          "imposter":  "chuột máy tính"
+                      },
+                      {
+                          "civilian":  "nồi cơm điện",
+                          "imposter":  "nồi áp suất"
+                      },
+                      {
+                          "civilian":  "cây chổi",
+                          "imposter":  "cây lau nhà"
+                      },
+                      {
+                          "civilian":  "kính râm",
+                          "imposter":  "kính cận"
+                      },
+                      {
+                          "civilian":  "bật lửa",
+                          "imposter":  "diêm"
+                      },
+                      {
+                          "civilian":  "ổ khóa",
+                          "imposter":  "chìa khóa"
+                      },
+                      {
+                          "civilian":  "gương",
+                          "imposter":  "cửa kính"
+                      },
+                      {
+                          "civilian":  "điện thoại",
+                          "imposter":  "máy tính bảng"
+                      },
+                      {
+                          "civilian":  "laptop",
+                          "imposter":  "máy tính để bàn"
+                      },
+                      {
+                          "civilian":  "tai nghe",
+                          "imposter":  "loa"
+                      },
+                      {
+                          "civilian":  "bàn chải",
+                          "imposter":  "lược"
+                      },
+                      {
+                          "civilian":  "kem đánh răng",
+                          "imposter":  "xà phòng"
+                      },
+                      {
+                          "civilian":  "khăn tắm",
+                          "imposter":  "khăn mặt"
+                      },
+                      {
+                          "civilian":  "máy giặt",
+                          "imposter":  "máy rửa chén"
+                      },
+                      {
+                          "civilian":  "lò vi sóng",
+                          "imposter":  "lò nướng"
+                      },
+                      {
+                          "civilian":  "ghế sofa",
+                          "imposter":  "ghế đẩu"
+                      },
+                      {
+                          "civilian":  "đồng hồ",
+                          "imposter":  "vòng tay"
+                      },
+                      {
+                          "civilian":  "ví",
+                          "imposter":  "túi xách"
+                      },
+                      {
+                          "civilian":  "ba lô",
+                          "imposter":  "vali"
+                      },
+                      {
+                          "civilian":  "bút bi",
+                          "imposter":  "bút chì"
+                      },
+                      {
+                          "civilian":  "kéo",
+                          "imposter":  "dao"
+                      },
+                      {
+                          "civilian":  "đèn pin",
+                          "imposter":  "đèn bàn"
+                      },
+                      {
+                          "civilian":  "bàn phím",
+                          "imposter":  "chuột"
+                      },
+                      {
+                          "civilian":  "máy ảnh",
+                          "imposter":  "máy quay"
+                      },
+                      {
+                          "civilian":  "sạc dự phòng",
+                          "imposter":  "sạc pin"
+                      },
+                      {
+                          "civilian":  "nồi chiên không dầu",
+                          "imposter":  "lò nướng điện"
+                      },
+                      {
+                          "civilian":  "ấm đun nước",
+                          "imposter":  "bình thủy"
+                      },
+                      {
+                          "civilian":  "muỗng",
+                          "imposter":  "đũa"
+                      },
+                      {
+                          "civilian":  "thớt",
+                          "imposter":  "dao thớt"
+                      },
+                      {
+                          "civilian":  "khẩu trang",
+                          "imposter":  "khăn che mặt"
+                      },
+                      {
+                          "civilian":  "dây chuyền",
+                          "imposter":  "nhẫn"
+                      },
+                      {
+                          "civilian":  "mũ lưỡi trai",
+                          "imposter":  "mũ len"
+                      },
+                      {
+                          "civilian":  "chảo",
+                          "imposter":  "nồi"
+                      },
+                      {
+                          "civilian":  "dao",
+                          "imposter":  "kéo"
+                      },
+                      {
+                          "civilian":  "đũa",
+                          "imposter":  "nĩa"
+                      },
+                      {
+                          "civilian":  "ly",
+                          "imposter":  "cốc"
+                      },
+                      {
+                          "civilian":  "chai",
+                          "imposter":  "lọ"
+                      },
+                      {
+                          "civilian":  "thùng rác",
+                          "imposter":  "tủ đồ"
+                      },
+                      {
+                          "civilian":  "búa",
+                          "imposter":  "cưa"
+                      },
+                      {
+                          "civilian":  "tua vít",
+                          "imposter":  "kìm"
+                      },
+                      {
+                          "civilian":  "bóng đèn",
+                          "imposter":  "đèn ống"
+                      },
+                      {
+                          "civilian":  "ổ cắm",
+                          "imposter":  "phích cắm"
+                      },
+                      {
+                          "civilian":  "điều hòa",
+                          "imposter":  "quạt trần"
+                      },
+                      {
+                          "civilian":  "balo",
+                          "imposter":  "túi xách"
+                      },
+                      {
+                          "civilian":  "son môi",
+                          "imposter":  "phấn má"
+                      },
+                      {
+                          "civilian":  "nước hoa",
+                          "imposter":  "nến thơm"
+                      },
+                      {
+                          "civilian":  "ô tô",
+                          "imposter":  "xe tải"
+                      }
+                  ]
+    },
+    {
+        "id":  "jobs_life",
+        "name_vi":  "Nghề \u0026 đời sống",
+        "icon":  "💼",
+        "words":  [
+                      {
+                          "civilian":  "bác sĩ",
+                          "imposter":  "y tá"
+                      },
+                      {
+                          "civilian":  "shipper",
+                          "imposter":  "tài xế"
+                      },
+                      {
+                          "civilian":  "giáo viên",
+                          "imposter":  "giảng viên"
+                      },
+                      {
+                          "civilian":  "ca sĩ",
+                          "imposter":  "nhạc sĩ"
+                      },
+                      {
+                          "civilian":  "công an",
+                          "imposter":  "bộ đội"
+                      },
+                      {
+                          "civilian":  "đầu bếp",
+                          "imposter":  "thợ làm bánh"
+                      },
+                      {
+                          "civilian":  "thợ cắt tóc",
+                          "imposter":  "thợ làm nail"
+                      },
+                      {
+                          "civilian":  "nhà báo",
+                          "imposter":  "biên tập viên"
+                      },
+                      {
+                          "civilian":  "đám cưới",
+                          "imposter":  "đám hỏi"
+                      },
+                      {
+                          "civilian":  "Tết",
+                          "imposter":  "Trung thu"
+                      },
+                      {
+                          "civilian":  "karaoke",
+                          "imposter":  "quán bar"
+                      },
+                      {
+                          "civilian":  "cà phê sữa đá",
+                          "imposter":  "bạc xỉu"
+                      },
+                      {
+                          "civilian":  "trà đá vỉa hè",
+                          "imposter":  "nước mía"
+                      },
+                      {
+                          "civilian":  "bóng đá",
+                          "imposter":  "futsal"
+                      },
+                      {
+                          "civilian":  "livestream",
+                          "imposter":  "quay TikTok"
+                      },
+                      {
+                          "civilian":  "kỹ sư",
+                          "imposter":  "kiến trúc sư"
+                      },
+                      {
+                          "civilian":  "luật sư",
+                          "imposter":  "thẩm phán"
+                      },
+                      {
+                          "civilian":  "nông dân",
+                          "imposter":  "ngư dân"
+                      },
+                      {
+                          "civilian":  "tài xế taxi",
+                          "imposter":  "xe ôm"
+                      },
+                      {
+                          "civilian":  "streamer",
+                          "imposter":  "youtuber"
+                      },
+                      {
+                          "civilian":  "vận động viên",
+                          "imposter":  "huấn luyện viên"
+                      },
+                      {
+                          "civilian":  "diễn viên",
+                          "imposter":  "người mẫu"
+                      },
+                      {
+                          "civilian":  "họa sĩ",
+                          "imposter":  "nhiếp ảnh gia"
+                      },
+                      {
+                          "civilian":  "phi công",
+                          "imposter":  "tiếp viên hàng không"
+                      },
+                      {
+                          "civilian":  "lính cứu hỏa",
+                          "imposter":  "cảnh sát giao thông"
+                      },
+                      {
+                          "civilian":  "sinh nhật",
+                          "imposter":  "tiệc tất niên"
+                      },
+                      {
+                          "civilian":  "đi chợ",
+                          "imposter":  "đi siêu thị"
+                      },
+                      {
+                          "civilian":  "tập gym",
+                          "imposter":  "chạy bộ"
+                      },
+                      {
+                          "civilian":  "họp lớp",
+                          "imposter":  "họp phụ huynh"
+                      },
+                      {
+                          "civilian":  "ngủ trưa",
+                          "imposter":  "ngủ đêm"
+                      },
+                      {
+                          "civilian":  "nhà văn",
+                          "imposter":  "nhà thơ"
+                      },
+                      {
+                          "civilian":  "thợ may",
+                          "imposter":  "thợ thêu"
+                      },
+                      {
+                          "civilian":  "nha sĩ",
+                          "imposter":  "dược sĩ"
+                      },
+                      {
+                          "civilian":  "kế toán",
+                          "imposter":  "thủ quỹ"
+                      },
+                      {
+                          "civilian":  "lập trình viên",
+                          "imposter":  "kỹ sư phần mềm"
+                      },
+                      {
+                          "civilian":  "thợ điện",
+                          "imposter":  "thợ nước"
+                      },
+                      {
+                          "civilian":  "bảo vệ",
+                          "imposter":  "tạp vụ"
+                      },
+                      {
+                          "civilian":  "MC",
+                          "imposter":  "diễn giả"
+                      },
+                      {
+                          "civilian":  "tăng ca",
+                          "imposter":  "trực đêm"
+                      },
+                      {
+                          "civilian":  "sinh viên",
+                          "imposter":  "học sinh"
+                      },
+                      {
+                          "civilian":  "thợ xây",
+                          "imposter":  "thợ mộc"
+                      },
+                      {
+                          "civilian":  "thợ sửa xe",
+                          "imposter":  "thợ sửa điện thoại"
+                      },
+                      {
+                          "civilian":  "giám đốc",
+                          "imposter":  "trưởng phòng"
+                      },
+                      {
+                          "civilian":  "thư ký",
+                          "imposter":  "trợ lý"
+                      },
+                      {
+                          "civilian":  "nhà đầu tư",
+                          "imposter":  "nhà môi giới"
+                      },
+                      {
+                          "civilian":  "y tá",
+                          "imposter":  "hộ lý"
+                      },
+                      {
+                          "civilian":  "phiên dịch",
+                          "imposter":  "biên dịch"
+                      },
+                      {
+                          "civilian":  "thầy bói",
+                          "imposter":  "thầy phong thủy"
+                      },
+                      {
+                          "civilian":  "nghỉ phép",
+                          "imposter":  "nghỉ ốm"
+                      },
+                      {
+                          "civilian":  "kẹt xe",
+                          "imposter":  "ngập nước"
+                      },
+                      {
+                          "civilian":  "lì xì",
+                          "imposter":  "tiền mừng"
+                      },
+                      {
+                          "civilian":  "đi làm",
+                          "imposter":  "đi học"
+                      },
+                      {
+                          "civilian":  "ăn tối",
+                          "imposter":  "ăn trưa"
+                      },
+                      {
+                          "civilian":  "bán hàng online",
+                          "imposter":  "bán hàng chợ"
+                      },
+                      {
+                          "civilian":  "ở trọ",
+                          "imposter":  "ở ký túc xá"
+                      }
+                  ]
+    },
+    {
+        "id":  "nature",
+        "name_vi":  "Thiên nhiên",
+        "icon":  "🌿",
+        "words":  [
+                      {
+                          "civilian":  "mưa",
+                          "imposter":  "sương mù"
+                      },
+                      {
+                          "civilian":  "sấm",
+                          "imposter":  "sét"
+                      },
+                      {
+                          "civilian":  "núi",
+                          "imposter":  "đồi"
+                      },
+                      {
+                          "civilian":  "sông",
+                          "imposter":  "suối"
+                      },
+                      {
+                          "civilian":  "biển",
+                          "imposter":  "hồ"
+                      },
+                      {
+                          "civilian":  "rừng",
+                          "imposter":  "vườn"
+                      },
+                      {
+                          "civilian":  "hoa sen",
+                          "imposter":  "hoa súng"
+                      },
+                      {
+                          "civilian":  "hoa mai",
+                          "imposter":  "hoa đào"
+                      },
+                      {
+                          "civilian":  "cây dừa",
+                          "imposter":  "cây cau"
+                      },
+                      {
+                          "civilian":  "tre",
+                          "imposter":  " liễu "
+                      },
+                      {
+                          "civilian":  "mặt trăng",
+                          "imposter":  "ngôi sao"
+                      },
+                      {
+                          "civilian":  "cầu vồng",
+                          "imposter":  "ráng chiều"
+                      },
+                      {
+                          "civilian":  "san hô",
+                          "imposter":  "rong biển"
+                      },
+                      {
+                          "civilian":  "thác nước",
+                          "imposter":  "hang động"
+                      },
+                      {
+                          "civilian":  "bão",
+                          "imposter":  "lốc xoáy"
+                      },
+                      {
+                          "civilian":  "tuyết",
+                          "imposter":  "mưa đá"
+                      },
+                      {
+                          "civilian":  "sa mạc",
+                          "imposter":  "thảo nguyên"
+                      },
+                      {
+                          "civilian":  "đảo",
+                          "imposter":  "bán đảo"
+                      },
+                      {
+                          "civilian":  "nắng",
+                          "imposter":  "nóng bức"
+                      },
+                      {
+                          "civilian":  "hoa hồng",
+                          "imposter":  "hoa cúc"
+                      },
+                      {
+                          "civilian":  "cây đa",
+                          "imposter":  "cây bàng"
+                      },
+                      {
+                          "civilian":  "cỏ",
+                          "imposter":  "rêu"
+                      },
+                      {
+                          "civilian":  "ao",
+                          "imposter":  "đầm"
+                      },
+                      {
+                          "civilian":  "lúa",
+                          "imposter":  "ngô"
+                      },
+                      {
+                          "civilian":  "bình minh",
+                          "imposter":  "hoàng hôn"
+                      },
+                      {
+                          "civilian":  "lũ",
+                          "imposter":  "sóng thần"
+                      },
+                      {
+                          "civilian":  "động đất",
+                          "imposter":  "núi lửa"
+                      },
+                      {
+                          "civilian":  "mưa phùn",
+                          "imposter":  "mưa rào"
+                      },
+                      {
+                          "civilian":  "mặt trời",
+                          "imposter":  "ngôi sao"
+                      },
+                      {
+                          "civilian":  "mây",
+                          "imposter":  "khói"
+                      },
+                      {
+                          "civilian":  "cát",
+                          "imposter":  "đất"
+                      },
+                      {
+                          "civilian":  "bùn",
+                          "imposter":  "đất sét"
+                      },
+                      {
+                          "civilian":  "hoa cúc",
+                          "imposter":  "hoa cải"
+                      },
+                      {
+                          "civilian":  "hoa hướng dương",
+                          "imposter":  "hoa cúc dại"
+                      },
+                      {
+                          "civilian":  "cây thông",
+                          "imposter":  "cây tùng"
+                      },
+                      {
+                          "civilian":  "cây mía",
+                          "imposter":  "cây ngô"
+                      },
+                      {
+                          "civilian":  "hoa phượng",
+                          "imposter":  "hoa bằng lăng"
+                      },
+                      {
+                          "civilian":  "đồi",
+                          "imposter":  "gò"
+                      },
+                      {
+                          "civilian":  "thung lũng",
+                          "imposter":  "đồng bằng"
+                      },
+                      {
+                          "civilian":  "đồng bằng",
+                          "imposter":  "cao nguyên"
+                      },
+                      {
+                          "civilian":  "hồ",
+                          "imposter":  "đầm lầy"
+                      },
+                      {
+                          "civilian":  "suối",
+                          "imposter":  "khe nước"
+                      },
+                      {
+                          "civilian":  "sương",
+                          "imposter":  "hơi nước"
+                      },
+                      {
+                          "civilian":  "núi lửa",
+                          "imposter":  "động đất"
+                      },
+                      {
+                          "civilian":  "đom đóm",
+                          "imposter":  "ve sầu"
+                      }
+                  ]
+    },
+    {
+        "id":  "entertainment",
+        "name_vi":  "Giải trí",
+        "icon":  "🎮",
+        "words":  [
+                      {
+                          "civilian":  "TikTok",
+                          "imposter":  "Facebook"
+                      },
+                      {
+                          "civilian":  "YouTube",
+                          "imposter":  "Netflix"
+                      },
+                      {
+                          "civilian":  "cờ vua",
+                          "imposter":  "cờ vây"
+                      },
+                      {
+                          "civilian":  "cờ tướng",
+                          "imposter":  "cờ caro"
+                      },
+                      {
+                          "civilian":  "Liên Quân",
+                          "imposter":  "PUBG"
+                      },
+                      {
+                          "civilian":  "rubik",
+                          "imposter":  "xếp hình"
+                      },
+                      {
+                          "civilian":  "phim kinh dị",
+                          "imposter":  "phim hài"
+                      },
+                      {
+                          "civilian":  "bóng chuyền",
+                          "imposter":  "cầu lông"
+                      },
+                      {
+                          "civilian":  "bơi lội",
+                          "imposter":  "lặn"
+                      },
+                      {
+                          "civilian":  "câu cá",
+                          "imposter":  "bắt cá"
+                      },
+                      {
+                          "civilian":  "chụp ảnh",
+                          "imposter":  "quay phim"
+                      },
+                      {
+                          "civilian":  "ghi-ta",
+                          "imposter":  "đàn piano"
+                      },
+                      {
+                          "civilian":  "đàn bầu",
+                          "imposter":  "đàn tranh"
+                      },
+                      {
+                          "civilian":  "bài tây",
+                          "imposter":  "mạt chược"
+                      },
+                      {
+                          "civilian":  "Zalo",
+                          "imposter":  "Messenger"
+                      },
+                      {
+                          "civilian":  "xem phim",
+                          "imposter":  "nghe nhạc"
+                      },
+                      {
+                          "civilian":  "cầu lông",
+                          "imposter":  "tennis"
+                      },
+                      {
+                          "civilian":  "đá cầu",
+                          "imposter":  "cầu mây"
+                      },
+                      {
+                          "civilian":  "yoga",
+                          "imposter":  "pilates"
+                      },
+                      {
+                          "civilian":  "leo núi",
+                          "imposter":  "đi bộ đường dài"
+                      },
+                      {
+                          "civilian":  "trốn tìm",
+                          "imposter":  "bịt mắt bắt dê"
+                      },
+                      {
+                          "civilian":  "bi a",
+                          "imposter":  "bowling"
+                      },
+                      {
+                          "civilian":  "đua xe",
+                          "imposter":  "đua ngựa"
+                      },
+                      {
+                          "civilian":  "Netflix",
+                          "imposter":  "HBO"
+                      },
+                      {
+                          "civilian":  "Discord",
+                          "imposter":  "Zoom"
+                      },
+                      {
+                          "civilian":  "cờ vây",
+                          "imposter":  "cờ caro"
+                      },
+                      {
+                          "civilian":  "bowling ",
+                          "imposter":  "bi-a"
+                      },
+                      {
+                          "civilian":  "tennis",
+                          "imposter":  "bóng bàn"
+                      },
+                      {
+                          "civilian":  "golf",
+                          "imposter":  "pickal ball"
+                      },
+                      {
+                          "civilian":  "trượt ván",
+                          "imposter":  "trượt patin"
+                      },
+                      {
+                          "civilian":  "đạp xe",
+                          "imposter":  "chạy bộ"
+                      },
+                      {
+                          "civilian":  "xem bóng đá",
+                          "imposter":  "xem bóng rổ"
+                      },
+                      {
+                          "civilian":  "cắm trại",
+                          "imposter":  "picnic"
+                      },
+                      {
+                          "civilian":  "concert",
+                          "imposter":  "festival"
+                      }
+                  ]
+    }
+]
