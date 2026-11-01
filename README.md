@@ -1,129 +1,46 @@
 # 🎭 Faker (Guess The Imposter)
 
-Game suy luận tìm Kẻ Giả Mạo (Imposter) dành cho nhóm bạn, hỗ trợ chơi trên cùng một thiết bị (**Pass & Play**) với đồ họa **Obsidian Arcade**, âm thanh Web Audio và nhiều vai trò phong phú.
+Game suy luận tìm Kẻ Giả Mạo (Imposter) dành cho nhóm bạn, hỗ trợ trải nghiệm party game với đồ họa **Obsidian Arcade**, hiệu ứng âm thanh Web Audio và cơ chế phân vai đa dạng.
 
 ---
 
 ## 📌 Tài Liệu Dự Án (Documentation)
-* 🗺️ **Bản đồ kiến trúc & Tra cứu code**: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
 * 🎨 **Nhận diện thương hiệu & Logo**: [`docs/BRANDKIT.md`](./docs/BRANDKIT.md)
-* 📝 **Nhật ký cập nhật & Backnotes**: [`docs/CHANGELOG.md`](./docs/CHANGELOG.md)
+* 🗺️ **Bản đồ kiến trúc & Tra cứu code**: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
+* 📝 **Nhật ký cập nhật phiên bản**: [`docs/CHANGELOG.md`](./docs/CHANGELOG.md)
 
 ---
 
-## 🚀 Chạy Ứng Dụng Cục Bộ (Local Development)
-Khởi chạy máy chủ cục bộ bằng PowerShell:
-```powershell
-.\server.ps1
-```
-Truy cập qua trình duyệt tại: `http://localhost:8080` (hoặc mở trực tiếp file `index.html`).
-
----
-
-## 📱 Đóng Gói Ứng Dụng Android Cho CH Play
-Chạy script tự động hóa 1-click để đồng bộ và mở Android Studio:
-```powershell
-.\build-android.ps1
-```
-
----
-
-## 📂 Cấu Trúc Thư Mục Chuẩn Hóa (Project Structure)
+## 📂 Cấu Trúc Dự Án (Project Structure)
 ```
 vuive/
-├── index.html                   # Giao diện chính 11 màn hình & 14 modals
-├── manifest.json                # Web App Manifest chuẩn Android PWA
-├── sw.js                        # Offline Service Worker cache 100%
-├── capacitor.config.json        # Cấu hình đóng gói Native Android / iOS
-├── package.json                 # Danh mục thư viện Capacitor Native
-├── build-android.ps1            # Kịch bản 1-click build Android Studio
-├── server.ps1                   # Máy chủ kiểm thử HTTP nội bộ
-├── README.md                    # Giới thiệu tổng quan dự án
+├── index.html                   # Giao diện chính ứng dụng
+├── manifest.json                # Web App Manifest PWA
+├── sw.js                        # Service Worker hỗ trợ ngoại tuyến
+├── capacitor.config.json        # Cấu hình đa nền tảng
+├── package.json                 # Danh mục gói phụ thuộc
 │
 ├── css/
-│   └── styles.css               # Design System Obsidian Arcade & Light Mode
+│   └── styles.css               # Hệ thống giao diện Obsidian Arcade
 │
 ├── js/
-│   ├── app.js                   # Controller trung tâm, State Machine, Back Button
-│   ├── audio.js                 # Bộ tổng hợp âm thanh Web Audio & Rung Haptic
-│   ├── data_roles.js            # Dữ liệu 10 vai trò (7 cốt lõi + 3 dự bị)
-│   └── data_categories.js       # 7 bộ từ vựng & bảng màu avatar
+│   ├── app.js                   # Bộ điều khiển trung tâm và trạng thái game
+│   ├── api_client.js            # Module kết nối dịch vụ
+│   ├── audio.js                 # Bộ xử lý âm thanh Web Audio & Rung phản hồi
+│   ├── data_roles.js            # Dữ liệu danh mục các vai trò
+│   └── data_categories.js       # Dữ liệu chủ đề và danh mục ngoại tuyến
+│
+├── server/
+│   ├── server.js                # Dịch vụ backend API
+│   ├── package.json             # Cấu hình dịch vụ
+│   └── data/                    # Dữ liệu hệ thống
 │
 ├── assets/
-│   ├── icons/                   # Bộ icon ứng dụng đa kích thước (1024, 512, 192, 64)
-│   │   ├── app_logo.png         # Logo chính thức 1024x1024 px
-│   │   ├── icon-512.png         # Icon nộp Google Play Store
-│   │   ├── icon-192.png         # Icon Android PWA Standalone
-│   │   └── favicon.png          # Icon tab trình duyệt web
-│   └── images/                  # Hình ảnh tài nguyên giao diện
-│       ├── techcombank_logo.png # Logo ngân hàng Techcombank
-│       └── vietqr_donate.png    # Mã QR Techcombank dự phòng
+│   ├── icons/                   # Bộ biểu tượng ứng dụng đa kích thước
+│   └── images/                  # Tài nguyên hình ảnh giao diện
 │
-├── docs/                        # Trung tâm tài liệu dự án
-│   ├── ARCHITECTURE.md          # Bản đồ kiến trúc & Tra cứu code toàn diện
-│   ├── BRANDKIT.md              # Quy chuẩn nhận diện thương hiệu độc quyền
-│   └── CHANGELOG.md             # Nhật ký cập nhật phiên bản
-│
-└── tools/                       # Bộ công cụ thiết kế & kịch bản trích xuất
-    ├── stitch/                  # Kịch bản API Stitch
-    └── stitch_exports/          # Tài nguyên thiết kế giao diện
-```
-
-
-## 🚀 Chạy Ứng Dụng Cục Bộ (Local Development)
-Khởi chạy máy chủ cục bộ bằng PowerShell:
-```powershell
-.\server.ps1
-```
-Truy cập qua trình duyệt tại: `http://localhost:8080` (hoặc mở trực tiếp file `index.html`).
-
----
-
-## 📱 Đóng Gói Ứng Dụng Android Cho CH Play
-Chạy script tự động hóa 1-click để đồng bộ và mở Android Studio:
-```powershell
-.\build-android.ps1
-```
-
----
-
-## 📂 Cấu Trúc Thư Mục Chuẩn Hóa (Project Structure)
-```
-vuive/
-├── index.html                   # Giao diện chính 11 màn hình & 14 modals
-├── manifest.json                # Web App Manifest chuẩn Android PWA
-├── sw.js                        # Offline Service Worker cache 100%
-├── capacitor.config.json        # Cấu hình đóng gói Native Android / iOS
-├── package.json                 # Danh mục thư viện Capacitor Native
-├── build-android.ps1            # Kịch bản 1-click build Android Studio
-├── server.ps1                   # Máy chủ kiểm thử HTTP nội bộ
-├── README.md                    # Giới thiệu tổng quan dự án
-│
-├── css/
-│   └── styles.css               # Design System Obsidian Arcade & Light Mode
-│
-├── js/
-│   ├── app.js                   # Controller trung tâm, State Machine, Back Button
-│   ├── audio.js                 # Bộ tổng hợp âm thanh Web Audio & Rung Haptic
-│   ├── data_roles.js            # Dữ liệu 10 vai trò (7 cốt lõi + 3 dự bị)
-│   └── data_categories.js       # 7 bộ từ vựng & bảng màu avatar
-│
-├── assets/
-│   ├── icons/                   # Bộ icon ứng dụng đa kích thước (1024, 512, 192, 64)
-│   │   ├── app_logo.png         # Logo chính thức 1024x1024 px
-│   │   ├── icon-512.png         # Icon nộp Google Play Store
-│   │   ├── icon-192.png         # Icon Android PWA Standalone
-│   │   └── favicon.png          # Icon tab trình duyệt web
-│   └── images/                  # Hình ảnh tài nguyên giao diện
-│       ├── techcombank_logo.png # Logo ngân hàng Techcombank
-│       └── vietqr_donate.png    # Mã QR Techcombank dự phòng
-│
-├── docs/                        # Trung tâm tài liệu dự án
-│   ├── ARCHITECTURE.md          # Bản đồ kiến trúc & Tra cứu code toàn diện
-│   ├── BRANDKIT.md              # Quy chuẩn nhận diện thương hiệu độc quyền
-│   └── CHANGELOG.md             # Nhật ký cập nhật phiên bản
-│
-└── tools/                       # Bộ công cụ thiết kế & kịch bản trích xuất
-    ├── stitch/                  # Kịch bản API Stitch
-    └── stitch_exports/          # Tài nguyên thiết kế giao diện
+└── docs/                        # Tài liệu lưu trữ dự án
+    ├── ARCHITECTURE.md          # Bản đồ kiến trúc hệ thống
+    ├── BRANDKIT.md              # Quy chuẩn nhận diện thương hiệu
+    └── CHANGELOG.md             # Lịch sử cập nhật
 ```
