@@ -7,7 +7,6 @@ Game suy luận tìm Kẻ Giả Mạo (Imposter) dành cho nhóm bạn, hỗ tr�
 ## 📌 Tài Liệu Dự Án (Documentation)
 * 🎨 **Nhận diện thương hiệu & Logo**: [`docs/BRANDKIT.md`](./docs/BRANDKIT.md)
 * 🗺️ **Bản đồ kiến trúc & Tra cứu code**: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
-* 📝 **Nhật ký cập nhật phiên bản**: [`docs/CHANGELOG.md`](./docs/CHANGELOG.md)
 
 ---
 
@@ -41,6 +40,5 @@ vuive/
 │
 └── docs/                        # Tài liệu lưu trữ dự án
     ├── ARCHITECTURE.md          # Bản đồ kiến trúc hệ thống
-    ├── BRANDKIT.md              # Quy chuẩn nhận diện thương hiệu
-    └── CHANGELOG.md             # Lịch sử cập nhật
+    └── BRANDKIT.md              # Quy chuẩn nhận diện thương hiệu
 ```

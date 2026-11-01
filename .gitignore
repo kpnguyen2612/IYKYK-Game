@@ -17,6 +17,9 @@ stitch_tools.json
 stitch_result.json
 test_stitch.mjs
 
+# Activity, History & Private Change Logs
+docs/CHANGELOG.md
+
 # OS & Editor Metadata
 .vscode/
 .idea/
