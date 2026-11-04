@@ -28,7 +28,7 @@ const I18N = {
     setting_hints_desc: "Cung cấp manh mối cho kẻ giả mạo",
     setting_timelimit: "Giới hạn thời gian",
 
-    btn_start_game: "Bắt đầu thiết lập người chơi",
+    btn_start_game: "B\u1eaft \u0111\u1ea7u thi\u1ebft l\u1eadp ng\u01b0\u1edd\u0069 ch\u01a1i",
     btn_back: "Quay lại",
     title_choose_roles: "Quản lý vai trò",
     btn_custom_role: "Tạo vai trò",
@@ -1310,11 +1310,34 @@ class ImposterGame {
     const inputs = document.querySelectorAll('.player-name-input');
     const names = [];
     inputs.forEach((inp, idx) => {
-      names.push(inp.value.trim() || `Người chơi ${idx + 1}`);
+      const val = inp.value.trim();
+      names.push(val || ('Ng\u01b0\u1edd\u0069 ch\u01a1i ' + (idx + 1)));
     });
-    if (names.length >= 3) {
-      this.playerCount = names.length;
+
+    if (names.length < 3) {
+      let savedNames = [];
+      try {
+        savedNames = JSON.parse(localStorage.getItem('gti_player_names') || '[]');
+      } catch (e) {
+        savedNames = [];
+      }
+      if (Array.isArray(savedNames) && savedNames.length >= 3) {
+        names.length = 0;
+        names.push(...savedNames);
+      } else if (Array.isArray(this.playerNames) && this.playerNames.length >= 3) {
+        names.length = 0;
+        names.push(...this.playerNames);
+      } else {
+        const count = Math.max(3, this.playerCount || 6);
+        names.length = 0;
+        for (let i = 0; i < count; i++) {
+          names.push('Ng\u01b0\u1edd\u0069 ch\u01a1i ' + (i + 1));
+        }
+      }
     }
+
+    this.playerCount = names.length;
+    this.playerNames = [...names];
     localStorage.setItem('gti_player_names', JSON.stringify(names));
 
     this.syncFixedRolesWithDeck();

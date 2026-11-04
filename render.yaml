@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: faker-party-game
+    runtime: node
+    plan: free
+    buildCommand: cd server && npm install --production
+    startCommand: cd server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+

@@ -1040,7 +1040,7 @@ html[data-theme="light"] .sticky-bottom-action-bar {
    LIQUID GLASS FLOATING DOCK & BUTTON (Always Visible On Scroll)
    ========================================================== */
 #screen-setup {
-  padding-bottom: 96px !important;
+  padding-bottom: 115px !important;
 }
 
 #screen-setup .sticky-bottom-action-bar.liquid-glass-dock {

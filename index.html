@@ -2011,19 +2011,19 @@
   </div>
 
   <!-- Application Data & Audio Modules -->
-  <script src="js/audio.js"></script>
-  <script src="js/data_roles.js"></script>
-  <script src="js/data_categories.js"></script>
-  <script src="js/api_client.js"></script>
+  <script src="js/audio.js?v=1.5"></script>
+  <script src="js/data_roles.js?v=1.5"></script>
+  <script src="js/data_categories.js?v=1.5"></script>
+  <script src="js/api_client.js?v=1.5"></script>
 
   <!-- App Main Controller -->
-  <script src="js/app.js"></script>
+  <script src="js/app.js?v=1.5"></script>
 
   <!-- Service Worker Registration for Offline Native Play -->
   <script>
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=1.5').then((reg) => { reg.update(); }).catch(() => {});
       });
     }
   </script>

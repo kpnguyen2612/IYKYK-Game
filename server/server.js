@@ -1,6 +1,7 @@
 /**
  * Faker / IYKYK Party Game - Secure REST API Backend Server
- * Production-ready Express server for word bank security & comeback validation
+ * Production-ready Express server for word bank security, comeback validation,
+ * and unified static frontend hosting (All-in-One Cloud Deployment).
  */
 
 const express = require('express');
@@ -75,15 +76,6 @@ app.get('/api/v1/health', (req, res) => {
     categoriesCount: categoriesData.length,
     activeMatchesCount: activeMatches.size,
     version: '1.0.0'
-  });
-});
-
-// Root fallback / health
-app.get('/', (req, res) => {
-  res.json({
-    name: 'Faker / IYKYK Game Secure API',
-    status: 'running',
-    docs: '/api/v1/health'
   });
 });
 
@@ -195,8 +187,37 @@ app.post('/api/v1/match/verify-guess', (req, res) => {
   }
 });
 
+// ========================================================
+// STATIC FRONTEND ASSETS & ALL-IN-ONE HOSTING
+// ========================================================
+
+const candidateStaticDir = path.join(__dirname, '..');
+const isFrontendPresent = fs.existsSync(path.join(candidateStaticDir, 'index.html'));
+
+if (isFrontendPresent) {
+  console.log(`[INFO] Unified Mode: Serving static frontend from ${candidateStaticDir}`);
+  app.use(express.static(candidateStaticDir));
+
+  // Catch-all route to serve index.html for client-side routing
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    res.sendFile(path.join(candidateStaticDir, 'index.html'));
+  });
+} else {
+  // Pure API mode root status
+  app.get('/', (req, res) => {
+    res.json({
+      name: 'Faker / IYKYK Game Secure API',
+      status: 'running',
+      docs: '/api/v1/health'
+    });
+  });
+}
+
 // Start server
 app.listen(PORT, () => {
-  console.log(`[FAKER-BACKEND] Server listening on http://localhost:${PORT}`);
+  console.log(`[FAKER-BACKEND] Server listening on port ${PORT}`);
   console.log(`[FAKER-BACKEND] Health endpoint: http://localhost:${PORT}/api/v1/health`);
 });
