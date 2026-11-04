@@ -27,7 +27,10 @@ const dataFilePath = path.join(__dirname, 'data', 'categories.json');
 let categoriesData = [];
 
 try {
-  const raw = fs.readFileSync(dataFilePath, 'utf8');
+  let raw = fs.readFileSync(dataFilePath, 'utf8');
+  if (raw.charCodeAt(0) === 0xFEFF) {
+    raw = raw.slice(1);
+  }
   categoriesData = JSON.parse(raw);
   console.log(`[INFO] Loaded ${categoriesData.length} categories successfully.`);
 } catch (err) {
