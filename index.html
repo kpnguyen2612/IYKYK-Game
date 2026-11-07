@@ -104,58 +104,58 @@
         <!-- Online Hub: Create or Join Room -->
         <div id="online-hub-container" style="display: none; margin-top: 14px;">
           <div class="instruction-box" style="border-left-color: #3b82f6; margin-bottom: 14px;">
-            <span class="instruction-icon">ðŸŒ</span>
+            <span class="instruction-icon">🌐</span>
             <div class="instruction-text">
-              <strong>Cháº¿ Ä‘á»™ PhÃ²ng Ä‘áº¥u Online:</strong> Má»—i ngÆ°á»i chÆ¡i tham gia trÃªn má»™t Ä‘iá»‡n thoáº¡i riÃªng, phÃ¡t biá»ƒu xoay vÃ²ng trÃ²n vÃ  bá» phiáº¿u loáº¡i trá»« trá»±c tiáº¿p vá»›i ngÆ°á»¡ng loáº¡i <strong>â‰¥ 50%</strong>.
+              <strong>Chế độ Phòng đấu Online:</strong> Mỗi người chơi tham gia trên một điện thoại riêng, phát biểu xoay vòng tròn và bỏ phiếu loại trừ trực tiếp với ngưỡng loại <strong>≥ 50%</strong>.
             </div>
           </div>
 
-          <!-- Subtabs: Táº¡o phÃ²ng / VÃ o phÃ²ng -->
+          <!-- Subtabs: Tạo phòng / Vào phòng -->
           <div class="online-subtabs">
-            <button id="btn-subtab-create-room" class="online-subtab-btn active" type="button">âž• Táº¡o phÃ²ng má»›i</button>
-            <button id="btn-subtab-join-room" class="online-subtab-btn" type="button">ðŸ”‘ VÃ o phÃ²ng báº±ng mÃ£</button>
+            <button id="btn-subtab-create-room" class="online-subtab-btn active" type="button">➕ Tạo phòng mới</button>
+            <button id="btn-subtab-join-room" class="online-subtab-btn" type="button">🔑 Vào phòng bằng mã</button>
           </div>
 
-          <!-- Panel A: Táº¡o phÃ²ng -->
+          <!-- Panel A: Tạo phòng -->
           <div id="panel-create-room" class="online-panel">
             <div class="settings-card-group" style="margin-bottom: 16px;">
               <div class="setting-item-row">
                 <div class="setting-info-left">
-                  <div class="setting-icon-box">ðŸ‘‘</div>
+                  <div class="setting-icon-box">👑</div>
                   <div class="setting-texts">
-                    <h4>TÃªn chá»§ phÃ²ng</h4>
-                    <p>TÃªn hiá»ƒn thá»‹ cá»§a báº¡n</p>
+                    <h4>Tên chủ phòng</h4>
+                    <p>Tên hiển thị của bạn</p>
                   </div>
                 </div>
                 <div class="setting-action-right">
-                  <input type="text" id="input-online-host-name" placeholder="VD: Chá»§ phÃ²ng" maxlength="20" style="width: 140px; height: 36px; padding: 0 10px; font-size: 13px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); color: var(--text-primary); text-align: right;" />
+                  <input type="text" id="input-online-host-name" placeholder="VD: Chủ phòng" maxlength="20" style="width: 140px; height: 36px; padding: 0 10px; font-size: 13px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); color: var(--text-primary); text-align: right;" />
                 </div>
               </div>
 
               <div class="setting-item-row">
                 <div class="setting-info-left">
-                  <div class="setting-icon-box" style="color: #3b82f6; background: rgba(59, 130, 246, 0.12);">â±ï¸</div>
+                  <div class="setting-icon-box" style="color: #3b82f6; background: rgba(59, 130, 246, 0.12);">⏱️</div>
                   <div class="setting-texts">
-                    <h4>Thá»i gian phÃ¡t biá»ƒu</h4>
-                    <p>Má»—i lÆ°á»£t nÃ³i trong vÃ²ng trÃ²n</p>
+                    <h4>Thời gian phát biểu</h4>
+                    <p>Mỗi lượt nói trong vòng tròn</p>
                   </div>
                 </div>
                 <div class="setting-action-right">
                   <select id="select-turn-duration" style="height: 36px; padding: 0 8px; font-size: 12px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); color: var(--text-primary);">
-                    <option value="20">20 giÃ¢y</option>
-                    <option value="30" selected>30 giÃ¢y (Chuáº©n)</option>
-                    <option value="45">45 giÃ¢y</option>
-                    <option value="60">60 giÃ¢y</option>
+                    <option value="20">20 giây</option>
+                    <option value="30" selected>30 giây (Chuẩn)</option>
+                    <option value="45">45 giây</option>
+                    <option value="60">60 giây</option>
                   </select>
                 </div>
               </div>
 
               <div class="setting-item-row">
                 <div class="setting-info-left">
-                  <div class="setting-icon-box" style="color: #ef4444; background: rgba(239, 68, 68, 0.12);">ðŸŽ­</div>
+                  <div class="setting-icon-box" style="color: #ef4444; background: rgba(239, 68, 68, 0.12);">🎭</div>
                   <div class="setting-texts">
-                    <h4>Sá»‘ Káº» Giáº£ Máº¡o</h4>
-                    <p>Sá»‘ Imposter trong phÃ²ng</p>
+                    <h4>Số Kẻ Giả Mạo</h4>
+                    <p>Số Imposter trong phòng</p>
                   </div>
                 </div>
                 <div class="setting-action-right">
@@ -169,19 +169,19 @@
             </div>
 
             <button id="btn-do-create-room" type="button" class="primary-cta-btn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); width: 100%; min-height: 48px;">
-              <span>ðŸš€</span> <span>Táº¡o PhÃ²ng & Má»Ÿ BÃ n Äáº¥u</span>
+              <span>🚀</span> <span>Tạo Phòng & Mở Bàn Đấu</span>
             </button>
           </div>
 
-          <!-- Panel B: VÃ o phÃ²ng báº±ng mÃ£ -->
+          <!-- Panel B: Vào phòng bằng mã -->
           <div id="panel-join-room" class="online-panel" style="display: none;">
             <div class="settings-card-group" style="margin-bottom: 16px;">
               <div class="setting-item-row">
                 <div class="setting-info-left">
-                  <div class="setting-icon-box" style="color: #10b981; background: rgba(16, 185, 129, 0.12);">ðŸ”‘</div>
+                  <div class="setting-icon-box" style="color: #10b981; background: rgba(16, 185, 129, 0.12);">🔑</div>
                   <div class="setting-texts">
-                    <h4>MÃ£ phÃ²ng</h4>
-                    <p>Nháº­p mÃ£ 6 kÃ½ tá»± tá»« chá»§ phÃ²ng</p>
+                    <h4>Mã phòng</h4>
+                    <p>Nhập mã 6 ký tự từ chủ phòng</p>
                   </div>
                 </div>
                 <div class="setting-action-right">
@@ -191,25 +191,26 @@
 
               <div class="setting-item-row">
                 <div class="setting-info-left">
-                  <div class="setting-icon-box">ðŸ‘¤</div>
+                  <div class="setting-icon-box">👤</div>
                   <div class="setting-texts">
-                    <h4>TÃªn cá»§a báº¡n</h4>
-                    <p>TÃªn hiá»ƒn thá»‹ trong bÃ n</p>
+                    <h4>Tên của bạn</h4>
+                    <p>Tên hiển thị trong bàn</p>
                   </div>
                 </div>
                 <div class="setting-action-right">
-                  <input type="text" id="input-join-player-name" placeholder="VD: Minh Tháº£o" maxlength="20" style="width: 140px; height: 36px; padding: 0 10px; font-size: 13px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); color: var(--text-primary); text-align: right;" />
+                  <input type="text" id="input-join-player-name" placeholder="VD: Minh Thảo" maxlength="20" style="width: 140px; height: 36px; padding: 0 10px; font-size: 13px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); color: var(--text-primary); text-align: right;" />
                 </div>
               </div>
             </div>
 
             <button id="btn-do-join-room" type="button" class="primary-cta-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 100%; min-height: 48px;">
-              <span>ðŸŽ®</span> <span>VÃ o BÃ n Äáº¥u Ngay</span>
+              <span>🎮</span> <span>Vào Bàn Đấu Ngay</span>
             </button>
           </div>
         </div>
 
         <div id="pass-settings-container">
+
         <!-- Online Lobby Room Alert (Visible when Online mode selected) -->
         <div id="online-lobby-banner" class="instruction-box" style="display: none; border-left-color: #3b82f6;">
           <span class="instruction-icon">📡</span>
@@ -1210,29 +1211,29 @@
       <section id="screen-online-lobby" class="view-screen">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
           <button id="btn-leave-online-room" class="ctrl-btn" type="button">
-            <span>â†</span> <span>Rá»i phÃ²ng</span>
+            <span>←</span> <span>Rời phòng</span>
           </button>
           <div style="text-align: center;">
-            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">MÃ£ phÃ²ng Ä‘áº¥u</div>
+            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Mã phòng đấu</div>
             <div id="lobby-room-code" style="font-family: var(--font-mono); font-size: 22px; font-weight: 900; color: #3b82f6; letter-spacing: 2px;">FAKR88</div>
           </div>
-          <button id="btn-copy-room-link" class="ctrl-btn" type="button" title="Sao chÃ©p mÃ£ phÃ²ng">
-            <span>ðŸ“‹</span>
+          <button id="btn-copy-room-link" class="ctrl-btn" type="button" title="Sao chép mã phòng">
+            <span>📋</span>
           </button>
         </div>
 
         <div class="instruction-box" style="margin-bottom: 14px;">
-          <span class="instruction-icon">ðŸ“¡</span>
+          <span class="instruction-icon">📡</span>
           <div class="instruction-text">
-            <strong>Chá» ngÆ°á»i chÆ¡i vÃ o phÃ²ng:</strong> Báº¡n bÃ¨ má»Ÿ web vÃ  nháº­p mÃ£ phÃ²ng <strong id="lobby-inline-code" style="color: #3b82f6;">FAKR88</strong> Ä‘á»ƒ cÃ¹ng vÃ o bÃ n. Tá»‘i thiá»ƒu cáº§n 3 ngÆ°á»i chÆ¡i.
+            <strong>Chờ người chơi vào phòng:</strong> Bạn bè mở web và nhập mã phòng <strong id="lobby-inline-code" style="color: #3b82f6;">FAKR88</strong> để cùng vào bàn. Tối thiểu cần 3 người chơi.
           </div>
         </div>
 
         <!-- Realtime Seats Grid -->
         <div class="online-seats-container">
           <div class="settings-section-title" style="display: flex; justify-content: space-between; align-items: center;">
-            <span>NgÆ°á»i chÆ¡i trong bÃ n (<span id="lobby-player-count">1</span>/12)</span>
-            <span id="lobby-host-indicator" class="hero-badge" style="font-size: 10.5px; background: rgba(59, 130, 246, 0.15); color: #3b82f6; border-color: rgba(59, 130, 246, 0.3);">ðŸŸ¢ Sáºµn sÃ ng</span>
+            <span>Người chơi trong bàn (<span id="lobby-player-count">1</span>/12)</span>
+            <span id="lobby-host-indicator" class="hero-badge" style="font-size: 10.5px; background: rgba(59, 130, 246, 0.15); color: #3b82f6; border-color: rgba(59, 130, 246, 0.3);">🟢 Sẵn sàng</span>
           </div>
           <div id="lobby-players-grid" class="online-players-grid">
             <!-- Dynamically populated -->
@@ -1242,13 +1243,13 @@
         <!-- Action Controls -->
         <div id="lobby-host-controls" style="margin-top: 24px;">
           <button id="btn-start-online-match" class="primary-cta-btn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); width: 100%; min-height: 50px;" type="button">
-            <span>ðŸš€</span> <span>Báº¯t Ä‘áº§u vÃ¡n Ä‘áº¥u</span>
+            <span>🚀</span> <span>Bắt đầu ván đấu</span>
           </button>
         </div>
         <div id="lobby-guest-waiting" style="margin-top: 24px; text-align: center; display: none;">
           <div class="instruction-box" style="background: rgba(255, 255, 255, 0.04); border-color: var(--border-medium); justify-content: center;">
-            <span class="instruction-icon">â³</span>
-            <span style="font-size: 13px; color: var(--text-secondary); font-weight: 600;">Äang chá» chá»§ phÃ²ng báº¯t Ä‘áº§u vÃ¡n...</span>
+            <span class="instruction-icon">⏳</span>
+            <span style="font-size: 13px; color: var(--text-secondary); font-weight: 600;">Đang chờ chủ phòng bắt đầu ván...</span>
           </div>
         </div>
       </section>
@@ -1259,40 +1260,40 @@
       <section id="screen-online-stage" class="view-screen">
         <!-- Private Role & Word Banner -->
         <div id="stage-private-role-card" class="stage-role-banner">
-          <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px;">Tá»« khÃ³a bÃ­ máº­t trÃªn mÃ¡y cá»§a báº¡n</div>
+          <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px;">Từ khóa bí mật trên máy của bạn</div>
           <div id="stage-private-word" style="font-size: 26px; font-weight: 900; margin: 6px 0; color: #10b981; letter-spacing: 1px;">
-            BÃNH MÃŒ
+            BÁNH MÌ
           </div>
           <div id="stage-private-hint" style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">
-            Báº¡n lÃ  DÃ¢n ThÆ°á»ng! HÃ£y mÃ´ táº£ khÃ©o lÃ©o Ä‘á»ƒ Káº» Giáº£ Máº¡o khÃ´ng Ä‘oÃ¡n Ä‘Æ°á»£c tá»«.
+            Bạn là Dân Thường! Hãy mô tả khéo léo để Kẻ Giả Mạo không đoán được từ.
           </div>
         </div>
 
         <!-- Active Speaker Spotlight -->
         <div class="speaker-spotlight-card">
           <div class="spotlight-header">
-            <span class="hero-badge" id="stage-round-badge">VÃ²ng 1</span>
+            <span class="hero-badge" id="stage-round-badge">Vòng 1</span>
             <div id="stage-turn-timer" class="spotlight-timer">30s</div>
           </div>
           
           <div class="speaker-avatar-wrap">
-            <div id="stage-speaker-avatar" class="speaker-avatar-circle pulsing-speaker">ðŸ¼</div>
-            <div class="mic-wave-icon">ðŸŽ™ï¸</div>
+            <div id="stage-speaker-avatar" class="speaker-avatar-circle pulsing-speaker">🐼</div>
+            <div class="mic-wave-icon">🎙️</div>
           </div>
 
-          <h3 id="stage-speaker-name" class="speaker-name-title">Minh Tháº£o Ä‘ang phÃ¡t biá»ƒu...</h3>
-          <p id="stage-speaker-guide" class="speaker-guide-text">Láº¯ng nghe tháº­t ká»¹ tá»«ng manh má»‘i Ä‘á»ƒ nháº­n diá»‡n Káº» Giáº£ Máº¡o!</p>
+          <h3 id="stage-speaker-name" class="speaker-name-title">Minh Thảo đang phát biểu...</h3>
+          <p id="stage-speaker-guide" class="speaker-guide-text">Lắng nghe thật kỹ từng manh mối để nhận diện Kẻ Giả Mạo!</p>
 
           <div id="stage-my-turn-actions" style="display: none; margin-top: 16px;">
             <button id="btn-pass-turn-done" class="primary-cta-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 100%; min-height: 48px;" type="button">
-              <span>â­ï¸</span> <span>TÃ´i Ä‘Ã£ nÃ³i xong (Chuyá»ƒn tiáº¿p)</span>
+              <span>⏭️</span> <span>Tôi đã nói xong (Chuyển tiếp)</span>
             </button>
           </div>
         </div>
 
         <!-- Circular Seating Mini Map -->
         <div class="stage-seating-preview">
-          <div class="settings-section-title">Thá»© tá»± phÃ¡t biá»ƒu theo vÃ²ng</div>
+          <div class="settings-section-title">Thứ tự phát biểu theo vòng</div>
           <div id="stage-turn-order-chips" class="turn-order-chips-wrap">
             <!-- Dynamically populated chips -->
           </div>
@@ -1306,40 +1307,40 @@
       <section id="screen-online-voting" class="view-screen">
         <div class="online-voting-header">
           <div class="voting-top-bar">
-            <span class="hero-badge" id="online-voting-round-pill">ðŸ—³ï¸ BIá»‚U QUYáº¾T LOáº I TRá»ª</span>
-            <div id="online-voting-countdown" class="voting-timer-badge">â³ 25s</div>
+            <span class="hero-badge" id="online-voting-round-pill">🗳️ BIỂU QUYẾT LOẠI TRỪ</span>
+            <div id="online-voting-countdown" class="voting-timer-badge">⏳ 25s</div>
           </div>
-          <h2 class="online-voting-title">Biá»ƒu Quyáº¿t Loáº¡i Trá»« (Realtime)</h2>
-          <p class="online-voting-subtitle">Cháº¡m vÃ o nghi pháº¡m báº¡n muá»‘n bá» phiáº¿u. Phiáº¿u báº§u hoÃ n toÃ n áº©n danh.</p>
+          <h2 class="online-voting-title">Biểu Quyết Loại Trừ (Realtime)</h2>
+          <p class="online-voting-subtitle">Chạm vào nghi phạm bạn muốn bỏ phiếu. Phiếu bầu hoàn toàn ẩn danh.</p>
         </div>
 
         <!-- Realtime Progress Meter & 50% Threshold Bar -->
         <div class="voting-progress-card">
           <div class="voting-progress-labels">
-            <span id="text-voting-progress">ÄÃ£ bá» phiáº¿u: 0/0 ngÆ°á»i</span>
-            <span id="text-voting-rule-50" class="badge-threshold-50">NgÆ°á»¡ng loáº¡i: â‰¥ 50%</span>
+            <span id="text-voting-progress">Đã bỏ phiếu: 0/0 người</span>
+            <span id="text-voting-rule-50" class="badge-threshold-50">Ngưỡng loại: ≥ 50%</span>
           </div>
           <div class="progress-bar-track">
             <div id="bar-voting-progress" class="progress-bar-fill" style="width: 0%;"></div>
-            <div class="threshold-marker-50" title="Má»‘c 50% Ä‘á»ƒ bá»‹ loáº¡i">50%</div>
+            <div class="threshold-marker-50" title="Mốc 50% để bị loại">50%</div>
           </div>
         </div>
 
         <!-- Tie-Break 50/50 Alert Banner -->
         <div id="banner-tiebreak-5050" class="tiebreak-alert-box" style="display: none;">
-          <div class="tiebreak-icon">âš–ï¸</div>
+          <div class="tiebreak-icon">⚖️</div>
           <div class="tiebreak-content">
-            <h4>HÃ’A PHIáº¾U 50/50!</h4>
-            <p id="tiebreak-desc">Hai ngÆ°á»i chÆ¡i nháº­n sá»‘ phiáº¿u ngang nhau chiáº¿m Ä‘Ãºng 50/50. VÃ¡n Ä‘áº¥u tiáº¿p tá»¥c vá»›i vÃ²ng mÃ´ táº£ bá»• sung Ä‘á»ƒ báº£o chá»¯a!</p>
+            <h4>HÒA PHIẾU 50/50!</h4>
+            <p id="tiebreak-desc">Hai người chơi nhận số phiếu ngang nhau chiếm đúng 50/50. Ván đấu tiếp tục với vòng mô tả bổ sung để bảo chữa!</p>
           </div>
         </div>
 
         <!-- Elimination Result Banner -->
         <div id="banner-elimination-result" class="elimination-alert-box" style="display: none;">
-          <div id="elimination-icon" class="elim-icon">ðŸš¨</div>
+          <div id="elimination-icon" class="elim-icon">🚨</div>
           <div class="elim-content">
-            <h4 id="elimination-title">ÄÃ£ loáº¡i nghi pháº¡m!</h4>
-            <p id="elimination-desc">Äáº¡t trÃªn 50% sá»‘ phiáº¿u báº§u.</p>
+            <h4 id="elimination-title">Đã loại nghi phạm!</h4>
+            <p id="elimination-desc">Đạt trên 50% số phiếu bầu.</p>
           </div>
         </div>
 
@@ -1351,14 +1352,14 @@
         <!-- Vote Confirmation Controls -->
         <div class="online-vote-action-footer">
           <div id="online-my-vote-status" class="vote-status-indicator">
-            ChÆ°a chá»n nghi pháº¡m
+            Chưa chọn nghi phạm
           </div>
           <div style="display: flex; gap: 8px; width: 100%;">
             <button id="btn-online-cast-vote" class="primary-cta-btn" style="flex: 2; background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); min-height: 48px;" disabled type="button">
-              <span>ðŸ—³ï¸</span> <span id="label-cast-vote">XÃ¡c Nháº­n Bá» Phiáº¿u</span>
+              <span>🗳️</span> <span id="label-cast-vote">Xác Nhận Bỏ Phiếu</span>
             </button>
             <button id="btn-online-skip-vote" class="secondary-btn" style="flex: 1; min-height: 48px;" type="button">
-              <span>âšª</span> <span>Bá» phiáº¿u tráº¯ng</span>
+              <span>⚪</span> <span>Bỏ phiếu trắng</span>
             </button>
           </div>
         </div>
