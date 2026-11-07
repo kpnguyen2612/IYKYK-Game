@@ -421,11 +421,88 @@ io.on('connection', (socket) => {
     });
   });
 
-  // 7. Disconnect
+  // 7. Explicit Room Leave
+  socket.on('room:leave', ({ roomCode, playerId }, callback) => {
+    try {
+      const result = roomManager.removePlayer(roomCode, playerId);
+      socket.leave(roomCode);
+      if (typeof callback === 'function') callback(result);
+
+      if (result.roomDestroyed) {
+        io.to(roomCode).emit('room:closed', { reason: 'Phòng không còn người chơi nào và đã tự động giải tán.' });
+      } else {
+        broadcastRoomState(roomCode);
+      }
+    } catch (err) {
+      console.error('[ERROR] room:leave:', err);
+    }
+  });
+
+  // 8. Return to Lobby for next round (Host only, preserves cumulative score)
+  socket.on('room:return_to_lobby', ({ roomCode, playerId }, callback) => {
+    try {
+      const result = roomManager.returnToLobby(roomCode, playerId);
+      if (typeof callback === 'function') callback(result);
+      if (result.success) {
+        broadcastRoomState(roomCode);
+      }
+    } catch (err) {
+      console.error('[ERROR] room:return_to_lobby:', err);
+    }
+  });
+
+  // 9. Reset Scores (Host only)
+  socket.on('room:reset_scores', ({ roomCode, playerId }, callback) => {
+    try {
+      const result = roomManager.resetRoomScores(roomCode, playerId);
+      if (typeof callback === 'function') callback(result);
+      if (result.success) {
+        broadcastRoomState(roomCode);
+      }
+    } catch (err) {
+      console.error('[ERROR] room:reset_scores:', err);
+    }
+  });
+
+  // 10. Kick Player (Host only)
+  socket.on('room:kick', ({ roomCode, hostPlayerId, targetPlayerId }, callback) => {
+    try {
+      const cleanCode = (roomCode || '').toUpperCase();
+      const result = roomManager.kickPlayer(cleanCode, hostPlayerId, targetPlayerId);
+      if (!result.success) {
+        if (typeof callback === 'function') callback(result);
+        return;
+      }
+
+      if (typeof callback === 'function') callback({ success: true, kickedPlayer: result.kickedPlayer });
+
+      // Gửi sự kiện riêng cho người chơi bị kick
+      if (result.targetSocketId) {
+        const targetSocket = io.sockets.sockets.get(result.targetSocketId);
+        if (targetSocket) {
+          targetSocket.emit('room:kicked', {
+            message: 'Bạn đã bị chủ phòng mời ra khỏi phòng đấu.'
+          });
+          targetSocket.leave(cleanCode);
+        }
+      }
+
+      broadcastRoomState(cleanCode);
+    } catch (err) {
+      console.error('[ERROR] room:kick:', err);
+      if (typeof callback === 'function') callback({ success: false, message: err.message });
+    }
+  });
+
+  // 11. Disconnect
   socket.on('disconnect', () => {
     const leaveRes = roomManager.leaveRoom(socket.id);
-    if (leaveRes && leaveRes.room) {
-      broadcastRoomState(leaveRes.roomCode);
+    if (leaveRes) {
+      if (leaveRes.roomDestroyed) {
+        io.to(leaveRes.roomCode).emit('room:closed', { reason: 'Phòng không còn ai và đã tự động xóa toàn bộ điểm.' });
+      } else if (leaveRes.room) {
+        broadcastRoomState(leaveRes.roomCode);
+      }
     }
   });
 });
@@ -516,6 +593,76 @@ app.post('/api/v1/rooms/vote', (req, res) => {
       setTimeout(() => resolveVotingPhase(roomCode), 800);
     }
     res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/v1/rooms/leave - Leave room via REST
+app.post('/api/v1/rooms/leave', (req, res) => {
+  try {
+    const { roomCode, playerId } = req.body || {};
+    const result = roomManager.removePlayer(roomCode, playerId);
+    const code = (roomCode || '').toUpperCase();
+    if (result.roomDestroyed) {
+      io.to(code).emit('room:closed', { reason: 'Phòng không còn người chơi nào và đã tự động giải tán.' });
+    } else if (result.success) {
+      broadcastRoomState(code);
+    }
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/v1/rooms/reset_to_lobby - Return room to lobby for next round
+app.post('/api/v1/rooms/reset_to_lobby', (req, res) => {
+  try {
+    const { roomCode, playerId } = req.body || {};
+    const code = (roomCode || '').toUpperCase();
+    const result = roomManager.returnToLobby(code, playerId);
+    if (!result.success) return res.status(400).json(result);
+    broadcastRoomState(code);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/v1/rooms/reset_scores - Reset all scores in room to 0
+app.post('/api/v1/rooms/reset_scores', (req, res) => {
+  try {
+    const { roomCode, playerId } = req.body || {};
+    const code = (roomCode || '').toUpperCase();
+    const result = roomManager.resetRoomScores(code, playerId);
+    if (!result.success) return res.status(400).json(result);
+    broadcastRoomState(code);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/v1/rooms/kick - Host kicks a player from room
+app.post('/api/v1/rooms/kick', (req, res) => {
+  try {
+    const { roomCode, hostPlayerId, targetPlayerId } = req.body || {};
+    const code = (roomCode || '').toUpperCase();
+    const result = roomManager.kickPlayer(code, hostPlayerId, targetPlayerId);
+    if (!result.success) return res.status(400).json(result);
+
+    if (result.targetSocketId) {
+      const targetSocket = io.sockets.sockets.get(result.targetSocketId);
+      if (targetSocket) {
+        targetSocket.emit('room:kicked', {
+          message: 'Bạn đã bị chủ phòng mời ra khỏi phòng đấu.'
+        });
+        targetSocket.leave(code);
+      }
+    }
+
+    broadcastRoomState(code);
+    res.json({ success: true, kickedPlayer: result.kickedPlayer });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

@@ -12,9 +12,17 @@ class FakerAPIClient {
     this.storageKey = 'faker_api_url';
     this.customUrl = localStorage.getItem(this.storageKey) || '';
 
-    this.defaultLocalUrl = (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin.startsWith('http'))
-      ? `${window.location.origin}/api/v1`
-      : 'http://localhost:8080/api/v1';
+    let defaultUrl = 'http://localhost:8080/api/v1';
+    if (typeof window !== 'undefined' && window.location && window.location.origin) {
+      const origin = window.location.origin;
+      if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('onrender.com')) {
+        defaultUrl = `${origin}/api/v1`;
+      } else {
+        // If hosted on Vercel, Netlify, or custom domain -> point to production Render backend
+        defaultUrl = 'https://iykyk-game.onrender.com/api/v1';
+      }
+    }
+    this.defaultLocalUrl = defaultUrl;
 
     this.isOnline = false;
     this.lastChecked = 0;

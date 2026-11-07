@@ -152,25 +152,107 @@ class RoomManager {
 
     this.socketToRoom.delete(socketId);
 
-    // If still in lobby, remove player completely
-    if (room.status === 'LOBBY' && leftPlayer) {
+    if (leftPlayer) {
+      // Remove player from the room
       room.players.delete(leftPlayer.id);
       room.turnOrder = room.turnOrder.filter(id => id !== leftPlayer.id);
+      leftPlayer.score = 0; // Wipe leaving player's score
 
-      // If host left, assign new host or delete room if empty
+      // If room is now empty or has no connected players, destroy room and wipe all scores!
+      if (room.players.size === 0 || this.checkAndCleanupEmptyRoom(roomCode)) {
+        this.destroyRoom(roomCode);
+        return { roomCode, roomDestroyed: true, leftPlayer };
+      }
+
+      // If host left, transfer host role to the next remaining player
       if (leftPlayer.isHost) {
         const nextPlayer = room.players.values().next().value;
         if (nextPlayer) {
           nextPlayer.isHost = true;
           room.hostId = nextPlayer.id;
-        } else {
-          this.destroyRoom(roomCode);
-          return { roomCode, roomDestroyed: true };
         }
       }
     }
 
-    return { roomCode, room, leftPlayer };
+    return { roomCode, room, leftPlayer, roomDestroyed: false };
+  }
+
+  removePlayer(roomCode, playerId) {
+    const cleanCode = (roomCode || '').trim().toUpperCase();
+    const room = this.rooms.get(cleanCode);
+    if (!room) return { success: false, message: 'Phòng không tồn tại' };
+
+    const player = room.players.get(playerId);
+    if (!player) return { success: false, message: 'Người chơi không có trong phòng' };
+
+    if (player.socketId) {
+      this.socketToRoom.delete(player.socketId);
+    }
+    room.players.delete(playerId);
+    room.turnOrder = room.turnOrder.filter(id => id !== playerId);
+    player.score = 0;
+
+    if (room.players.size === 0 || this.checkAndCleanupEmptyRoom(cleanCode)) {
+      this.destroyRoom(cleanCode);
+      return { success: true, roomDestroyed: true };
+    }
+
+    if (player.isHost) {
+      const nextPlayer = room.players.values().next().value;
+      if (nextPlayer) {
+        nextPlayer.isHost = true;
+        room.hostId = nextPlayer.id;
+      }
+    }
+
+    return { success: true, room, roomDestroyed: false };
+  }
+
+  kickPlayer(roomCode, hostPlayerId, targetPlayerId) {
+    const cleanCode = (roomCode || '').trim().toUpperCase();
+    const room = this.rooms.get(cleanCode);
+    if (!room) return { success: false, message: 'Phòng không tồn tại' };
+
+    if (room.hostId !== hostPlayerId) {
+      return { success: false, message: 'Chỉ chủ phòng mới có quyền mời người chơi ra khỏi phòng' };
+    }
+
+    if (hostPlayerId === targetPlayerId) {
+      return { success: false, message: 'Chủ phòng không thể tự kick chính mình' };
+    }
+
+    const targetPlayer = room.players.get(targetPlayerId);
+    if (!targetPlayer) {
+      return { success: false, message: 'Người chơi không tồn tại trong phòng' };
+    }
+
+    const targetSocketId = targetPlayer.socketId;
+    if (targetSocketId) {
+      this.socketToRoom.delete(targetSocketId);
+    }
+
+    room.players.delete(targetPlayerId);
+    room.turnOrder = room.turnOrder.filter(id => id !== targetPlayerId);
+    targetPlayer.score = 0;
+
+    return {
+      success: true,
+      room,
+      kickedPlayer: targetPlayer,
+      targetSocketId
+    };
+  }
+
+  checkAndCleanupEmptyRoom(roomCode) {
+    const room = this.rooms.get(roomCode);
+    if (!room) return true;
+
+    const connectedPlayers = Array.from(room.players.values()).filter(p => p.isConnected);
+    if (connectedPlayers.length === 0 || room.players.size === 0) {
+      this.destroyRoom(roomCode);
+      return true;
+    }
+    return false;
   }
 
   destroyRoom(roomCode) {
@@ -178,10 +260,57 @@ class RoomManager {
     if (!room) return;
     if (room.speakerTimer) clearInterval(room.speakerTimer);
     if (room.votingTimer) clearInterval(room.votingTimer);
+
+    // Xoá toàn bộ điểm số và dọn dẹp bộ nhớ khi phòng không còn ai
     for (const p of room.players.values()) {
+      p.score = 0;
       if (p.socketId) this.socketToRoom.delete(p.socketId);
     }
+    room.players.clear();
+    room.votes.clear();
     this.rooms.delete(roomCode);
+    console.log(`[ROOM_MANAGER] Phòng ${roomCode} không còn ai - Đã xoá toàn bộ điểm số và giải tán phòng.`);
+  }
+
+  resetRoomScores(roomCode, requestPlayerId) {
+    const room = this.rooms.get(roomCode);
+    if (!room) return { success: false, message: 'Phòng không tồn tại' };
+    if (room.hostId !== requestPlayerId) {
+      return { success: false, message: 'Chỉ chủ phòng mới có quyền đặt lại điểm' };
+    }
+    for (const p of room.players.values()) {
+      p.score = 0;
+      p.roundDelta = 0;
+    }
+    return { success: true, room };
+  }
+
+  returnToLobby(roomCode, requestPlayerId) {
+    const room = this.rooms.get(roomCode);
+    if (!room) return { success: false, message: 'Phòng không tồn tại' };
+    if (room.hostId !== requestPlayerId) {
+      return { success: false, message: 'Chỉ chủ phòng mới có quyền chuyển về sảnh' };
+    }
+
+    if (room.speakerTimer) clearInterval(room.speakerTimer);
+    if (room.votingTimer) clearInterval(room.votingTimer);
+
+    room.status = 'LOBBY';
+    room.round = 1;
+    room.votes.clear();
+    room.tieBreakSuspects = [];
+    room.winner = null;
+
+    for (const p of room.players.values()) {
+      p.isAlive = true;
+      p.role = null;
+      p.secretWord = '';
+      p.hasVoted = false;
+      p.roundDelta = 0;
+      // p.score is PRESERVED for cumulative ranking!
+    }
+
+    return { success: true, room };
   }
 
   startMatch(roomCode, requestPlayerId) {
@@ -418,10 +547,34 @@ class RoomManager {
         gameOver = true;
         winner = 'CIVILIAN';
         room.status = 'GAME_OVER';
+        room.winner = winner;
       } else if (remainingImposters.length >= (remainingAlive.length - remainingImposters.length)) {
         gameOver = true;
         winner = 'IMPOSTER';
         room.status = 'GAME_OVER';
+        room.winner = winner;
+      }
+
+      // Trao điểm khi kết thúc trận đấu (bảo lưu theo phòng)
+      if (gameOver) {
+        for (const p of room.players.values()) {
+          let delta = 0;
+          if (winner === 'CIVILIAN') {
+            if (p.role === 'CIVILIAN') {
+              delta = p.isAlive ? 15 : 5;
+            }
+          } else if (winner === 'IMPOSTER') {
+            if (p.role === 'IMPOSTER') {
+              delta = 25;
+            }
+          }
+          // Điểm thưởng khi bỏ phiếu đúng Kẻ Giả Mạo
+          if (eliminatedPlayer && eliminatedPlayer.role === 'IMPOSTER' && room.votes.get(p.id) === eliminatedPlayer.id) {
+            delta += 5;
+          }
+          p.roundDelta = delta;
+          p.score = (p.score || 0) + delta;
+        }
       }
 
       return {
@@ -465,12 +618,27 @@ class RoomManager {
         isAlive: p.isAlive,
         hasVoted: p.hasVoted,
         isConnected: p.isConnected,
-        score: p.score,
+        score: p.score || 0,
+        roundDelta: p.roundDelta || 0,
         // Secret role and word are ONLY exposed to the viewing player or when game over
         role: (isMe || room.status === 'GAME_OVER') ? p.role : undefined,
         secretWord: (isMe || room.status === 'GAME_OVER') ? p.secretWord : undefined
       };
     });
+
+    // Bảng xếp hạng realtime trong phòng: Sắp xếp giảm dần theo điểm số
+    const ranking = [...publicPlayers].sort((a, b) => (b.score || 0) - (a.score || 0)).map((p, idx) => ({
+      rank: idx + 1,
+      id: p.id,
+      name: p.name,
+      avatar: p.avatar,
+      score: p.score || 0,
+      roundDelta: p.roundDelta || 0,
+      isHost: p.isHost,
+      isAlive: p.isAlive,
+      isConnected: p.isConnected,
+      role: (room.status === 'GAME_OVER') ? p.role : undefined
+    }));
 
     const activeSpeaker = this.getCurrentSpeaker(room);
 
@@ -482,6 +650,9 @@ class RoomManager {
       voteDurationSec: room.voteDurationSec,
       category: room.category,
       players: publicPlayers,
+      ranking: ranking,
+      winner: room.winner || null,
+      secretWords: room.status === 'GAME_OVER' ? room.secretWords : undefined,
       hostId: room.hostId,
       myPlayerId: viewingPlayerId,
       myRole: me ? me.role : null,

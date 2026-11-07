@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://iykyk-game.onrender.com/api/:path*"
+    }
+  ]
+}
+

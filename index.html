@@ -35,10 +35,14 @@
   <div id="app-viewport">
 
     <header class="global-control-bar">
-      <!-- Left Controls: Icon Bảng xếp hạng -->
+      <!-- Left Controls: Icon Bảng xếp hạng hoặc Nút Rời phòng (Online) -->
       <div class="control-group control-group-left">
         <button id="btn-open-leaderboard" class="ctrl-btn icon-only-btn" title="Bảng xếp hạng & Điểm số" aria-label="Bảng xếp hạng">
           <span style="font-size: 15px;">🏆</span>
+        </button>
+        <button id="btn-header-leave-online" class="btn-header-leave hidden" type="button" title="Rời phòng">
+          <span style="font-size: 14px; margin-right: 2px;">←</span>
+          <span>Rời phòng</span>
         </button>
       </div>
 
@@ -1209,42 +1213,119 @@
            SCREEN 9: ONLINE MULTIPLAYER LOBBY
            ========================================== -->
       <section id="screen-online-lobby" class="view-screen">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-          <button id="btn-leave-online-room" class="ctrl-btn" type="button">
-            <span>←</span> <span>Rời phòng</span>
-          </button>
-          <div style="text-align: center;">
-            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Mã phòng đấu</div>
-            <div id="lobby-room-code" style="font-family: var(--font-mono); font-size: 22px; font-weight: 900; color: #3b82f6; letter-spacing: 2px;">FAKR88</div>
+        <!-- Online Upper Room Header Bar: Room Code & Quick Actions (Ranking & Share) -->
+        <div class="online-upper-header-bar">
+          <div class="room-code-block">
+            <span class="room-code-label">MÃ PHÒNG ĐẤU</span>
+            <div class="room-code-row">
+              <span id="lobby-room-code" class="room-code-val">FAKR88</span>
+              <button id="btn-copy-room-link" class="btn-copy-pill" type="button" title="Sao chép mã phòng">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Chép</span>
+              </button>
+            </div>
           </div>
-          <button id="btn-copy-room-link" class="ctrl-btn" type="button" title="Sao chép mã phòng">
-            <span>📋</span>
+          <div class="room-quick-actions">
+            <button id="btn-open-room-ranking" class="btn-action-square trophy-btn" type="button" title="Bảng xếp hạng phòng" aria-label="Bảng xếp hạng phòng">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 4h-3V2H8v2H5c-1.1 0-2 .9-2 2v2c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.71 2.7 3.11 3.41V19H8v2h8v-2h-2.5v-2.65c1.4-.71 2.48-1.91 3.11-3.41C19.08 12.63 21 10.55 21 8V6c0-1.1-.9-2-2-2zM5 8V6h3v4.93C6.35 10.5 5 9.4 5 8zm14 0c0 1.4-1.35 2.5-3 2.93V6h3v2z"/>
+              </svg>
+            </button>
+            <button id="btn-share-room-link" class="btn-action-square share-btn" type="button" title="Chia sẻ mã phòng" aria-label="Chia sẻ mã phòng">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Instruction Card with Amber Wifi Badge -->
+        <div class="lobby-instruction-card">
+          <div class="lobby-wifi-badge">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+              <line x1="12" y1="20" x2="12.01" y2="20"></line>
+            </svg>
+          </div>
+          <div class="lobby-instruction-content">
+            <span class="instruction-lead">Chờ người chơi vào phòng:</span> Bạn bè mở web và nhập mã phòng <span id="lobby-inline-code" class="lobby-code-inline-badge">FAKR88</span> để cùng vào bàn. Tối thiểu cần <strong>3 người chơi</strong>.
+          </div>
+        </div>
+
+        <!-- Lobby Navigation Tabs: Ghế Ngồi vs Bảng Xếp Hạng -->
+        <div class="online-lobby-tabs">
+          <button id="tab-lobby-seats" class="lobby-tab-btn active" type="button">
+            <span>👥</span> <span>Bàn Đấu (<span id="lobby-player-count-tab">1</span>/12)</span>
+          </button>
+          <button id="tab-lobby-ranking" class="lobby-tab-btn" type="button">
+            <span>🏆</span> <span>Bảng Xếp Hạng</span>
           </button>
         </div>
 
-        <div class="instruction-box" style="margin-bottom: 14px;">
-          <span class="instruction-icon">📡</span>
-          <div class="instruction-text">
-            <strong>Chờ người chơi vào phòng:</strong> Bạn bè mở web và nhập mã phòng <strong id="lobby-inline-code" style="color: #3b82f6;">FAKR88</strong> để cùng vào bàn. Tối thiểu cần 3 người chơi.
+        <!-- Panel 1: Realtime Seats Grid -->
+        <div id="panel-lobby-seats">
+          <div class="online-seats-container">
+            <div class="seats-header-row">
+              <div class="seats-title-wrap">
+                <span class="seats-title-text">NGƯỜI CHƠI TRONG BÀN</span>
+                <span id="lobby-player-count-pill" class="seats-count-pill">1/12</span>
+              </div>
+              <div id="lobby-host-indicator" class="seats-status-badge">
+                <span class="status-dot"></span>
+                <span>SẴN SÀNG</span>
+              </div>
+            </div>
+            <div id="lobby-players-grid" class="online-players-grid">
+              <!-- Dynamically populated 3-column seats grid -->
+            </div>
           </div>
         </div>
 
-        <!-- Realtime Seats Grid -->
-        <div class="online-seats-container">
-          <div class="settings-section-title" style="display: flex; justify-content: space-between; align-items: center;">
-            <span>Người chơi trong bàn (<span id="lobby-player-count">1</span>/12)</span>
-            <span id="lobby-host-indicator" class="hero-badge" style="font-size: 10.5px; background: rgba(59, 130, 246, 0.15); color: #3b82f6; border-color: rgba(59, 130, 246, 0.3);">🟢 Sẵn sàng</span>
-          </div>
-          <div id="lobby-players-grid" class="online-players-grid">
-            <!-- Dynamically populated -->
+        <!-- Panel 2: Live Room Leaderboard / Ranking -->
+        <div id="panel-lobby-ranking" style="display: none;">
+          <div class="online-ranking-card" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">🏆</span>
+                <div>
+                  <div style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-primary);">Bảng Xếp Hạng Phòng</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">Tích lũy điểm qua các ván đấu</div>
+                </div>
+              </div>
+              <button id="btn-lobby-reset-scores" class="ctrl-btn" style="color: var(--primary-red); border: 1px solid rgba(239, 68, 68, 0.3); font-size: 11px; padding: 4px 10px; display: none;" title="Chủ phòng: Đặt lại tất cả điểm">
+                <span>🔄</span> <span>Đặt lại điểm</span>
+              </button>
+            </div>
+
+            <!-- Dynamic Ranking List -->
+            <div id="lobby-ranking-list" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Populated by OnlineGameController -->
+            </div>
+
+            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border-subtle); font-size: 11px; color: var(--text-muted); text-align: center; line-height: 1.4;">
+              🛡️ Điểm số tự động xoá toàn bộ khi phòng không còn ai.
+            </div>
           </div>
         </div>
 
         <!-- Action Controls -->
-        <div id="lobby-host-controls" style="margin-top: 24px;">
-          <button id="btn-start-online-match" class="primary-cta-btn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); width: 100%; min-height: 50px;" type="button">
-            <span>🚀</span> <span>Bắt đầu ván đấu</span>
+        <div id="lobby-host-controls" style="margin-top: 22px;">
+          <button id="btn-start-online-match" class="btn-start-match-online" type="button">
+            <span>🚀 Bắt đầu ván đấu</span>
           </button>
+          <div id="lobby-start-hint" class="lobby-start-hint">
+            <span class="hint-icon">⏰</span>
+            <span id="lobby-start-hint-text">Cần thêm ít nhất 2 người chơi để bắt đầu</span>
+          </div>
         </div>
         <div id="lobby-guest-waiting" style="margin-top: 24px; text-align: center; display: none;">
           <div class="instruction-box" style="background: rgba(255, 255, 255, 0.04); border-color: var(--border-medium); justify-content: center;">
@@ -1260,8 +1341,13 @@
       <section id="screen-online-stage" class="view-screen">
         <!-- Private Role & Word Banner -->
         <div id="stage-private-role-card" class="stage-role-banner">
-          <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px;">Từ khóa bí mật trên máy của bạn</div>
-          <div id="stage-private-word" style="font-size: 26px; font-weight: 900; margin: 6px 0; color: #10b981; letter-spacing: 1px;">
+          <div class="stage-role-header">
+            <span id="stage-role-badge" class="stage-role-badge-pill role-civ">Dân Thường</span>
+            <button type="button" id="btn-toggle-private-word" class="btn-privacy-pill" title="Ẩn hoặc hiện từ khóa">
+              <span id="btn-toggle-private-icon">👁️</span> <span id="btn-toggle-private-text">Ẩn từ</span>
+            </button>
+          </div>
+          <div id="stage-private-word" class="stage-private-word-text" style="font-size: 26px; font-weight: 900; margin: 8px 0; color: #10b981; letter-spacing: 1px;">
             BÁNH MÌ
           </div>
           <div id="stage-private-hint" style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">
@@ -1270,7 +1356,7 @@
         </div>
 
         <!-- Active Speaker Spotlight -->
-        <div class="speaker-spotlight-card">
+        <div class="speaker-spotlight-card" id="speaker-spotlight-box">
           <div class="spotlight-header">
             <span class="hero-badge" id="stage-round-badge">Vòng 1</span>
             <div id="stage-turn-timer" class="spotlight-timer">30s</div>
@@ -1281,11 +1367,19 @@
             <div class="mic-wave-icon">🎙️</div>
           </div>
 
+          <div class="soundwave-bars">
+            <div class="soundwave-bar"></div>
+            <div class="soundwave-bar"></div>
+            <div class="soundwave-bar"></div>
+            <div class="soundwave-bar"></div>
+            <div class="soundwave-bar"></div>
+          </div>
+
           <h3 id="stage-speaker-name" class="speaker-name-title">Minh Thảo đang phát biểu...</h3>
           <p id="stage-speaker-guide" class="speaker-guide-text">Lắng nghe thật kỹ từng manh mối để nhận diện Kẻ Giả Mạo!</p>
 
           <div id="stage-my-turn-actions" style="display: none; margin-top: 16px;">
-            <button id="btn-pass-turn-done" class="primary-cta-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 100%; min-height: 48px;" type="button">
+            <button id="btn-pass-turn-done" class="primary-cta-btn btn-pass-turn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 100%; min-height: 48px;" type="button">
               <span>⏭️</span> <span>Tôi đã nói xong (Chuyển tiếp)</span>
             </button>
           </div>
@@ -1362,6 +1456,77 @@
               <span>⚪</span> <span>Bỏ phiếu trắng</span>
             </button>
           </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           SCREEN 12: ONLINE MATCH RESULTS & ROOM RANKING
+           ========================================== -->
+      <section id="screen-online-results" class="view-screen">
+        <!-- Big Winner Banner -->
+        <div class="unmask-reveal-box" style="text-align: center; margin-bottom: 18px;">
+          <span class="winner-banner-tag" id="online-result-winner-banner" style="font-size: 14px; font-weight: 800; letter-spacing: 0.5px; padding: 6px 16px; border-radius: var(--radius-pill); display: inline-block;">
+            Phe Dân Làng Chiến Thắng!
+          </span>
+          <div style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-top: 12px;">Kẻ Giả Mạo trong ván này là:</div>
+          <h2 class="unmasked-names" id="online-result-imposter-names" style="color: #ef4444; font-size: 26px; margin: 4px 0;">Minh Anh</h2>
+          
+          <!-- Secret words reveal -->
+          <div class="result-words-grid">
+            <div class="result-word-card civ-card">
+              <div class="word-card-label">Từ của Dân Làng</div>
+              <div id="online-result-civilian-word" class="word-card-text">BÁNH MÌ</div>
+            </div>
+            <div class="result-word-card imp-card">
+              <div class="word-card-label">Từ của Kẻ Giả Mạo</div>
+              <div id="online-result-imposter-word" class="word-card-text">BÁNH BAO</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Room Ranking Leaderboard -->
+        <div class="scoreboard-card-container" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 20px;">🏆</span>
+              <div>
+                <strong style="font-family: var(--font-display); font-size: 15px; color: var(--text-primary);">Bảng Xếp Hạng Phòng Đấu</strong>
+                <div style="font-size: 11px; color: var(--text-muted);">Điểm tích lũy qua các ván</div>
+              </div>
+            </div>
+            <span class="hero-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 10px; padding: 3px 8px;">👑 Trực tiếp</span>
+          </div>
+
+          <!-- Dynamic Ranking List in Results Screen -->
+          <div id="online-results-ranking-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+            <!-- Populated dynamically -->
+          </div>
+
+          <div style="font-size: 11px; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-subtle); padding-top: 10px;">
+            🛡️ Điểm số sẽ tự động xóa sạch khi phòng không còn ai.
+          </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div id="online-results-host-controls" style="margin-bottom: 12px;">
+          <button id="btn-online-next-round" class="primary-cta-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 100%; min-height: 50px;" type="button">
+            <span>🚀</span> <span>Chơi ván tiếp theo (Giữ điểm)</span>
+          </button>
+        </div>
+        <div id="online-results-guest-waiting" style="margin-bottom: 12px; text-align: center; display: none;">
+          <div class="instruction-box" style="background: rgba(255, 255, 255, 0.04); border-color: var(--border-medium); justify-content: center;">
+            <span class="instruction-icon">⏳</span>
+            <span style="font-size: 13px; color: var(--text-secondary); font-weight: 600;">Đang chờ chủ phòng bắt đầu ván tiếp theo...</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button id="btn-online-results-reset-scores" class="secondary-btn" style="flex: 1; min-height: 44px; font-size: 12px; display: none;" type="button">
+            <span>🔄</span> <span>Đặt lại điểm</span>
+          </button>
+          <button id="btn-online-results-leave" class="ctrl-btn" style="flex: 1; min-height: 44px; font-size: 12px; border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; justify-content: center;" type="button">
+            <span>🚪</span> <span>Rời phòng</span>
+          </button>
         </div>
       </section>
 
@@ -2139,6 +2304,134 @@
     </div>
   </div>
 
+  <!-- Modal Online Room Ranking -->
+  <div id="modal-online-ranking" class="modal-overlay">
+    <div class="bottom-sheet-content" style="max-height: 85vh; overflow-y: auto;">
+      <div class="sheet-drag-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title" style="display: flex; align-items: center; gap: 8px;">
+          <span>🏆</span> <span>Bảng Xếp Hạng Phòng Đấu</span>
+        </h3>
+        <button class="close-sheet-btn" id="btn-close-online-ranking">✕</button>
+      </div>
+
+      <div id="modal-ranking-list" style="display: flex; flex-direction: column; gap: 8px; margin: 16px 0;">
+        <!-- Populated dynamically -->
+      </div>
+
+      <div style="font-size: 11.5px; color: var(--text-muted); text-align: center; padding: 12px 8px; border-top: 1px solid var(--border-subtle); line-height: 1.4;">
+        🛡️ Điểm số sẽ tự động xóa sạch khi phòng không còn ai.
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Chia Sẻ Phòng Đấu & Tạo QR Code -->
+  <div id="modal-online-share" class="modal-overlay" style="z-index: 285;">
+    <div class="share-modal-dialog">
+      <!-- Header -->
+      <div class="share-modal-header">
+        <div class="share-modal-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+        </div>
+        <div class="share-modal-title-wrap">
+          <div class="share-modal-title">Chia sẻ phòng đấu</div>
+          <div class="share-modal-sub">Mời bạn bè quét mã hoặc nhập mã vào chơi</div>
+        </div>
+        <button id="btn-close-online-share" class="share-modal-close-btn" type="button" aria-label="Đóng">
+          ✕
+        </button>
+      </div>
+
+      <!-- Room Code Block -->
+      <div class="share-room-code-card">
+        <div class="share-code-left">
+          <span class="share-code-label">MÃ PHÒNG</span>
+          <span id="share-modal-room-code" class="share-code-val">AA9WSJ</span>
+        </div>
+        <button id="btn-share-copy-code" class="btn-share-copy-pill" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span>Sao chép mã</span>
+        </button>
+      </div>
+
+      <!-- White QR Card with Center Controller Logo -->
+      <div class="share-qr-card">
+        <div class="share-qr-wrapper">
+          <div id="share-qr-target" class="share-qr-target">
+            <!-- QRCode canvas/image generated dynamically -->
+          </div>
+          <!-- Gamepad Center Badge -->
+          <div class="share-qr-center-badge">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3-3c-.83 0-1.5-.67-1.5-1.5S17.67 9 18.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="share-qr-caption">Quét mã vào phòng ngay</div>
+      </div>
+
+      <!-- Link Copy Box -->
+      <div class="share-link-box">
+        <span id="share-modal-link-text" class="share-link-url">https://game.play/join/AA9WSJ</span>
+        <button id="btn-share-copy-link" class="btn-share-link-pill" type="button">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          <span>Chép link</span>
+        </button>
+      </div>
+
+      <!-- Quick Share Row -->
+      <div class="share-quick-section">
+        <div class="share-quick-title">CHIA SẺ NHANH</div>
+        <div class="share-quick-grid">
+          <button id="btn-share-zalo" class="share-quick-item" type="button">
+            <div class="quick-icon-circle icon-zalo">
+              <span>Z</span>
+            </div>
+            <span class="quick-item-label">Zalo</span>
+          </button>
+          <button id="btn-share-messenger" class="share-quick-item" type="button">
+            <div class="quick-icon-circle icon-messenger">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.03 2 11c0 2.87 1.5 5.43 3.84 7.06v3.44c0 .35.37.58.68.42l3.41-1.7c.66.18 1.35.28 2.07.28 5.52 0 10-4.03 10-9s-4.48-9-10-9zm1.18 11.72-2.58-2.75-5.04 2.75 5.55-5.89 2.65 2.75 4.96-2.75-5.54 5.89z"/>
+              </svg>
+            </div>
+            <span class="quick-item-label">Messenger</span>
+          </button>
+          <button id="btn-share-telegram" class="share-quick-item" type="button">
+            <div class="quick-icon-circle icon-telegram">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8-1.7 8.01c-.13.57-.46.71-.94.44l-2.6-1.92-1.25 1.2c-.14.14-.26.26-.53.26l.19-2.65 4.82-4.35c.21-.19-.05-.29-.32-.11L8.29 13.5l-2.57-.8c-.56-.17-.57-.56.12-.83l10.03-3.87c.46-.17.87.11.77.8z"/>
+              </svg>
+            </div>
+            <span class="quick-item-label">Telegram</span>
+          </button>
+          <button id="btn-share-save-qr" class="share-quick-item" type="button">
+            <div class="quick-icon-circle icon-save-qr">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </div>
+            <span class="quick-item-label">Lưu QR</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Donate & Support Project (Clean QR Without Any Logo) -->
   <div id="modal-donate" class="modal-overlay" style="z-index: 280;">
     <div class="bottom-sheet-content donate-sheet-content">
@@ -2269,6 +2562,8 @@
 
   <!-- Socket.IO Realtime Client Library -->
   <script src="/socket.io/socket.io.js" onerror="this.onerror=null;this.src='https://cdn.socket.io/4.7.5/socket.io.min.js';"></script>
+  <!-- Client-side QRCode Generator -->
+  <script src="js/qrcode.min.js?v=1.5"></script>
   <!-- Online Multiplayer Controller -->
   <script src="js/online_controller.js?v=1.5"></script>
   <!-- App Main Controller -->
