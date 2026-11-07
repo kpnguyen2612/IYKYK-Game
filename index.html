@@ -101,6 +101,115 @@
           </div>
         </div>
 
+        <!-- Online Hub: Create or Join Room -->
+        <div id="online-hub-container" style="display: none; margin-top: 14px;">
+          <div class="instruction-box" style="border-left-color: #3b82f6; margin-bottom: 14px;">
+            <span class="instruction-icon">ðŸŒ</span>
+            <div class="instruction-text">
+              <strong>Cháº¿ Ä‘á»™ PhÃ²ng Ä‘áº¥u Online:</strong> Má»—i ngÆ°á»i chÆ¡i tham gia trÃªn má»™t Ä‘iá»‡n thoáº¡i riÃªng, phÃ¡t biá»ƒu xoay vÃ²ng trÃ²n vÃ  bá» phiáº¿u loáº¡i trá»« trá»±c tiáº¿p vá»›i ngÆ°á»¡ng loáº¡i <strong>â‰¥ 50%</strong>.
+            </div>
+          </div>
+
+          <!-- Subtabs: Táº¡o phÃ²ng / VÃ o phÃ²ng -->
+          <div class="online-subtabs">
+            <button id="btn-subtab-create-room" class="online-subtab-btn active" type="button">âž• Táº¡o phÃ²ng má»›i</button>
+            <button id="btn-subtab-join-room" class="online-subtab-btn" type="button">ðŸ”‘ VÃ o phÃ²ng báº±ng mÃ£</button>
+          </div>
+
+          <!-- Panel A: Táº¡o phÃ²ng -->
+          <div id="panel-create-room" class="online-panel">
+            <div class="settings-card-group" style="margin-bottom: 16px;">
+              <div class="setting-item-row">
+                <div class="setting-info-left">
+                  <div class="setting-icon-box">ðŸ‘‘</div>
+                  <div class="setting-texts">
+                    <h4>TÃªn chá»§ phÃ²ng</h4>
+                    <p>TÃªn hiá»ƒn thá»‹ cá»§a báº¡n</p>
+                  </div>
+                </div>
+                <div class="setting-action-right">
+                  <input type="text" id="input-online-host-name" placeholder="VD: Chá»§ phÃ²ng" maxlength="20" style="width: 140px; height: 36px; padding: 0 10px; font-size: 13px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); color: var(--text-primary); text-align: right;" />
+                </div>
+              </div>
+
+              <div class="setting-item-row">
+                <div class="setting-info-left">
+                  <div class="setting-icon-box" style="color: #3b82f6; background: rgba(59, 130, 246, 0.12);">â±ï¸</div>
+                  <div class="setting-texts">
+                    <h4>Thá»i gian phÃ¡t biá»ƒu</h4>
+                    <p>Má»—i lÆ°á»£t nÃ³i trong vÃ²ng trÃ²n</p>
+                  </div>
+                </div>
+                <div class="setting-action-right">
+                  <select id="select-turn-duration" style="height: 36px; padding: 0 8px; font-size: 12px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); color: var(--text-primary);">
+                    <option value="20">20 giÃ¢y</option>
+                    <option value="30" selected>30 giÃ¢y (Chuáº©n)</option>
+                    <option value="45">45 giÃ¢y</option>
+                    <option value="60">60 giÃ¢y</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="setting-item-row">
+                <div class="setting-info-left">
+                  <div class="setting-icon-box" style="color: #ef4444; background: rgba(239, 68, 68, 0.12);">ðŸŽ­</div>
+                  <div class="setting-texts">
+                    <h4>Sá»‘ Káº» Giáº£ Máº¡o</h4>
+                    <p>Sá»‘ Imposter trong phÃ²ng</p>
+                  </div>
+                </div>
+                <div class="setting-action-right">
+                  <div class="stepper-control">
+                    <button class="stepper-btn" id="btn-dec-online-imp" type="button">-</button>
+                    <span class="stepper-val" id="val-online-imp">1</span>
+                    <button class="stepper-btn" id="btn-inc-online-imp" type="button">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button id="btn-do-create-room" type="button" class="primary-cta-btn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); width: 100%; min-height: 48px;">
+              <span>ðŸš€</span> <span>Táº¡o PhÃ²ng & Má»Ÿ BÃ n Äáº¥u</span>
+            </button>
+          </div>
+
+          <!-- Panel B: VÃ o phÃ²ng báº±ng mÃ£ -->
+          <div id="panel-join-room" class="online-panel" style="display: none;">
+            <div class="settings-card-group" style="margin-bottom: 16px;">
+              <div class="setting-item-row">
+                <div class="setting-info-left">
+                  <div class="setting-icon-box" style="color: #10b981; background: rgba(16, 185, 129, 0.12);">ðŸ”‘</div>
+                  <div class="setting-texts">
+                    <h4>MÃ£ phÃ²ng</h4>
+                    <p>Nháº­p mÃ£ 6 kÃ½ tá»± tá»« chá»§ phÃ²ng</p>
+                  </div>
+                </div>
+                <div class="setting-action-right">
+                  <input type="text" id="input-join-room-code" placeholder="VD: FAKR88" maxlength="6" style="width: 130px; height: 36px; padding: 0 10px; font-size: 14px; font-family: var(--font-mono); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-align: center; background: rgba(255,255,255,0.06); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); color: #3b82f6;" />
+                </div>
+              </div>
+
+              <div class="setting-item-row">
+                <div class="setting-info-left">
+                  <div class="setting-icon-box">ðŸ‘¤</div>
+                  <div class="setting-texts">
+                    <h4>TÃªn cá»§a báº¡n</h4>
+                    <p>TÃªn hiá»ƒn thá»‹ trong bÃ n</p>
+                  </div>
+                </div>
+                <div class="setting-action-right">
+                  <input type="text" id="input-join-player-name" placeholder="VD: Minh Tháº£o" maxlength="20" style="width: 140px; height: 36px; padding: 0 10px; font-size: 13px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); color: var(--text-primary); text-align: right;" />
+                </div>
+              </div>
+            </div>
+
+            <button id="btn-do-join-room" type="button" class="primary-cta-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 100%; min-height: 48px;">
+              <span>ðŸŽ®</span> <span>VÃ o BÃ n Äáº¥u Ngay</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="pass-settings-container">
         <!-- Online Lobby Room Alert (Visible when Online mode selected) -->
         <div id="online-lobby-banner" class="instruction-box" style="display: none; border-left-color: #3b82f6;">
           <span class="instruction-icon">📡</span>
@@ -379,6 +488,7 @@
             <span class="liquid-glass-btn-label" data-i18n="btn_start_game">Bắt đầu thiết lập người chơi</span>
           </button>
         </div>
+              </div>
       </section>
 
       <!-- ==========================================
@@ -1090,6 +1200,167 @@
 
         <div id="history-items-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
           <!-- Injected dynamically -->
+        </div>
+      </section>
+
+
+      <!-- ==========================================
+           SCREEN 9: ONLINE MULTIPLAYER LOBBY
+           ========================================== -->
+      <section id="screen-online-lobby" class="view-screen">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+          <button id="btn-leave-online-room" class="ctrl-btn" type="button">
+            <span>â†</span> <span>Rá»i phÃ²ng</span>
+          </button>
+          <div style="text-align: center;">
+            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">MÃ£ phÃ²ng Ä‘áº¥u</div>
+            <div id="lobby-room-code" style="font-family: var(--font-mono); font-size: 22px; font-weight: 900; color: #3b82f6; letter-spacing: 2px;">FAKR88</div>
+          </div>
+          <button id="btn-copy-room-link" class="ctrl-btn" type="button" title="Sao chÃ©p mÃ£ phÃ²ng">
+            <span>ðŸ“‹</span>
+          </button>
+        </div>
+
+        <div class="instruction-box" style="margin-bottom: 14px;">
+          <span class="instruction-icon">ðŸ“¡</span>
+          <div class="instruction-text">
+            <strong>Chá» ngÆ°á»i chÆ¡i vÃ o phÃ²ng:</strong> Báº¡n bÃ¨ má»Ÿ web vÃ  nháº­p mÃ£ phÃ²ng <strong id="lobby-inline-code" style="color: #3b82f6;">FAKR88</strong> Ä‘á»ƒ cÃ¹ng vÃ o bÃ n. Tá»‘i thiá»ƒu cáº§n 3 ngÆ°á»i chÆ¡i.
+          </div>
+        </div>
+
+        <!-- Realtime Seats Grid -->
+        <div class="online-seats-container">
+          <div class="settings-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>NgÆ°á»i chÆ¡i trong bÃ n (<span id="lobby-player-count">1</span>/12)</span>
+            <span id="lobby-host-indicator" class="hero-badge" style="font-size: 10.5px; background: rgba(59, 130, 246, 0.15); color: #3b82f6; border-color: rgba(59, 130, 246, 0.3);">ðŸŸ¢ Sáºµn sÃ ng</span>
+          </div>
+          <div id="lobby-players-grid" class="online-players-grid">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div id="lobby-host-controls" style="margin-top: 24px;">
+          <button id="btn-start-online-match" class="primary-cta-btn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); width: 100%; min-height: 50px;" type="button">
+            <span>ðŸš€</span> <span>Báº¯t Ä‘áº§u vÃ¡n Ä‘áº¥u</span>
+          </button>
+        </div>
+        <div id="lobby-guest-waiting" style="margin-top: 24px; text-align: center; display: none;">
+          <div class="instruction-box" style="background: rgba(255, 255, 255, 0.04); border-color: var(--border-medium); justify-content: center;">
+            <span class="instruction-icon">â³</span>
+            <span style="font-size: 13px; color: var(--text-secondary); font-weight: 600;">Äang chá» chá»§ phÃ²ng báº¯t Ä‘áº§u vÃ¡n...</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           SCREEN 10: ONLINE WEREWOLF VOICE CIRCULAR STAGE
+           ========================================== -->
+      <section id="screen-online-stage" class="view-screen">
+        <!-- Private Role & Word Banner -->
+        <div id="stage-private-role-card" class="stage-role-banner">
+          <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px;">Tá»« khÃ³a bÃ­ máº­t trÃªn mÃ¡y cá»§a báº¡n</div>
+          <div id="stage-private-word" style="font-size: 26px; font-weight: 900; margin: 6px 0; color: #10b981; letter-spacing: 1px;">
+            BÃNH MÃŒ
+          </div>
+          <div id="stage-private-hint" style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">
+            Báº¡n lÃ  DÃ¢n ThÆ°á»ng! HÃ£y mÃ´ táº£ khÃ©o lÃ©o Ä‘á»ƒ Káº» Giáº£ Máº¡o khÃ´ng Ä‘oÃ¡n Ä‘Æ°á»£c tá»«.
+          </div>
+        </div>
+
+        <!-- Active Speaker Spotlight -->
+        <div class="speaker-spotlight-card">
+          <div class="spotlight-header">
+            <span class="hero-badge" id="stage-round-badge">VÃ²ng 1</span>
+            <div id="stage-turn-timer" class="spotlight-timer">30s</div>
+          </div>
+          
+          <div class="speaker-avatar-wrap">
+            <div id="stage-speaker-avatar" class="speaker-avatar-circle pulsing-speaker">ðŸ¼</div>
+            <div class="mic-wave-icon">ðŸŽ™ï¸</div>
+          </div>
+
+          <h3 id="stage-speaker-name" class="speaker-name-title">Minh Tháº£o Ä‘ang phÃ¡t biá»ƒu...</h3>
+          <p id="stage-speaker-guide" class="speaker-guide-text">Láº¯ng nghe tháº­t ká»¹ tá»«ng manh má»‘i Ä‘á»ƒ nháº­n diá»‡n Káº» Giáº£ Máº¡o!</p>
+
+          <div id="stage-my-turn-actions" style="display: none; margin-top: 16px;">
+            <button id="btn-pass-turn-done" class="primary-cta-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 100%; min-height: 48px;" type="button">
+              <span>â­ï¸</span> <span>TÃ´i Ä‘Ã£ nÃ³i xong (Chuyá»ƒn tiáº¿p)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Circular Seating Mini Map -->
+        <div class="stage-seating-preview">
+          <div class="settings-section-title">Thá»© tá»± phÃ¡t biá»ƒu theo vÃ²ng</div>
+          <div id="stage-turn-order-chips" class="turn-order-chips-wrap">
+            <!-- Dynamically populated chips -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           SCREEN 11: DEDICATED ONLINE REALTIME VOTING SCREEN
+           (50% Elimination Threshold + 50/50 Tie-break Defense)
+           ========================================== -->
+      <section id="screen-online-voting" class="view-screen">
+        <div class="online-voting-header">
+          <div class="voting-top-bar">
+            <span class="hero-badge" id="online-voting-round-pill">ðŸ—³ï¸ BIá»‚U QUYáº¾T LOáº I TRá»ª</span>
+            <div id="online-voting-countdown" class="voting-timer-badge">â³ 25s</div>
+          </div>
+          <h2 class="online-voting-title">Biá»ƒu Quyáº¿t Loáº¡i Trá»« (Realtime)</h2>
+          <p class="online-voting-subtitle">Cháº¡m vÃ o nghi pháº¡m báº¡n muá»‘n bá» phiáº¿u. Phiáº¿u báº§u hoÃ n toÃ n áº©n danh.</p>
+        </div>
+
+        <!-- Realtime Progress Meter & 50% Threshold Bar -->
+        <div class="voting-progress-card">
+          <div class="voting-progress-labels">
+            <span id="text-voting-progress">ÄÃ£ bá» phiáº¿u: 0/0 ngÆ°á»i</span>
+            <span id="text-voting-rule-50" class="badge-threshold-50">NgÆ°á»¡ng loáº¡i: â‰¥ 50%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div id="bar-voting-progress" class="progress-bar-fill" style="width: 0%;"></div>
+            <div class="threshold-marker-50" title="Má»‘c 50% Ä‘á»ƒ bá»‹ loáº¡i">50%</div>
+          </div>
+        </div>
+
+        <!-- Tie-Break 50/50 Alert Banner -->
+        <div id="banner-tiebreak-5050" class="tiebreak-alert-box" style="display: none;">
+          <div class="tiebreak-icon">âš–ï¸</div>
+          <div class="tiebreak-content">
+            <h4>HÃ’A PHIáº¾U 50/50!</h4>
+            <p id="tiebreak-desc">Hai ngÆ°á»i chÆ¡i nháº­n sá»‘ phiáº¿u ngang nhau chiáº¿m Ä‘Ãºng 50/50. VÃ¡n Ä‘áº¥u tiáº¿p tá»¥c vá»›i vÃ²ng mÃ´ táº£ bá»• sung Ä‘á»ƒ báº£o chá»¯a!</p>
+          </div>
+        </div>
+
+        <!-- Elimination Result Banner -->
+        <div id="banner-elimination-result" class="elimination-alert-box" style="display: none;">
+          <div id="elimination-icon" class="elim-icon">ðŸš¨</div>
+          <div class="elim-content">
+            <h4 id="elimination-title">ÄÃ£ loáº¡i nghi pháº¡m!</h4>
+            <p id="elimination-desc">Äáº¡t trÃªn 50% sá»‘ phiáº¿u báº§u.</p>
+          </div>
+        </div>
+
+        <!-- Interactive Suspect Voting Grid -->
+        <div id="online-voting-candidates-grid" class="online-suspects-grid">
+          <!-- Dynamically rendered suspect cards -->
+        </div>
+
+        <!-- Vote Confirmation Controls -->
+        <div class="online-vote-action-footer">
+          <div id="online-my-vote-status" class="vote-status-indicator">
+            ChÆ°a chá»n nghi pháº¡m
+          </div>
+          <div style="display: flex; gap: 8px; width: 100%;">
+            <button id="btn-online-cast-vote" class="primary-cta-btn" style="flex: 2; background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); min-height: 48px;" disabled type="button">
+              <span>ðŸ—³ï¸</span> <span id="label-cast-vote">XÃ¡c Nháº­n Bá» Phiáº¿u</span>
+            </button>
+            <button id="btn-online-skip-vote" class="secondary-btn" style="flex: 1; min-height: 48px;" type="button">
+              <span>âšª</span> <span>Bá» phiáº¿u tráº¯ng</span>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -1995,6 +2266,10 @@
   <script src="js/data_categories.js?v=1.5"></script>
   <script src="js/api_client.js?v=1.5"></script>
 
+  <!-- Socket.IO Realtime Client Library -->
+  <script src="/socket.io/socket.io.js" onerror="this.onerror=null;this.src='https://cdn.socket.io/4.7.5/socket.io.min.js';"></script>
+  <!-- Online Multiplayer Controller -->
+  <script src="js/online_controller.js?v=1.5"></script>
   <!-- App Main Controller -->
   <script src="js/app.js?v=1.5"></script>
 

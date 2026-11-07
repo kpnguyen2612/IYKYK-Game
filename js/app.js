@@ -4480,44 +4480,32 @@ class ImposterGame {
       this.gameMode = 'pass';
       document.getElementById('mode-tab-pass').classList.add('active');
       document.getElementById('mode-tab-online')?.classList.remove('active');
+      const passContainer = document.getElementById('pass-settings-container');
+      const onlineHub = document.getElementById('online-hub-container');
+      if (passContainer) passContainer.style.display = 'block';
+      if (onlineHub) onlineHub.style.display = 'none';
       document.getElementById('online-lobby-banner').style.display = 'none';
       document.getElementById('online-coming-soon-bubble')?.classList.remove('show');
     });
 
     const onlineBtn = document.getElementById('mode-tab-online');
-    const bubble = document.getElementById('online-coming-soon-bubble');
-    let onlineBubbleTimeout = null;
-
     onlineBtn?.addEventListener('click', (e) => {
       e.preventDefault();
-      e.stopPropagation();
       if (typeof sound !== 'undefined') {
         sound.playToggle();
         sound.vibrate(35);
       }
+      this.gameMode = 'online';
+      document.getElementById('mode-tab-online')?.classList.add('active');
+      document.getElementById('mode-tab-pass')?.classList.remove('active');
+      const passContainer = document.getElementById('pass-settings-container');
+      const onlineHub = document.getElementById('online-hub-container');
+      if (passContainer) passContainer.style.display = 'none';
+      if (onlineHub) onlineHub.style.display = 'block';
+      document.getElementById('online-coming-soon-bubble')?.classList.remove('show');
 
-      // Add a subtle tactile wiggle animation
-      onlineBtn.classList.remove('shake-subtle');
-      void onlineBtn.offsetWidth;
-      onlineBtn.classList.add('shake-subtle');
-
-      // Pop the Coming Soon speech bubble
-      if (bubble) {
-        bubble.classList.remove('show');
-        void bubble.offsetWidth;
-        bubble.classList.add('show');
-
-        clearTimeout(onlineBubbleTimeout);
-        onlineBubbleTimeout = setTimeout(() => {
-          bubble.classList.remove('show');
-        }, 2500);
-      }
-    });
-
-    // Dismiss bubble on outside tap
-    document.addEventListener('click', (e) => {
-      if (bubble && !onlineBtn?.contains(e.target) && !bubble.contains(e.target)) {
-        bubble.classList.remove('show');
+      if (window.onlineController) {
+        window.onlineController.connectSocket();
       }
     });
 
