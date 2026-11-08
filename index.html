@@ -2564,6 +2564,43 @@
     </div>
   </div>
 
+  <!-- Modal: Online Confirmation Dialog (Leave Room, Reset Scores, Kick Player) -->
+  <div id="modal-online-confirm" class="modal-overlay" style="z-index: 290;">
+    <div class="bottom-sheet-content online-confirm-dialog" style="max-width: 440px; text-align: center; padding: 26px 20px;">
+      <div class="sheet-drag-handle"></div>
+      
+      <!-- Icon with glowing pulse ring -->
+      <div class="confirm-icon-outer">
+        <div id="online-confirm-icon-box" class="confirm-icon-inner danger">
+          <span id="online-confirm-icon">🚪</span>
+        </div>
+      </div>
+
+      <h3 id="online-confirm-title" class="online-confirm-title">
+        Xác nhận rời phòng đấu?
+      </h3>
+      
+      <p id="online-confirm-desc" class="online-confirm-desc">
+        Bạn có chắc muốn rời phòng? Nếu tất cả người chơi rời đi, điểm số và phòng sẽ tự động xóa sạch.
+      </p>
+
+      <div id="online-confirm-warning-box" class="online-confirm-warning-note">
+        <span class="warning-icon">🛡️</span>
+        <span id="online-confirm-warning-text">Điểm số và vị trí của bạn trong ván đấu sẽ không được lưu nếu bạn rời đi.</span>
+      </div>
+
+      <div class="online-confirm-actions">
+        <button type="button" id="btn-online-confirm-cancel" class="btn-confirm-cancel">
+          Ở lại
+        </button>
+        <button type="button" id="btn-online-confirm-accept" class="btn-confirm-accept">
+          <span id="online-confirm-btn-icon">🚪</span>
+          <span id="online-confirm-btn-text">Rời phòng</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Donate & Support Project (Clean QR Without Any Logo) -->
   <div id="modal-donate" class="modal-overlay" style="z-index: 280;">
     <div class="bottom-sheet-content donate-sheet-content">

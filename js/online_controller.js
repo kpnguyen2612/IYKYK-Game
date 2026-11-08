@@ -19,6 +19,7 @@ class OnlineGameController {
     this._connectedUrl = null;
     this.inviteRoomCode = null;
     this.selectedInviteAvatar = 'INITIALS';
+    this._pendingConfirmCallback = null;
   }
 
   get serverUrl() {
@@ -367,17 +368,28 @@ class OnlineGameController {
 
     // Leave Room (Xoá toàn bộ điểm nếu không còn ai)
     const handleLeaveRoom = () => {
-      if (!confirm('Bạn có chắc muốn rời phòng? Nếu tất cả người chơi rời đi, điểm số và phòng sẽ tự động xóa sạch.')) return;
-      if (this.socket && this.socket.connected) {
-        this.socket.emit('room:leave', { roomCode: this.roomCode, playerId: this.myPlayerId });
-      } else if (this.roomCode) {
-        this.safeFetchJson(`${this.serverUrl}/api/v1/rooms/leave`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ roomCode: this.roomCode, playerId: this.myPlayerId })
-        }).catch(() => {});
-      }
-      this.handleLeaveRoomCleanup();
+      this.showConfirmDialog({
+        icon: '🚪',
+        type: 'danger',
+        title: 'Xác nhận rời phòng đấu?',
+        desc: `Bạn có chắc muốn rời phòng <strong style="color: #60a5fa;">${this.roomCode || ''}</strong>? Nếu tất cả người chơi rời đi, điểm số và phòng sẽ tự động xóa sạch.`,
+        warningText: 'Điểm số và vị trí của bạn trong ván đấu sẽ không được lưu nếu bạn rời đi.',
+        btnText: 'Rời phòng',
+        btnIcon: '🚪',
+        cancelText: 'Ở lại chơi tiếp',
+        onConfirm: () => {
+          if (this.socket && this.socket.connected) {
+            this.socket.emit('room:leave', { roomCode: this.roomCode, playerId: this.myPlayerId });
+          } else if (this.roomCode) {
+            this.safeFetchJson(`${this.serverUrl}/api/v1/rooms/leave`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ roomCode: this.roomCode, playerId: this.myPlayerId })
+            }).catch(() => {});
+          }
+          this.handleLeaveRoomCleanup();
+        }
+      });
     };
 
     document.getElementById('btn-header-leave-online')?.addEventListener('click', handleLeaveRoom);
@@ -386,17 +398,28 @@ class OnlineGameController {
 
     // Host Reset Scores
     const handleResetScores = () => {
-      if (!confirm('Bạn có chắc muốn đặt lại điểm của tất cả người chơi trong phòng về 0?')) return;
-      if (this.socket && this.socket.connected) {
-        this.socket.emit('room:reset_scores', { roomCode: this.roomCode, playerId: this.myPlayerId });
-      } else {
-        this.safeFetchJson(`${this.serverUrl}/api/v1/rooms/reset_scores`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ roomCode: this.roomCode, playerId: this.myPlayerId })
-        }).catch(err => alert('Lỗi: ' + err.message));
-      }
-      this.showToast('🔄 Đã đặt lại điểm số cả phòng về 0', 'info');
+      this.showConfirmDialog({
+        icon: '🔄',
+        type: 'warning',
+        title: 'Đặt lại điểm số phòng?',
+        desc: 'Toàn bộ điểm tích lũy của tất cả người chơi trong phòng sẽ được đưa về <strong style="color: #f59e0b;">0đ</strong> để bắt đầu chuỗi ván mới.',
+        warningText: 'Thao tác này chỉ có thể thực hiện bởi Chủ phòng và không thể hoàn tác.',
+        btnText: 'Đặt lại về 0',
+        btnIcon: '🔄',
+        cancelText: 'Hủy bỏ',
+        onConfirm: () => {
+          if (this.socket && this.socket.connected) {
+            this.socket.emit('room:reset_scores', { roomCode: this.roomCode, playerId: this.myPlayerId });
+          } else {
+            this.safeFetchJson(`${this.serverUrl}/api/v1/rooms/reset_scores`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ roomCode: this.roomCode, playerId: this.myPlayerId })
+            }).catch(err => alert('Lỗi: ' + err.message));
+          }
+          this.showToast('🔄 Đã đặt lại điểm số cả phòng về 0', 'info');
+        }
+      });
     };
 
     document.getElementById('btn-lobby-reset-scores')?.addEventListener('click', handleResetScores);
@@ -511,6 +534,89 @@ class OnlineGameController {
       this.handleInviteJoinSubmit();
       if (typeof sound !== 'undefined') sound.playConfirm?.();
     });
+
+    // In-App Confirm Modal Actions
+    document.getElementById('btn-online-confirm-accept')?.addEventListener('click', () => {
+      const cb = this._pendingConfirmCallback;
+      this.closeConfirmDialog();
+      if (typeof cb === 'function') cb();
+      if (typeof sound !== 'undefined') sound.playClick();
+    });
+
+    document.getElementById('btn-online-confirm-cancel')?.addEventListener('click', () => {
+      this.closeConfirmDialog();
+      if (typeof sound !== 'undefined') sound.playClick();
+    });
+
+    document.getElementById('modal-online-confirm')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-online-confirm') {
+        this.closeConfirmDialog();
+      }
+    });
+  }
+
+  showConfirmDialog({
+    icon = '🚪',
+    type = 'danger',
+    title = 'Xác nhận?',
+    desc = '',
+    warningText = '',
+    btnText = 'Xác nhận',
+    btnIcon = '✓',
+    cancelText = 'Hủy bỏ',
+    onConfirm = () => {}
+  }) {
+    const modal = document.getElementById('modal-online-confirm');
+    if (!modal) return;
+
+    const iconEl = document.getElementById('online-confirm-icon');
+    const iconBox = document.getElementById('online-confirm-icon-box');
+    const titleEl = document.getElementById('online-confirm-title');
+    const descEl = document.getElementById('online-confirm-desc');
+    const warnBox = document.getElementById('online-confirm-warning-box');
+    const warnTextEl = document.getElementById('online-confirm-warning-text');
+    const btnAccept = document.getElementById('btn-online-confirm-accept');
+    const btnCancel = document.getElementById('btn-online-confirm-cancel');
+    const btnTextEl = document.getElementById('online-confirm-btn-text');
+    const btnIconEl = document.getElementById('online-confirm-btn-icon');
+
+    if (iconEl) iconEl.textContent = icon;
+    if (iconBox) iconBox.className = `confirm-icon-inner ${type}`;
+    if (titleEl) titleEl.textContent = title;
+    if (descEl) descEl.innerHTML = desc;
+
+    if (warnBox && warnTextEl) {
+      if (warningText) {
+        warnBox.style.display = 'flex';
+        warnTextEl.textContent = warningText;
+      } else {
+        warnBox.style.display = 'none';
+      }
+    }
+
+    if (btnTextEl) btnTextEl.textContent = btnText;
+    if (btnIconEl) btnIconEl.textContent = btnIcon;
+    if (btnCancel) btnCancel.textContent = cancelText;
+
+    if (btnAccept) {
+      if (type === 'warning') {
+        btnAccept.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+        btnAccept.style.boxShadow = '0 4px 18px rgba(245, 158, 11, 0.45)';
+      } else {
+        btnAccept.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        btnAccept.style.boxShadow = '0 4px 18px rgba(239, 68, 68, 0.45)';
+      }
+    }
+
+    this._pendingConfirmCallback = onConfirm;
+    modal.classList.add('open');
+    if (typeof sound !== 'undefined') sound.playWarning?.();
+  }
+
+  closeConfirmDialog() {
+    const modal = document.getElementById('modal-online-confirm');
+    if (modal) modal.classList.remove('open');
+    this._pendingConfirmCallback = null;
   }
 
   handleLeaveRoomCleanup() {
@@ -1240,40 +1346,50 @@ class OnlineGameController {
   }
 
   handleKickPlayer(targetPlayerId, targetPlayerName) {
-    if (!confirm(`Bạn có chắc muốn mời ${targetPlayerName} ra khỏi phòng đấu?`)) return;
-
-    if (this.socket && this.socket.connected) {
-      this.socket.emit('room:kick', {
-        roomCode: this.roomCode,
-        hostPlayerId: this.myPlayerId,
-        targetPlayerId
-      }, (res) => {
-        if (res && res.success) {
-          this.showToast(`👢 Đã mời ${targetPlayerName} ra khỏi phòng`, 'info');
+    this.showConfirmDialog({
+      icon: '👢',
+      type: 'danger',
+      title: 'Mời người chơi ra khỏi phòng?',
+      desc: `Bạn có chắc muốn mời <strong style="color: #ffffff;">${targetPlayerName}</strong> ra khỏi bàn đấu?`,
+      warningText: 'Người chơi này sẽ bị ngắt kết nối và loại khỏi danh sách ghế ngồi trong bàn.',
+      btnText: 'Mời ra ngoài',
+      btnIcon: '👢',
+      cancelText: 'Giữ lại',
+      onConfirm: () => {
+        if (this.socket && this.socket.connected) {
+          this.socket.emit('room:kick', {
+            roomCode: this.roomCode,
+            hostPlayerId: this.myPlayerId,
+            targetPlayerId
+          }, (res) => {
+            if (res && res.success) {
+              this.showToast(`👢 Đã mời ${targetPlayerName} ra khỏi phòng`, 'info');
+            } else {
+              alert(res?.message || 'Không thể kick người chơi');
+            }
+          });
         } else {
-          alert(res?.message || 'Không thể kick người chơi');
+          this.safeFetchJson(`${this.serverUrl}/api/v1/rooms/kick`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              roomCode: this.roomCode,
+              hostPlayerId: this.myPlayerId,
+              targetPlayerId
+            })
+          })
+          .then(res => {
+            if (res.success) {
+              this.showToast(`👢 Đã mời ${targetPlayerName} ra khỏi phòng`, 'info');
+              this.startPollingRoomState();
+            } else {
+              alert(res.message || 'Không thể kick người chơi');
+            }
+          })
+          .catch(err => alert('Lỗi: ' + err.message));
         }
-      });
-    } else {
-      this.safeFetchJson(`${this.serverUrl}/api/v1/rooms/kick`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          roomCode: this.roomCode,
-          hostPlayerId: this.myPlayerId,
-          targetPlayerId
-        })
-      })
-      .then(res => {
-        if (res.success) {
-          this.showToast(`👢 Đã mời ${targetPlayerName} ra khỏi phòng`, 'info');
-          this.startPollingRoomState();
-        } else {
-          alert(res.message || 'Không thể kick người chơi');
-        }
-      })
-      .catch(err => alert('Lỗi: ' + err.message));
-    }
+      }
+    });
   }
 
   renderVotingState(state) {
