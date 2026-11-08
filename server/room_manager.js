@@ -89,7 +89,7 @@ class RoomManager {
     return { room, player: hostPlayer };
   }
 
-  joinRoom(roomCode, socketId, playerName) {
+  joinRoom(roomCode, socketId, playerName, customAvatar = null) {
     const cleanCode = (roomCode || '').trim().toUpperCase();
     const room = this.rooms.get(cleanCode);
     if (!room) {
@@ -106,7 +106,7 @@ class RoomManager {
 
     const playerId = 'p_' + Math.random().toString(36).substring(2, 9);
     const avatars = ['🦊', '🐼', '🐯', '🦁', '🐸', '🐵', '🦄', '🐙', '🐨', '🦉', '🐺', '🐰'];
-    const chosenAvatar = avatars[room.players.size % avatars.length];
+    const chosenAvatar = customAvatar || avatars[room.players.size % avatars.length];
 
     const player = {
       id: playerId,

@@ -330,9 +330,9 @@ io.on('connection', (socket) => {
   });
 
   // 2. Join Room
-  socket.on('room:join', ({ roomCode, playerName }, callback) => {
+  socket.on('room:join', ({ roomCode, playerName, avatar }, callback) => {
     try {
-      const result = roomManager.joinRoom(roomCode, socket.id, playerName);
+      const result = roomManager.joinRoom(roomCode, socket.id, playerName, avatar);
       if (!result.success) {
         if (typeof callback === 'function') callback(result);
         return;
@@ -559,8 +559,8 @@ app.post('/api/v1/rooms/create', (req, res) => {
 // POST /api/v1/rooms/join - Join room via REST
 app.post('/api/v1/rooms/join', (req, res) => {
   try {
-    const { roomCode, playerName } = req.body || {};
-    const result = roomManager.joinRoom(roomCode, null, playerName);
+    const { roomCode, playerName, avatar } = req.body || {};
+    const result = roomManager.joinRoom(roomCode, null, playerName, avatar);
     if (!result.success) return res.status(400).json(result);
     broadcastRoomState(result.room.code);
     res.json({ success: true, roomCode: result.room.code, playerId: result.player.id, player: result.player });

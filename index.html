@@ -1210,6 +1210,138 @@
 
 
       <!-- ==========================================
+           SCREEN: DEDICATED INVITE LANDING SCREEN
+           Shown when opening ?room=CODE from share link or QR code
+           ========================================== -->
+      <section id="screen-online-join-invite" class="view-screen">
+        <!-- Top Return Bar -->
+        <div class="invite-top-bar">
+          <button id="btn-invite-back-home" class="btn-invite-return" type="button">
+            <span class="btn-back-arrow">←</span> <span>Trang chủ</span>
+          </button>
+          <span class="hero-badge" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3);">
+            🎮 Lời Mời Vào Bàn
+          </span>
+        </div>
+
+        <!-- Invite Card Container -->
+        <div class="invite-card-container">
+          <!-- Room Overview Hero Box -->
+          <div class="invite-hero-banner">
+            <div class="invite-brand-tag">
+              <span class="pulse-indicator"></span>
+              <span>PHÒNG ĐẤU TRỰC TUYẾN</span>
+            </div>
+            
+            <h2 class="invite-main-title">Bạn được mời tham gia!</h2>
+            
+            <!-- Room Code Badge with Copy -->
+            <div class="invite-code-card">
+              <div class="invite-code-label">MÃ PHÒNG</div>
+              <div class="invite-code-display">
+                <span id="invite-display-room-code" class="invite-code-text">------</span>
+                <button type="button" id="btn-invite-copy-code" class="btn-copy-pill" title="Sao chép mã phòng">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Chép</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Host Spotlight & Room Info -->
+            <div class="invite-host-spotlight">
+              <div class="invite-host-avatar-wrap">
+                <div class="host-floating-crown-mini">👑</div>
+                <div id="invite-host-avatar" class="invite-host-avatar-circle">CP</div>
+              </div>
+              <div class="invite-host-meta">
+                <div class="invite-host-name-row">
+                  <strong id="invite-host-name">Chủ phòng</strong>
+                  <span class="host-role-badge">Chủ phòng</span>
+                </div>
+                <div class="invite-host-sub" id="invite-host-sub">đang đợi bạn vào bàn để cùng tranh tài!</div>
+              </div>
+            </div>
+
+            <!-- Room Parameters Quick Pills -->
+            <div class="invite-room-pills">
+              <div class="invite-param-pill">
+                <span class="param-icon">👥</span>
+                <span id="invite-param-players">1/12 người</span>
+              </div>
+              <div class="invite-param-pill">
+                <span class="param-icon">⏱️</span>
+                <span id="invite-param-timer">30s / lượt</span>
+              </div>
+              <div class="invite-param-pill">
+                <span class="param-icon">🎭</span>
+                <span id="invite-param-imposter">1 Imposter</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Player Setup Card -->
+          <div class="invite-setup-card">
+            <div class="setup-card-header">
+              <span class="setup-icon">👤</span>
+              <div>
+                <h3 class="setup-title">Hồ sơ tham gia của bạn</h3>
+                <p class="setup-subtitle">Chọn tên và biểu tượng để bạn bè nhận ra bạn trong bàn</p>
+              </div>
+            </div>
+
+            <!-- Avatar Preview & Quick Selector -->
+            <div class="invite-avatar-setup-row">
+              <div id="invite-my-avatar-preview" class="invite-avatar-large-circle" title="Biểu tượng đại diện của bạn">
+                NC
+              </div>
+              
+              <div class="invite-avatar-picker-wrap">
+                <div class="picker-label">Biểu tượng nhanh:</div>
+                <div class="avatar-emojis-row" id="invite-avatar-emojis">
+                  <button type="button" class="avatar-emoji-chip active" data-avatar="INITIALS" title="Chữ cái viết tắt">🔤</button>
+                  <button type="button" class="avatar-emoji-chip" data-avatar="😎" title="Ngầu">😎</button>
+                  <button type="button" class="avatar-emoji-chip" data-avatar="🦊" title="Cáo">🦊</button>
+                  <button type="button" class="avatar-emoji-chip" data-avatar="🐼" title="Gấu">🐼</button>
+                  <button type="button" class="avatar-emoji-chip" data-avatar="⚡" title="Tia chớp">⚡</button>
+                  <button type="button" class="avatar-emoji-chip" data-avatar="🌸" title="Hoa">🌸</button>
+                  <button type="button" class="avatar-emoji-chip" data-avatar="🚀" title="Tên lửa">🚀</button>
+                  <button type="button" class="avatar-emoji-chip" data-avatar="🔥" title="Lửa">🔥</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Player Name Input with Randomizer -->
+            <div class="invite-name-input-group">
+              <label for="input-invite-player-name" class="invite-name-label">Tên hiển thị của bạn:</label>
+              <div class="invite-name-input-row">
+                <input type="text" id="input-invite-player-name" class="invite-name-input" placeholder="Nhập tên hoặc biệt danh..." maxlength="20" autocomplete="off" />
+                <button type="button" id="btn-invite-random-name" class="btn-dice-random" title="Đổi tên ngẫu nhiên vui nhộn">
+                  <span>🎲</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Join CTA Action -->
+            <button type="button" id="btn-confirm-join-invite" class="primary-cta-btn btn-invite-join">
+              <span class="btn-join-icon">🚀</span>
+              <span id="label-btn-invite-join" class="btn-join-text">Vào Bàn Đấu Ngay</span>
+            </button>
+          </div>
+
+          <!-- Alternative: Change Room Code -->
+          <div class="invite-footer-actions">
+            <button type="button" id="btn-invite-switch-code" class="btn-text-link">
+              <span>🔑</span> <span>Muốn nhập mã phòng khác?</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ==========================================
            SCREEN 9: ONLINE MULTIPLAYER LOBBY
            ========================================== -->
       <section id="screen-online-lobby" class="view-screen">
