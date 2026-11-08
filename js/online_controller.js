@@ -1279,6 +1279,13 @@ class OnlineGameController {
 
         cardsHtml += `
           <div class="online-player-card ${isSelf ? 'my-card' : ''} ${pIsHost ? 'host-card' : ''}">
+            ${canKick ? `
+              <button class="btn-card-kick-corner" data-player-id="${p.id}" data-player-name="${p.name}" type="button" title="Mời ${p.name} rời phòng" aria-label="Mời ${p.name} rời phòng">
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                  <path d="M2 2l8 8M10 2l-8 8"/>
+                </svg>
+              </button>
+            ` : ''}
             <div class="card-avatar-wrap">
               ${pIsHost ? crownSvg : ''}
               <div class="card-avatar-circle ${pIsHost ? 'host-avatar' : 'guest-avatar'}">
@@ -1294,13 +1301,8 @@ class OnlineGameController {
             <div class="card-role-wrap">
               ${pIsHost 
                 ? '<span class="role-badge-host">★ CHỦ PHÒNG</span>' 
-                : '<span class="role-badge-ready">✓ SẴN SÀNG</span>'}
+                : '<span class="role-badge-member">THÀNH VIÊN</span>'}
             </div>
-            ${canKick ? `
-              <button class="btn-card-kick" data-player-id="${p.id}" data-player-name="${p.name}" type="button" title="Mời người chơi này ra khỏi phòng">
-                <span>👢 Kick</span>
-              </button>
-            ` : ''}
           </div>
         `;
       });
@@ -1329,8 +1331,8 @@ class OnlineGameController {
         });
       });
 
-      // Kick buttons
-      grid.querySelectorAll('.btn-card-kick').forEach(btn => {
+      // Kick buttons (corner ✕)
+      grid.querySelectorAll('.btn-card-kick-corner, .btn-card-kick').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           const targetId = btn.getAttribute('data-player-id');
