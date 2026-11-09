@@ -22,7 +22,7 @@ const I18N = {
     setting_imposters: "Kẻ Giả Mạo",
     setting_imposters_desc: "Số lượng Imposter trong ván",
     setting_roles: "Tất cả vai trò",
-    setting_roles_desc: "7 vai trò cốt lõi & tự tạo",
+    setting_roles_desc: "10 vai trò cốt lõi & tự tạo",
     setting_category: "Chủ đề từ khóa",
     setting_hints: "Gợi ý cho Imposter",
     setting_hints_desc: "Cung cấp manh mối cho kẻ giả mạo",
@@ -146,7 +146,9 @@ class ImposterGame {
     this.doctorShieldedPlayerId = null;
     this.doctorShieldedPlayerIds = new Set();
     this.doctorSuccessfulSaves = new Set();
+    this.doctorSuccessfulSavesCount = {};
     this.detectivesExposedImposter = new Set();
+    this.detectivesExposedCount = {};
     this.roundUsedAbilities = new Set();
     this.firstEliminatedPlayer = null;
     this.allEliminatedPlayers = [];
@@ -580,15 +582,15 @@ class ImposterGame {
       activeSpecialRoles = fixedRolesList;
     } else {
       if (players <= 4) {
-        activeSpecialRoles = ['spy'];
+        activeSpecialRoles = ['spy', 'detective'];
       } else if (players <= 7) {
-        activeSpecialRoles = ['spy', 'jester'];
+        activeSpecialRoles = ['spy', 'detective', 'doctor', 'jester'];
       } else if (players <= 11) {
-        activeSpecialRoles = ['spy', 'jester', 'traitor'];
+        activeSpecialRoles = ['spy', 'detective', 'doctor', 'jester', 'traitor', 'mayor'];
       } else if (players <= 15) {
-        activeSpecialRoles = ['spy', 'jester', 'traitor', 'drunkard'];
+        activeSpecialRoles = ['spy', 'detective', 'doctor', 'jester', 'traitor', 'mayor', 'drunkard'];
       } else {
-        activeSpecialRoles = ['spy', 'jester', 'traitor', 'drunkard', 'double_agent'];
+        activeSpecialRoles = ['spy', 'detective', 'doctor', 'jester', 'traitor', 'mayor', 'drunkard', 'double_agent'];
       }
     }
 
@@ -872,6 +874,11 @@ class ImposterGame {
     const filterFixedCountEl = document.getElementById('filter-fixed-count');
     if (filterFixedCountEl) {
       filterFixedCountEl.textContent = Object.keys(this.fixedRoles || {}).length;
+    }
+
+    const filterAllBtn = document.querySelector('.role-filter-scroll .filter-chip[data-filter="all"]');
+    if (filterAllBtn) {
+      filterAllBtn.textContent = `Tất cả (${this.roles.length})`;
     }
 
     const filtered = this.roles.filter(r => {
@@ -1346,8 +1353,10 @@ class ImposterGame {
     this.doctorShieldedPlayerIds = new Set();
     this.doctorShieldHistory = [];
     this.doctorSuccessfulSaves = new Set();
+    this.doctorSuccessfulSavesCount = {};
     this.roundUsedAbilities = new Set();
     this.detectivesExposedImposter = new Set();
+    this.detectivesExposedCount = {};
     this.witchSavedPlayerId = null;
     this.witchUsedSavePotion = false;
     this.witchUsedPoisonPotion = false;
@@ -2296,6 +2305,12 @@ class ImposterGame {
     const roundPill = document.getElementById('round-stage-pill');
     if (roundPill) roundPill.textContent = `${'Vòng'} ${this.roundNumber}`;
 
+    const toolboxBtn = document.getElementById('btn-open-ability-toolbox');
+    if (toolboxBtn) {
+      const hasAbilities = this.players.some(p => !p.isEliminated && ['spy', 'detective', 'doctor'].includes(p.role?.id));
+      toolboxBtn.style.display = hasAbilities ? 'inline-flex' : 'none';
+    }
+
     if (this.players[this.currentSpeakerIndex]?.isEliminated) {
       const living = this.players.find(p => !p.isEliminated);
       if (living) this.currentSpeakerIndex = this.players.indexOf(living);
@@ -2453,7 +2468,11 @@ class ImposterGame {
       if (this.doctorShieldedPlayerIds) this.doctorShieldedPlayerIds.delete(suspect.id);
       this.doctorShieldedPlayerId = null;
       if (!this.doctorSuccessfulSaves) this.doctorSuccessfulSaves = new Set();
-      this.players.filter(p => p.role && p.role.id === 'doctor' && !p.isEliminated).forEach(d => this.doctorSuccessfulSaves.add(d.id));
+      this.doctorSuccessfulSavesCount = this.doctorSuccessfulSavesCount || {};
+      this.players.filter(p => p.role && p.role.id === 'doctor' && !p.isEliminated).forEach(d => {
+        this.doctorSuccessfulSaves.add(d.id);
+        this.doctorSuccessfulSavesCount[d.id] = (this.doctorSuccessfulSavesCount[d.id] || 0) + 1;
+      });
 
       this.showActionNotice({
         icon: '💉',
@@ -3234,13 +3253,18 @@ class ImposterGame {
         }
 
         // F. Thưởng Kỹ Năng Hành Động (Action Bonuses cho Thám Tử, Bác Sĩ khi được kích hoạt)
-        if (this.detectivesExposedImposter && this.detectivesExposedImposter.has(p.id)) {
-          delta += 5;
-          reasons.push('Soi trúng Kẻ Giả Mạo (+5đ)');
+        const exposedCount = (this.detectivesExposedCount && this.detectivesExposedCount[p.id]) || (this.detectivesExposedImposter && this.detectivesExposedImposter.has(p.id) ? 1 : 0);
+        if (exposedCount > 0) {
+          const bonus = exposedCount * 5;
+          delta += bonus;
+          reasons.push(`Soi trúng Phe Ác (${exposedCount > 1 ? exposedCount + ' lần, ' : ''}+${bonus}đ)`);
         }
-        if (this.doctorSuccessfulSaves && this.doctorSuccessfulSaves.has(p.id)) {
-          delta += 10;
-          reasons.push('Lá chắn cứu sống đồng đội (+10đ)');
+
+        const saveCount = (this.doctorSuccessfulSavesCount && this.doctorSuccessfulSavesCount[p.id]) || (this.doctorSuccessfulSaves && this.doctorSuccessfulSaves.has(p.id) ? 1 : 0);
+        if (saveCount > 0) {
+          const bonus = saveCount * 10;
+          delta += bonus;
+          reasons.push(`Lá chắn cứu sống đồng đội (${saveCount > 1 ? saveCount + ' lần, ' : ''}+${bonus}đ)`);
         }
       }
 
@@ -4165,6 +4189,8 @@ class ImposterGame {
         if (isEvil) {
           if (!this.detectivesExposedImposter) this.detectivesExposedImposter = new Set();
           this.detectivesExposedImposter.add(detective.id);
+          this.detectivesExposedCount = this.detectivesExposedCount || {};
+          this.detectivesExposedCount[detective.id] = (this.detectivesExposedCount[detective.id] || 0) + 1;
         }
 
         this.roundUsedAbilities.add(detective.id);

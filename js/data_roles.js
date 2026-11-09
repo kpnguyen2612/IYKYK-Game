@@ -116,15 +116,7 @@ const DEFAULT_ROLES = [
     defaultCount: 1,
     enabled: true,
     isDefault: true
-  }
-];
-
-// ==========================================================
-// VAI TRÒ DỰ BỊ / CHƯA PUBLIC LÊN APP (UPCOMING ROLES)
-// Đã xây dựng hoàn thiện cấu trúc dữ liệu, kỹ năng & thông số
-// Sẵn sàng kích hoạt vào DEFAULT_ROLES bất kỳ khi nào muốn public!
-// ==========================================================
-const UPCOMING_ROLES = [
+  },
   {
     id: "detective",
     name_vi: "Thám Tử",
@@ -138,8 +130,8 @@ const UPCOMING_ROLES = [
     getsHint: false,
     maxCount: 2,
     defaultCount: 1,
-    enabled: false,
-    isPublic: false
+    enabled: true,
+    isDefault: true
   },
   {
     id: "doctor",
@@ -154,8 +146,8 @@ const UPCOMING_ROLES = [
     getsHint: false,
     maxCount: 2,
     defaultCount: 1,
-    enabled: false,
-    isPublic: false
+    enabled: true,
+    isDefault: true
   },
   {
     id: "mayor",
@@ -170,10 +162,15 @@ const UPCOMING_ROLES = [
     getsHint: false,
     maxCount: 1,
     defaultCount: 1,
-    enabled: false,
-    isPublic: false
+    enabled: true,
+    isDefault: true
   }
 ];
+
+// ==========================================================
+// VAI TRÒ DỰ BỊ / CHƯA PUBLIC LÊN APP (UPCOMING ROLES)
+// ==========================================================
+const UPCOMING_ROLES = [];
 
 if (typeof window !== "undefined") {
   window.DEFAULT_ROLES = DEFAULT_ROLES;

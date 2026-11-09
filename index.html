@@ -274,7 +274,7 @@
               <div class="setting-icon-box" style="color: #8b5cf6; background: rgba(139, 92, 246, 0.12);">🎴</div>
               <div class="setting-texts">
                 <h4 data-i18n="setting_roles">Tất cả vai trò</h4>
-                <p id="label-roles-preview" data-i18n="setting_roles_desc">7 vai trò cốt lõi & tự tạo</p>
+                <p id="label-roles-preview" data-i18n="setting_roles_desc">10 vai trò cốt lõi & tự tạo</p>
               </div>
             </div>
             <div class="setting-action-right">
@@ -529,7 +529,7 @@
 
         <!-- Filter Chips -->
         <div class="role-filter-scroll">
-          <button class="filter-chip active" data-filter="all" data-i18n="filter_all">Tất cả (7)</button>
+          <button class="filter-chip active" data-filter="all" data-i18n="filter_all">Tất cả (10)</button>
           <button class="filter-chip" data-filter="fixed" style="border-color: rgba(16, 185, 129, 0.4); color: #10b981;">📌 Cố định (<span id="filter-fixed-count">0</span>)</button>
           <button class="filter-chip" data-filter="good" data-i18n="filter_good">Phe Dân</button>
           <button class="filter-chip" data-filter="evil" data-i18n="filter_evil">Phe Ác</button>
@@ -2439,6 +2439,18 @@
               <tr>
                 <td>🎭 <strong>Điệp Viên Hai Mang (Double Agent)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Biết ai là Imposter, thắng nếu Imposter sống sót hoặc là người sống cuối</span></td>
                 <td><span class="pts-plus">+15 điểm</span> (Thắng)<br><span class="pts-minus">-5 điểm</span> (Thất bại)</td>
+              </tr>
+              <tr>
+                <td>🔍 <strong>Thám Tử (Detective - Phe Dân)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Mỗi vòng soi danh tính 1 người qua Hộp Công Cụ. Soi trúng phe Ác được thưởng ngay điểm.</span></td>
+                <td><span class="pts-plus">+5 điểm / lần</span> (Soi trúng Phe Ác)<br><span class="pts-plus">+10 điểm</span> (Dân thắng ván)<br><span class="pts-minus">-5 điểm</span> (Thua ván)</td>
+              </tr>
+              <tr>
+                <td>💉 <strong>Bác Sĩ (Doctor - Phe Dân)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Mỗi vòng đặt Lá Chắn Bảo Hộ cho 1 người qua Hộp Công Cụ. Nếu người đó bị vote loại, án tử bị vô hiệu hóa!</span></td>
+                <td><span class="pts-plus">+10 điểm / lần</span> (Cứu sống thành công)<br><span class="pts-plus">+10 điểm</span> (Dân thắng ván)<br><span class="pts-minus">-5 điểm</span> (Thua ván)</td>
+              </tr>
+              <tr>
+                <td>👑 <strong>Thị Trưởng (Mayor - Phe Dân)</strong><br><span style="font-size: 10px; color: var(--text-muted);">Nhà lãnh đạo có lá phiếu biểu quyết mang trọng số x2 khi bỏ phiếu trục xuất nghi phạm.</span></td>
+                <td><span class="pts-plus">+10 điểm</span> (Dân thắng ván)<br><span class="pts-minus">-5 điểm</span> (Thua ván)</td>
               </tr>
             </tbody>
           </table>
