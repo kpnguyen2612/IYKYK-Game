@@ -16,6 +16,10 @@ stitch_exports/
 stitch_tools.json
 stitch_result.json
 test_stitch.mjs
+list_screens*.json
+*test*.*
+test_*
+scratch/
 
 # Activity, History & Private Change Logs
 docs/CHANGELOG.md
