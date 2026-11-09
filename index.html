@@ -2274,11 +2274,24 @@
     <div class="bottom-sheet-content">
       <div class="sheet-drag-handle"></div>
       <div class="sheet-header">
-        <h3 class="sheet-title" data-i18n="modal_rules_title">📜 Luật Chơi Sâu Sắc & Hệ Thống Điểm</h3>
+        <h3 class="sheet-title" data-i18n="modal_rules_title">📜 Luật Chơi & Điểm Số</h3>
         <button class="close-sheet-btn" id="btn-close-rules">✕</button>
       </div>
 
-      <div class="rules-scroll-body" style="max-height: 65vh; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 14px;">
+      <!-- Rules Mode Tabs (Offline vs Online) -->
+      <div class="rules-mode-tabs" style="display: flex; gap: 6px; background: rgba(255, 255, 255, 0.05); padding: 4px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin: 6px 0 12px;">
+        <button id="tab-rules-offline" class="rules-tab-btn active" type="button" style="flex: 1; padding: 8px 10px; font-size: 12px; font-weight: 700; border-radius: var(--radius-sm); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--primary-accent); color: #fff;">
+          <span>📱</span> <span>Chuyền Máy (Offline)</span>
+        </button>
+        <button id="tab-rules-online" class="rules-tab-btn" type="button" style="flex: 1; padding: 8px 10px; font-size: 12px; font-weight: 700; border-radius: var(--radius-sm); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; background: transparent; color: var(--text-secondary);">
+          <span>🌐</span> <span>Phòng Đấu Online</span>
+        </button>
+      </div>
+
+      <div class="rules-scroll-body" style="max-height: 62vh; overflow-y: auto; padding-right: 4px;">
+        
+        <!-- Panel 1: Offline Pass & Play Rules -->
+        <div id="rules-panel-offline" style="display: flex; flex-direction: column; gap: 14px;">
         
         <!-- Section 1: Gameplay Loop -->
         <div class="rules-card">
@@ -2430,6 +2443,84 @@
             </tbody>
           </table>
         </div>
+        </div><!-- /#rules-panel-offline -->
+
+        <!-- Panel 2: Online Realtime Room Rules -->
+        <div id="rules-panel-online" style="display: none; flex-direction: column; gap: 14px;">
+          
+          <!-- Card 1: Join & Seating -->
+          <div class="rules-card">
+            <div class="rules-card-header">
+              <span class="rules-card-icon">🚀</span>
+              <h4>Tham Gia Bàn Đấu Nhiều Người</h4>
+            </div>
+            <ul class="rules-list">
+              <li><strong>Vào phòng siêu tốc:</strong> Bạn bè quét mã QR trên bàn hoặc mở liên kết mời để vào phòng ngay mà không cần tạo tài khoản.</li>
+              <li><strong>Chỗ ngồi xoay vòng:</strong> Bàn đấu hỗ trợ từ <strong>3 đến 12 người</strong>. Chỗ ngồi được hiển thị trực tiếp theo thứ tự vòng tròn.</li>
+              <li><strong>Tự do đổi diện mạo:</strong> Tự chọn Avatar con vật đáng yêu và biệt danh riêng để nổi bật trong bàn.</li>
+            </ul>
+          </div>
+
+          <!-- Card 2: Voice Discussion Stage -->
+          <div class="rules-card">
+            <div class="rules-card-header">
+              <span class="rules-card-icon">🎙️</span>
+              <h4>Sân Khấu Phát Biểu Theo Lượt</h4>
+            </div>
+            <p class="rules-card-desc">
+              Khi vào ván, từ khóa bí mật được gửi riêng vào điện thoại từng người (có nút 👁️ để ẩn/hiện chống nhìn lén):
+            </p>
+            <ul class="rules-list">
+              <li><strong>Đếm ngược theo lượt:</strong> Từng người lần lượt phát biểu theo thứ tự chỗ ngồi. Người đang nói có biểu tượng mic sáng và đồng hồ đếm ngược (20s - 60s).</li>
+              <li><strong>⏭️ Tôi đã nói xong:</strong> Bấm nút chuyển lượt sớm khi đã mô tả xong để đẩy nhanh nhịp độ trận đấu, không cần chờ hết giờ.</li>
+              <li><strong>Chiến thuật:</strong> Dân Làng miêu tả khéo léo để nhận diện đồng đội nhưng không làm lộ từ khóa cho Kẻ Giả Mạo!</li>
+            </ul>
+          </div>
+
+          <!-- Card 3: Realtime Voting -->
+          <div class="rules-card">
+            <div class="rules-card-header">
+              <span class="rules-card-icon">🗳️</span>
+              <h4>Biểu Quyết Trục Xuất (Ngưỡng ≥ 50%)</h4>
+            </div>
+            <ul class="rules-list">
+              <li><strong>Bỏ phiếu ẩn danh:</strong> Khi hết vòng thảo luận, mỗi người tự chạm vào nghi phạm trên màn hình của mình để bỏ phiếu kín.</li>
+              <li><strong>Ngưỡng loại ≥ 50%:</strong> Nghi phạm phải nhận được từ <strong>50% tổng số phiếu hợp lệ</strong> trở lên mới bị loại khỏi ván.</li>
+              <li><strong>Bỏ phiếu trắng (⚪):</strong> Nếu chưa chắc chắn nghi phạm nào, bạn có thể chọn bỏ phiếu trắng. Phiếu trắng không tính vào tỷ lệ loại ai.</li>
+            </ul>
+          </div>
+
+          <!-- Card 4: Tie-Break 50/50 -->
+          <div class="rules-card">
+            <div class="rules-card-header">
+              <span class="rules-card-icon">⚖️</span>
+              <h4>Cơ Chế Hòa Phiếu (50% - 50% Tie-break)</h4>
+            </div>
+            <p class="rules-card-desc">
+              Nếu 2 người chơi cùng nhận số phiếu ngang nhau chiếm đúng <strong>50% - 50%</strong>:
+            </p>
+            <ul class="rules-list">
+              <li>Chưa ai bị loại ngay!</li>
+              <li>Hệ thống tự động kích hoạt vòng <strong>Tranh luận bảo chữa 25s</strong> cho mỗi người để thuyết phục cả bàn.</li>
+              <li>Sau đó cả phòng sẽ tiến hành bỏ phiếu quyết định lần 2 giữa 2 ứng viên.</li>
+            </ul>
+          </div>
+
+          <!-- Card 5: Host Privileges & Scoring -->
+          <div class="rules-card">
+            <div class="rules-card-header">
+              <span class="rules-card-icon">👑</span>
+              <h4>Quyền Hạn Của Chủ Phòng (Host)</h4>
+            </div>
+            <ul class="rules-list">
+              <li><strong>Tùy chỉnh ván đấu trong phòng:</strong> Bấm <strong>⚙️ Cài đặt ván</strong> để chỉnh số Kẻ Giả Mạo (1-3 Imposter), thời gian phát biểu (20s - 60s), và chủ đề từ khóa (Đồ ăn, Động vật, Nơi chốn, Vật dụng...).</li>
+              <li><strong>Mời người chơi ra bàn (Kick):</strong> Bấm dấu <strong>✕</strong> màu đỏ ở góc trên bên phải thẻ người chơi để kick người vắng mặt hoặc AFK.</li>
+              <li><strong>Đặt lại điểm phòng (Reset):</strong> Đưa điểm tích lũy của cả bàn về 0đ để mở mùa giải đấu mới.</li>
+              <li><strong>Tự động dọn phòng:</strong> Khi tất cả người chơi rời khỏi, phòng đấu và điểm số sẽ tự động xóa sạch trên máy chủ.</li>
+            </ul>
+          </div>
+
+        </div><!-- /#rules-panel-online -->
 
       </div>
     </div>

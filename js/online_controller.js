@@ -287,6 +287,13 @@ class OnlineGameController {
       this.openRoomSettingsModal();
     });
 
+    // Clicking Stage Title in Lobby opens Settings
+    document.getElementById('header-stage-title')?.addEventListener('click', () => {
+      if (this.currentRoomState?.status === 'LOBBY') {
+        this.openRoomSettingsModal();
+      }
+    });
+
     document.getElementById('btn-close-room-settings')?.addEventListener('click', () => {
       this.closeRoomSettingsModal();
     });
@@ -1767,6 +1774,7 @@ class OnlineGameController {
       timerEl.textContent = `${remaining}s`;
       if (remaining <= 5) {
         timerEl.style.color = '#ef4444';
+        if (typeof sound !== 'undefined') sound.playTick();
       } else {
         timerEl.style.color = 'var(--text-primary)';
       }
@@ -1933,6 +1941,7 @@ class OnlineGameController {
       if (remaining <= 5) {
         countdown.style.background = 'rgba(239, 68, 68, 0.3)';
         countdown.style.color = '#ef4444';
+        if (typeof sound !== 'undefined') sound.playTick();
       }
     }
   }

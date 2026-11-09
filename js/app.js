@@ -5143,9 +5143,56 @@ class ImposterGame {
 
 
 
-    // Deep Rules Modal Events
+    // Deep Rules Modal Events & Mode Tabs (Offline vs Online)
+    const switchRulesTab = (tab) => {
+      const tabOffline = document.getElementById('tab-rules-offline');
+      const tabOnline = document.getElementById('tab-rules-online');
+      const panelOffline = document.getElementById('rules-panel-offline');
+      const panelOnline = document.getElementById('rules-panel-online');
+
+      if (tab === 'online') {
+        if (tabOnline) {
+          tabOnline.classList.add('active');
+          tabOnline.style.background = 'var(--primary-accent)';
+          tabOnline.style.color = '#fff';
+        }
+        if (tabOffline) {
+          tabOffline.classList.remove('active');
+          tabOffline.style.background = 'transparent';
+          tabOffline.style.color = 'var(--text-secondary)';
+        }
+        if (panelOnline) panelOnline.style.display = 'flex';
+        if (panelOffline) panelOffline.style.display = 'none';
+      } else {
+        if (tabOffline) {
+          tabOffline.classList.add('active');
+          tabOffline.style.background = 'var(--primary-accent)';
+          tabOffline.style.color = '#fff';
+        }
+        if (tabOnline) {
+          tabOnline.classList.remove('active');
+          tabOnline.style.background = 'transparent';
+          tabOnline.style.color = 'var(--text-secondary)';
+        }
+        if (panelOffline) panelOffline.style.display = 'flex';
+        if (panelOnline) panelOnline.style.display = 'none';
+      }
+    };
+
+    document.getElementById('tab-rules-offline')?.addEventListener('click', () => {
+      sound.playClick();
+      switchRulesTab('offline');
+    });
+
+    document.getElementById('tab-rules-online')?.addEventListener('click', () => {
+      sound.playClick();
+      switchRulesTab('online');
+    });
+
     document.getElementById('btn-open-rules')?.addEventListener('click', () => {
       sound.playClick();
+      const isOnline = !!(window.onlineController && window.onlineController.roomCode);
+      switchRulesTab(isOnline ? 'online' : 'offline');
       document.getElementById('modal-deep-rules')?.classList.add('open');
     });
     document.getElementById('btn-close-rules')?.addEventListener('click', () => {
