@@ -2234,17 +2234,17 @@
           ⚖️ Áp dụng trừ -5 điểm oan sai cho ai?
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-          <button type="button" id="btn-penalty-all" class="ctrl-btn" style="font-size: 11px; padding: 8px 6px; border-radius: var(--radius-sm); border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.25); color: #fff; font-weight: 700; cursor: pointer; text-align: center;">
-            🌐 Tất cả người sống
+          <button type="button" id="btn-penalty-voters" class="ctrl-btn" style="font-size: 11px; padding: 8px 6px; border-radius: var(--radius-sm); border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.25); color: #fff; font-weight: 700; cursor: pointer; text-align: center;">
+            👆 Chỉ phạt người chọn vote
           </button>
-          <button type="button" id="btn-penalty-voters" class="ctrl-btn" style="font-size: 11px; padding: 8px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-weight: 700; cursor: pointer; text-align: center;">
-            👆 Chọn người chỉ tay
+          <button type="button" id="btn-penalty-all" class="ctrl-btn" style="font-size: 11px; padding: 8px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-weight: 700; cursor: pointer; text-align: center;">
+            🌐 Tất cả người sống
           </button>
         </div>
 
-        <div id="penalty-voters-container" style="display: none; margin: 8px 0;">
+        <div id="penalty-voters-container" style="display: block; margin: 8px 0;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Danh sách tất cả người chơi còn sống:</span>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Chạm vào người đã giơ tay vote:</span>
             <div style="display: flex; gap: 6px;">
               <button type="button" id="btn-penalty-select-all" class="ctrl-btn" style="font-size: 10px; padding: 3px 8px; color: #10b981; border-color: rgba(16, 185, 129, 0.35); font-weight: 700; cursor: pointer;">
                 ✓ Chọn tất cả
@@ -2260,12 +2260,12 @@
         </div>
 
         <p id="penalty-explainer-text" style="font-size: 11px; color: var(--text-secondary); margin: 0; line-height: 1.4;">
-          <strong>Trách nhiệm tập thể:</strong> Cả nhóm đã thống nhất biểu quyết theo số đông, do đó toàn bộ người chơi còn sống cùng chịu phạt -5 điểm.
+          <strong>Chỉ phạt người chọn vote:</strong> Chỉ những người được tích chọn bên trên (đã giơ tay biểu quyết oan) mới bị trừ -5 điểm (người không vote sẽ không bị trừ).
         </p>
       </div>
 
       <button id="btn-next-round-continue" class="primary-cta-btn" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);">
-        <span>🔥</span> <span id="label-next-round-btn">Tiến vào Vòng 2 Thảo luận</span>
+        <span id="icon-next-round-btn">🔥</span> <span id="label-next-round-btn">Tiến vào Vòng 2 Thảo luận</span>
       </button>
     </div>
   </div>

@@ -2618,18 +2618,17 @@ class ImposterGame {
 
     if (livingImposters.length >= livingInnocents.length) {
       // Imposters have equaled or outnumbered innocent players -> Imposters win!
-      this.players.filter(p => p.role.team === 'good' && !p.isEliminated).forEach(p => {
-        p.penalty = (p.penalty || 0) + 5;
-      });
-      this.winningTeam = 'evil';
-      this.showResultsScreen(suspect);
+      this.isIntermissionGameOver = true;
+      this.lastEliminatedSuspect = suspect;
+      this.showRoundIntermission(suspect, false, true);
     } else {
       // Game continues! Show Intermission Modal with penalty warning & configuration
-      this.showRoundIntermission(suspect, false);
+      this.isIntermissionGameOver = false;
+      this.showRoundIntermission(suspect, false, false);
     }
   }
 
-  showRoundIntermission(eliminatedPlayer, isImposterCaught) {
+  showRoundIntermission(eliminatedPlayer, isImposterCaught, isGameOver = false) {
     this.lastIntermissionWasImposter = isImposterCaught;
     const modal = document.getElementById('modal-round-intermission');
     const avatar = document.getElementById('intermission-avatar');
@@ -2637,6 +2636,7 @@ class ImposterGame {
     const title = document.getElementById('intermission-title');
     const desc = document.getElementById('intermission-desc');
     const btnLabel = document.getElementById('label-next-round-btn');
+    const btnIcon = document.getElementById('icon-next-round-btn');
 
     const livingInnocents = this.players.filter(p => !p.isImposter && !p.isEliminated).length;
     const livingImposters = this.players.filter(p => p.isImposter && !p.isEliminated).length;
@@ -2691,27 +2691,30 @@ class ImposterGame {
         title.style.color = '#ef4444';
       }
       if (desc) {
-        desc.innerHTML = `Phe Dân đã biểu quyết sai! Toàn bộ người chơi còn sống bị <strong style="color: #ef4444;">phạt trừ -5 điểm</strong>.<br />Kẻ Giả Mạo vẫn chưa bị lộ và đang lẩn trốn.`;
+        if (isGameOver) {
+          desc.innerHTML = `Phe Dân đã biểu quyết oan sai! <strong>Kẻ Giả Mạo đã áp đảo số Dân Làng còn lại</strong> và giành chiến thắng ván đấu!`;
+        } else {
+          desc.innerHTML = `Phe Dân đã biểu quyết oan sai!<br />Kẻ Giả Mạo vẫn chưa bị lộ và đang lẩn trốn.`;
+        }
       }
 
       // Configure interactive penalty target selector
       if (penaltyConfigEl) {
         penaltyConfigEl.style.display = 'block';
-        this.pendingWrongVotePenaltyMode = 'all';
+        this.pendingWrongVotePenaltyMode = 'custom';
         this.pendingCustomPenalizedPlayerIds = new Set();
 
         // Cho phép TẤT CẢ người chơi còn sống xuất hiện trong danh sách vote chỉ tay
         const livingVoters = this.players.filter(p => !p.isEliminated);
-        livingVoters.forEach(p => this.pendingCustomPenalizedPlayerIds.add(p.id));
 
         if (penaltyGrid) {
           penaltyGrid.innerHTML = '';
           livingVoters.forEach(p => {
             const chip = document.createElement('button');
             chip.type = 'button';
-            chip.className = 'penalty-voter-chip selected';
+            chip.className = 'penalty-voter-chip';
             chip.dataset.playerId = p.id;
-            chip.innerHTML = `<span>${p.avatar}</span> <span>${p.name}</span> <span class="chip-check">✓</span>`;
+            chip.innerHTML = `<span>${p.avatar}</span> <span>${p.name}</span>`;
             chip.addEventListener('click', () => {
               sound.playClick();
               if (this.pendingCustomPenalizedPlayerIds.has(p.id)) {
@@ -2763,8 +2766,8 @@ class ImposterGame {
             btn.style.color = active ? '#fff' : 'var(--text-muted)';
           };
 
-          setActive(btnPenaltyAll, mode === 'all');
           setActive(btnPenaltyVoters, mode === 'custom');
+          setActive(btnPenaltyAll, mode === 'all');
 
           if (penaltyVotersContainer) {
             penaltyVotersContainer.style.display = mode === 'custom' ? 'block' : 'none';
@@ -2772,21 +2775,27 @@ class ImposterGame {
             penaltyGrid.style.display = mode === 'custom' ? 'flex' : 'none';
           }
 
-          if (mode === 'all') {
-            if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Trách nhiệm tập thể:</strong> Cả nhóm đã thống nhất biểu quyết theo số đông, do đó toàn bộ người chơi còn sống cùng chịu phạt -5 điểm.';
+          if (mode === 'custom') {
+            if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Chỉ phạt người chọn vote:</strong> Chỉ những người được tích chọn bên trên (đã giơ tay biểu quyết oan) mới bị trừ -5 điểm (người không vote sẽ không bị trừ).';
           } else {
-            if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Chỉ phạt người chỉ tay:</strong> Chỉ những người được tích chọn bên trên (đã giơ tay biểu quyết oan) mới bị trừ -5 điểm (cho phép chọn bất kỳ ai trong số tất cả người chơi còn sống).';
+            if (penaltyDesc) penaltyDesc.innerHTML = '<strong>Trách nhiệm tập thể:</strong> Cả nhóm đã thống nhất biểu quyết theo số đông, do đó toàn bộ người chơi còn sống cùng chịu phạt -5 điểm.';
           }
         };
 
         if (btnPenaltyAll) btnPenaltyAll.onclick = () => { sound.playClick(); updatePenaltyUI('all'); };
         if (btnPenaltyVoters) btnPenaltyVoters.onclick = () => { sound.playClick(); updatePenaltyUI('custom'); };
-        updatePenaltyUI('all');
+        updatePenaltyUI('custom');
       }
     }
 
     if (btnLabel) {
-      btnLabel.textContent = `Tiến vào Vòng ${this.roundNumber + 1} Thảo Luận`;
+      if (isGameOver) {
+        btnLabel.textContent = 'Xem Bảng Điểm & Kết Quả';
+        if (btnIcon) btnIcon.textContent = '💀';
+      } else {
+        btnLabel.textContent = `Tiến vào Vòng ${this.roundNumber + 1} Thảo Luận`;
+        if (btnIcon) btnIcon.textContent = '🔥';
+      }
     }
 
     modal.classList.add('open');
@@ -4994,8 +5003,15 @@ class ImposterGame {
       }
 
       document.getElementById('modal-round-intermission')?.classList.remove('open');
-      this.roundNumber++;
-      this.prepareRoundStart();
+
+      if (this.isIntermissionGameOver) {
+        this.isIntermissionGameOver = false;
+        this.winningTeam = 'evil';
+        this.showResultsScreen(this.lastEliminatedSuspect);
+      } else {
+        this.roundNumber++;
+        this.prepareRoundStart();
+      }
     });
 
     // Donate Modal Events
