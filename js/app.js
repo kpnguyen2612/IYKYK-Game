@@ -3216,9 +3216,10 @@ class ImposterGame {
           }
         }
 
-        // E. Phạt biểu quyết oan sai (Wrong vote penalty): chỉ áp dụng cho Dân làng còn sống (Phe Dân: team === 'good', trừ Kẻ Say Rượu)
+        // E. Phạt biểu quyết oan sai (Wrong vote penalty): áp dụng cho TẤT CẢ người chơi phe Dân đã từng vote sai và tích lũy điểm phạt
+        // Bất kể người đó còn sống hay đã bị loại ở các vòng sau (không xóa điểm phạt của người bị loại)
         // Tuyệt đối KHÔNG phạt Imposter (Phe Ác), Kẻ Ngu hay Gián Điệp!
-        if (!p.isEliminated && p.penalty && p.penalty > 0 && p.role.team === 'good' && p.role.id !== 'drunkard') {
+        if (p.penalty && p.penalty > 0 && p.role.team === 'good' && p.role.id !== 'drunkard') {
           delta -= p.penalty;
           reasons.push(`Vote sai dân làng (-${p.penalty}đ)`);
         }
