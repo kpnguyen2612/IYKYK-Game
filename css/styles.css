@@ -6972,3 +6972,355 @@ html[data-theme="light"] .donate-account-row.memo-row {
 .btn-confirm-accept:active {
   transform: translateY(0);
 }
+
+/* ==========================================================
+   ONLINE ROOM CREATION & LIVE SETTINGS CUSTOMIZATION
+   ========================================================== */
+
+/* Hint card on Room Creation panel */
+.online-create-hint-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(37, 99, 235, 0.04) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-top: 4px;
+}
+
+.online-create-hint-card .hint-icon-box {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.online-create-hint-card .hint-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #93c5fd;
+  margin-bottom: 2px;
+}
+
+.online-create-hint-card .hint-desc {
+  font-size: 11.5px;
+  color: #94a3b8;
+  line-height: 1.45;
+}
+
+/* Live Room Settings Summary Bar (Lobby) */
+.lobby-settings-summary-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 9px 12px;
+  margin-bottom: 14px;
+}
+
+.settings-summary-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.summary-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 700;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.summary-pill .pill-icon {
+  font-size: 13px;
+}
+
+.summary-pill.imp-pill {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.summary-pill.time-pill {
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+}
+
+.summary-pill.cat-pill {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fcd34d;
+}
+
+.btn-open-room-settings {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.16) 0%, rgba(37, 99, 235, 0.26) 100%);
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  color: #60a5fa;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.btn-open-room-settings:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.28) 0%, rgba(37, 99, 235, 0.38) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+  color: #ffffff;
+}
+
+/* Modal: Online Room Settings Sheet */
+.online-room-settings-sheet {
+  background: linear-gradient(180deg, rgba(22, 30, 52, 0.98) 0%, rgba(13, 18, 32, 0.98) 100%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 28px !important;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.75), 0 0 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+.room-setting-group {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.room-setting-group:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.setting-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.setting-group-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.setting-group-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.setting-group-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.setting-group-desc {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 2px 0 0;
+  line-height: 1.35;
+}
+
+.room-settings-stepper {
+  height: 34px;
+}
+
+/* Quick pills for Imposter selection */
+.imp-quick-pills {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.imp-pill-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #cbd5e1;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.imp-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.imp-pill-btn .pill-tag {
+  font-size: 9.5px;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.imp-pill-btn.active {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: #ef4444;
+  color: #fecaca;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
+}
+
+.imp-pill-btn.active .pill-tag {
+  color: #f87171;
+}
+
+/* Duration Segmented Grid */
+.duration-segmented-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.duration-pill-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 8px 4px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.duration-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.duration-pill-btn .duration-num {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #cbd5e1;
+  display: block;
+}
+
+.duration-pill-btn .duration-lbl {
+  font-size: 9.5px;
+  color: #64748b;
+  display: block;
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+.duration-pill-btn.active {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+}
+
+.duration-pill-btn.active .duration-num {
+  color: #93c5fd;
+}
+
+.duration-pill-btn.active .duration-lbl {
+  color: #60a5fa;
+}
+
+/* Category Chips Grid */
+.category-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.cat-chip-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.cat-chip-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.cat-chip-btn .cat-chip-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.cat-chip-btn .cat-chip-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cat-chip-btn.active {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
+.cat-chip-btn.active .cat-chip-name {
+  color: #fde68a;
+  font-weight: 800;
+}
+
+/* Guest View state */
+.is-guest-view .host-editable-only {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.guest-notice-box {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #93c5fd;
+  line-height: 1.45;
+}
+
+.guest-notice-box .notice-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}

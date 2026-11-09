@@ -313,6 +313,38 @@ class RoomManager {
     return { success: true, room };
   }
 
+  updateRoomSettings(roomCode, requestPlayerId, settings = {}) {
+    const room = this.rooms.get(roomCode);
+    if (!room) return { success: false, message: 'Phòng không tồn tại' };
+    if (room.hostId !== requestPlayerId) {
+      return { success: false, message: 'Chỉ chủ phòng mới có quyền thay đổi cài đặt phòng' };
+    }
+    if (room.status !== 'LOBBY') {
+      return { success: false, message: 'Chỉ có thể thay đổi cài đặt khi phòng đang ở sảnh chờ' };
+    }
+
+    if (settings.imposterCount !== undefined) {
+      const imp = Math.max(1, Math.min(3, parseInt(settings.imposterCount, 10) || 1));
+      room.imposterCount = imp;
+    }
+    if (settings.turnDurationSec !== undefined) {
+      const dur = Math.max(15, Math.min(120, parseInt(settings.turnDurationSec, 10) || 30));
+      room.turnDurationSec = dur;
+    }
+    if (settings.categoryId !== undefined) {
+      room.categoryId = String(settings.categoryId || 'all');
+    }
+
+    return {
+      success: true,
+      settings: {
+        imposterCount: room.imposterCount,
+        turnDurationSec: room.turnDurationSec,
+        categoryId: room.categoryId
+      }
+    };
+  }
+
   startMatch(roomCode, requestPlayerId) {
     const room = this.rooms.get(roomCode);
     if (!room) return { success: false, message: 'Phòng không tồn tại' };
@@ -648,7 +680,15 @@ class RoomManager {
       round: room.round,
       turnDurationSec: room.turnDurationSec,
       voteDurationSec: room.voteDurationSec,
+      imposterCount: room.imposterCount || 1,
+      categoryId: room.categoryId || 'all',
       category: room.category,
+      settings: {
+        imposterCount: room.imposterCount || 1,
+        turnDurationSec: room.turnDurationSec || 30,
+        voteDurationSec: room.voteDurationSec || 25,
+        categoryId: room.categoryId || 'all'
+      },
       players: publicPlayers,
       ranking: ranking,
       winner: room.winner || null,

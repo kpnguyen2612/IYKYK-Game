@@ -494,7 +494,26 @@ io.on('connection', (socket) => {
     }
   });
 
-  // 11. Disconnect
+  // 11. Update Room Settings (Host only)
+  socket.on('room:update_settings', ({ roomCode, hostPlayerId, settings }, callback) => {
+    try {
+      const cleanCode = (roomCode || '').toUpperCase();
+      const result = roomManager.updateRoomSettings(cleanCode, hostPlayerId, settings);
+      if (!result.success) {
+        if (typeof callback === 'function') callback(result);
+        return;
+      }
+
+      if (typeof callback === 'function') callback(result);
+      broadcastRoomState(cleanCode);
+      io.to(cleanCode).emit('room:settings_updated', { settings: result.settings });
+    } catch (err) {
+      console.error('[ERROR] room:update_settings:', err);
+      if (typeof callback === 'function') callback({ success: false, message: err.message });
+    }
+  });
+
+  // 12. Disconnect
   socket.on('disconnect', () => {
     const leaveRes = roomManager.leaveRoom(socket.id);
     if (leaveRes) {
@@ -663,6 +682,21 @@ app.post('/api/v1/rooms/kick', (req, res) => {
 
     broadcastRoomState(code);
     res.json({ success: true, kickedPlayer: result.kickedPlayer });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/v1/rooms/settings - Host updates settings
+app.post('/api/v1/rooms/settings', (req, res) => {
+  try {
+    const { roomCode, hostPlayerId, playerId, settings } = req.body || {};
+    const code = (roomCode || '').toUpperCase();
+    const pId = hostPlayerId || playerId;
+    const result = roomManager.updateRoomSettings(code, pId, settings);
+    if (!result.success) return res.status(400).json(result);
+    broadcastRoomState(code);
+    res.json(result);
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

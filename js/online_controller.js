@@ -181,6 +181,18 @@ class OnlineGameController {
         this.handleLeaveRoomCleanup();
       });
 
+      // Room Settings Updated (Host changed Imposter count, Turn Duration or Category)
+      this.socket.on('room:settings_updated', (data) => {
+        if (typeof sound !== 'undefined') sound.playClick?.();
+        if (this.currentRoomState && data?.settings) {
+          Object.assign(this.currentRoomState, data.settings);
+          this.updateLobbySettingsDisplay(this.currentRoomState);
+        }
+        if (this.myPlayerId !== this.currentRoomState?.hostId) {
+          this.showToast('⚙️ Chủ phòng đã cập nhật thiết lập ván đấu!', 'info');
+        }
+      });
+
     } catch (err) {
       console.error('[ONLINE] Failed to init socket connection:', err);
     }
@@ -268,6 +280,78 @@ class OnlineGameController {
       const modal = document.getElementById('modal-online-ranking');
       if (modal) modal.classList.remove('open');
       if (typeof sound !== 'undefined') sound.playClick();
+    });
+
+    // Modal Online Room Settings Open/Close
+    document.getElementById('btn-open-room-settings')?.addEventListener('click', () => {
+      this.openRoomSettingsModal();
+    });
+
+    document.getElementById('btn-close-room-settings')?.addEventListener('click', () => {
+      this.closeRoomSettingsModal();
+    });
+
+    document.getElementById('btn-cancel-room-settings')?.addEventListener('click', () => {
+      this.closeRoomSettingsModal();
+    });
+
+    document.getElementById('modal-online-room-settings')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-online-room-settings') {
+        this.closeRoomSettingsModal();
+      }
+    });
+
+    // Room Settings Stepper (- / +)
+    document.getElementById('btn-dec-modal-imp')?.addEventListener('click', () => {
+      const el = document.getElementById('val-modal-imp');
+      let val = parseInt(el?.textContent || '1', 10);
+      if (val > 1) {
+        val--;
+        this.setModalImposterValue(val);
+        if (typeof sound !== 'undefined') sound.playStepper?.();
+      }
+    });
+
+    document.getElementById('btn-inc-modal-imp')?.addEventListener('click', () => {
+      const el = document.getElementById('val-modal-imp');
+      let val = parseInt(el?.textContent || '1', 10);
+      if (val < 3) {
+        val++;
+        this.setModalImposterValue(val);
+        if (typeof sound !== 'undefined') sound.playStepper?.();
+      }
+    });
+
+    // Room Settings Imposter Quick Pills
+    document.querySelectorAll('#modal-online-room-settings .imp-pill-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = parseInt(btn.dataset.imp, 10) || 1;
+        this.setModalImposterValue(val);
+        if (typeof sound !== 'undefined') sound.playClick?.();
+      });
+    });
+
+    // Room Settings Duration Segmented Buttons
+    document.querySelectorAll('#modal-online-room-settings .duration-pill-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#modal-online-room-settings .duration-pill-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (typeof sound !== 'undefined') sound.playClick?.();
+      });
+    });
+
+    // Room Settings Category Chips
+    document.querySelectorAll('#modal-online-room-settings .cat-chip-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#modal-online-room-settings .cat-chip-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (typeof sound !== 'undefined') sound.playClick?.();
+      });
+    });
+
+    // Save Room Settings Button
+    document.getElementById('btn-save-room-settings')?.addEventListener('click', () => {
+      this.handleSaveRoomSettings();
     });
 
     // Online Imposter Stepper
@@ -619,6 +703,176 @@ class OnlineGameController {
     this._pendingConfirmCallback = null;
   }
 
+  // Room Settings Modal Methods
+  openRoomSettingsModal() {
+    const modal = document.getElementById('modal-online-room-settings');
+    if (!modal) return;
+
+    const isHost = (this.myPlayerId === this.currentRoomState?.hostId);
+    const sheet = modal.querySelector('.online-room-settings-sheet');
+    const guestNotice = document.getElementById('room-settings-guest-notice');
+    const saveBtn = document.getElementById('btn-save-room-settings');
+    const subtitle = document.getElementById('room-settings-subtitle');
+    const cancelBtn = document.getElementById('btn-cancel-room-settings');
+
+    if (sheet) {
+      if (isHost) {
+        sheet.classList.remove('is-guest-view');
+      } else {
+        sheet.classList.add('is-guest-view');
+      }
+    }
+
+    if (guestNotice) guestNotice.style.display = isHost ? 'none' : 'flex';
+    if (saveBtn) saveBtn.style.display = isHost ? 'inline-flex' : 'none';
+    if (cancelBtn) cancelBtn.textContent = isHost ? 'Hủy' : 'Đóng';
+    if (subtitle) {
+      subtitle.textContent = isHost
+        ? 'Chỉ chủ phòng mới có quyền lưu thay đổi cho cả bàn chơi'
+        : 'Bạn đang xem cài đặt của phòng (Chỉ chủ phòng mới có thể đổi)';
+    }
+
+    // Populate current settings
+    const currentImp = this.currentRoomState?.imposterCount || (this.currentRoomState?.settings && this.currentRoomState.settings.imposterCount) || 1;
+    const currentSec = this.currentRoomState?.turnDurationSec || (this.currentRoomState?.settings && this.currentRoomState.settings.turnDurationSec) || 30;
+    const currentCat = this.currentRoomState?.categoryId || (this.currentRoomState?.settings && this.currentRoomState.settings.categoryId) || 'all';
+
+    this.setModalImposterValue(currentImp);
+
+    // Set duration active button
+    modal.querySelectorAll('.duration-pill-btn').forEach(btn => {
+      btn.classList.toggle('active', parseInt(btn.dataset.sec, 10) === parseInt(currentSec, 10));
+    });
+
+    // Set category active chip
+    modal.querySelectorAll('.cat-chip-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.cat === String(currentCat));
+    });
+
+    modal.classList.add('open');
+    if (typeof sound !== 'undefined') sound.playClick?.();
+  }
+
+  closeRoomSettingsModal() {
+    const modal = document.getElementById('modal-online-room-settings');
+    if (modal) modal.classList.remove('open');
+  }
+
+  setModalImposterValue(val) {
+    const clamped = Math.max(1, Math.min(3, parseInt(val, 10) || 1));
+    const valEl = document.getElementById('val-modal-imp');
+    if (valEl) valEl.textContent = clamped;
+
+    const modal = document.getElementById('modal-online-room-settings');
+    if (modal) {
+      modal.querySelectorAll('.imp-pill-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.imp, 10) === clamped);
+      });
+    }
+  }
+
+  handleSaveRoomSettings() {
+    const isHost = (this.myPlayerId === this.currentRoomState?.hostId);
+    if (!isHost) {
+      this.showToast('Chỉ chủ phòng mới có quyền lưu cài đặt', 'error');
+      return;
+    }
+
+    const modal = document.getElementById('modal-online-room-settings');
+    const imposterCount = parseInt(document.getElementById('val-modal-imp')?.textContent, 10) || 1;
+    const activeDurBtn = modal?.querySelector('.duration-pill-btn.active');
+    const turnDurationSec = parseInt(activeDurBtn?.dataset.sec, 10) || 30;
+    const activeCatBtn = modal?.querySelector('.cat-chip-btn.active');
+    const categoryId = activeCatBtn?.dataset.cat || 'all';
+
+    const saveBtn = document.getElementById('btn-save-room-settings');
+    const saveText = document.getElementById('btn-save-room-settings-text');
+    if (saveBtn) saveBtn.disabled = true;
+    if (saveText) saveText.textContent = 'Đang lưu...';
+
+    const payload = {
+      roomCode: this.roomCode,
+      hostPlayerId: this.myPlayerId,
+      settings: {
+        imposterCount,
+        turnDurationSec,
+        categoryId
+      }
+    };
+
+    const onComplete = (success, msg) => {
+      if (saveBtn) saveBtn.disabled = false;
+      if (saveText) saveText.textContent = 'Áp Dụng Cài Đặt';
+
+      if (success) {
+        if (this.currentRoomState) {
+          this.currentRoomState.imposterCount = imposterCount;
+          this.currentRoomState.turnDurationSec = turnDurationSec;
+          this.currentRoomState.categoryId = categoryId;
+          this.updateLobbySettingsDisplay(this.currentRoomState);
+        }
+        this.showToast('⚙️ Đã lưu thiết lập phòng thành công!', 'success');
+        this.closeRoomSettingsModal();
+      } else {
+        alert(msg || 'Không thể lưu cài đặt phòng');
+      }
+    };
+
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('room:update_settings', payload, (res) => {
+        onComplete(res && res.success, res?.message);
+      });
+    } else {
+      this.safeFetchJson(`${this.serverUrl}/api/v1/rooms/settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => onComplete(res && res.success, res?.message))
+      .catch(err => onComplete(false, err?.message));
+    }
+  }
+
+  updateLobbySettingsDisplay(state) {
+    if (!state) return;
+    const impCount = state.imposterCount || (state.settings && state.settings.imposterCount) || 1;
+    const turnDur = state.turnDurationSec || (state.settings && state.settings.turnDurationSec) || 30;
+    const catId = state.categoryId || (state.settings && state.settings.categoryId) || 'all';
+
+    const CATEGORY_MAP = {
+      all: { name: 'Tất cả ngẫu nhiên', icon: '🎲' },
+      food_drink: { name: 'Đồ ăn & Uống', icon: '🍜' },
+      animals: { name: 'Động vật', icon: '🐾' },
+      places: { name: 'Nơi chốn', icon: '📍' },
+      items: { name: 'Vật dụng', icon: '🎒' },
+      jobs_life: { name: 'Nghề & Đời sống', icon: '💼' },
+      nature: { name: 'Thiên nhiên', icon: '🌿' },
+      entertainment: { name: 'Giải trí', icon: '🎮' }
+    };
+
+    const catInfo = CATEGORY_MAP[catId] || { name: 'Tất cả ngẫu nhiên', icon: '🎲' };
+
+    const impEl = document.getElementById('lobby-summary-imp-count');
+    const timeEl = document.getElementById('lobby-summary-turn-time');
+    const catIconEl = document.getElementById('lobby-summary-cat-icon');
+    const catNameEl = document.getElementById('lobby-summary-cat-name');
+    const btnLabel = document.getElementById('btn-open-room-settings-label');
+    const btnOpen = document.getElementById('btn-open-room-settings');
+
+    if (impEl) impEl.textContent = `${impCount} Imposter${impCount > 1 ? 's' : ''}`;
+    if (timeEl) timeEl.textContent = `${turnDur}s / lượt`;
+    if (catIconEl) catIconEl.textContent = catInfo.icon;
+    if (catNameEl) catNameEl.textContent = catInfo.name;
+
+    const isHost = (this.myPlayerId === state.hostId);
+    if (btnLabel) {
+      btnLabel.textContent = isHost ? 'Cài đặt ván' : 'Xem cài đặt';
+    }
+    if (btnOpen) {
+      btnOpen.title = isHost ? 'Chủ phòng: Tùy chỉnh số Imposter, thời gian và chủ đề' : 'Xem cài đặt ván đấu của phòng';
+    }
+  }
+
   handleLeaveRoomCleanup() {
     if (this.pollingInterval) clearInterval(this.pollingInterval);
     if (this.timerInterval) clearInterval(this.timerInterval);
@@ -696,14 +950,13 @@ class OnlineGameController {
     this.connectSocket();
     const hostNameInput = document.getElementById('input-online-host-name');
     const hostName = (hostNameInput?.value || '').trim() || 'Chủ phòng';
-    const turnDuration = document.getElementById('select-turn-duration')?.value || 30;
-    const imposterCount = document.getElementById('val-online-imp')?.textContent || 1;
 
     const payload = {
       hostName,
       settings: {
-        turnDurationSec: turnDuration,
-        imposterCount: imposterCount,
+        imposterCount: 1,
+        turnDurationSec: 30,
+        categoryId: 'all',
         voteDurationSec: 25
       }
     };
@@ -1228,6 +1481,9 @@ class OnlineGameController {
     if (hostControls) hostControls.style.display = isHost ? 'block' : 'none';
     if (guestWaiting) guestWaiting.style.display = isHost ? 'none' : 'block';
     if (btnResetLobby) btnResetLobby.style.display = isHost ? 'inline-flex' : 'none';
+
+    // Update live room settings summary badges (Imposters, duration, category)
+    this.updateLobbySettingsDisplay(state);
 
     // Start Button and Hint
     const startBtn = document.getElementById('btn-start-online-match');
