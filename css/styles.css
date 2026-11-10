@@ -323,7 +323,7 @@ p, span, label, input, textarea, select {
   box-sizing: border-box;
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: 1fr max-content 1fr;
   align-items: center;
   gap: 8px;
   min-height: calc(54px + env(safe-area-inset-top, 0px));
@@ -352,7 +352,7 @@ html[data-theme="light"] .global-control-bar {
   z-index: 2;
 }
 
-/* Center Stage Title: Tự động cân bằng giữa 2 cột nút, không bao giờ đè lên nút */
+/* Center Stage Title: Tự động cân bằng giữa 2 cột nút, luôn căn giữa tuyệt đối và không bị ép co rút */
 .control-group-center {
   justify-self: center;
   display: flex;
@@ -361,7 +361,7 @@ html[data-theme="light"] .global-control-bar {
   z-index: 1;
   pointer-events: auto;
   max-width: 100%;
-  min-width: 0;
+  min-width: max-content;
 }
 
 .control-group-right {
@@ -376,7 +376,7 @@ html[data-theme="light"] .global-control-bar {
   align-items: center;
   justify-content: center;
   max-width: 100%;
-  min-width: 0;
+  min-width: max-content;
 }
 
 .header-stage-badge {
@@ -400,6 +400,8 @@ html[data-theme="light"] .global-control-bar {
   line-height: 1;
   pointer-events: auto;
   box-sizing: border-box;
+  min-width: max-content;
+  flex-shrink: 0;
   text-overflow: ellipsis;
   overflow: hidden;
 }
@@ -3342,10 +3344,6 @@ html[data-theme="light"] #screen-setup .sticky-bottom-action-bar.liquid-glass-do
     height: 38px;
     font-size: 13.5px;
     padding: 0 18px;
-  }
-
-  .control-group-center {
-    max-width: calc(100% - 240px);
   }
 
   .ctrl-btn {
