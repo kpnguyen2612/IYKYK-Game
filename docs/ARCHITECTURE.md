@@ -15,7 +15,6 @@
 8. [Hệ Thống Giải Đấu, Roster & LocalStorage](#-8-hệ-thống-giải-đấu-roster--localstorage-schema)
 9. [Bộ Tổng Hợp Âm Thanh & Haptic](#-9-bộ-tổng-hợp-âm-thanh-web-audio-api--haptic-audiojs)
 10. [Hệ Thống Thiết Kế Obsidian Arcade & Mobile Safe-Area](#-10-hệ-thống-thiết-kế-obsidian-arcade--mobile-safe-area-stylescss)
-11. [Hệ Thống Ủng Hộ QR Tự Động Techcombank](#-11-hệ-thống-ủng-hộ-qr-tự-động-techcombank-vietqr--clean-qr)
 
 ---
 
@@ -48,8 +47,6 @@ vuive/
 │   │   ├── icon-192.png         # Icon 192x192 px Android Home Screen & PWA
 │   │   └── favicon.png          # Icon 64x64 px tab trình duyệt web
 │   └── images/                  # Hình ảnh tài nguyên giao diện
-│       ├── techcombank_logo.png # Logo ngân hàng Techcombank trên thẻ thanh toán
-│       └── vietqr_donate.png    # Hình ảnh mã QR dự phòng tĩnh phục vụ ủng hộ qua Techcombank
 │
 ├── docs/                        # Trung tâm tài liệu dự án
 │   ├── ARCHITECTURE.md          # Bản đồ kiến trúc & Hướng dẫn tra cứu code toàn diện (Tài liệu này)
@@ -96,8 +93,6 @@ vuive/
 | **Kẻ Ngu (Jester - Trung Lập)** | [`data_roles.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/data_roles.js#L57-L71) & [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js#L2913-L2925) | `p.role.id === 'jester'` (Bị cả làng vote loại: Thắng độc lập +30đ) | Nếu sống sót đến hết ván: 0đ (không bị phạt) |
 | **3 Vai trò dự bị (Thám tử, Bác sĩ, Thị trưởng)** | [`data_roles.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/data_roles.js#L127-L176) & [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js#L3020-L3030) | `UPCOMING_ROLES`, `detectivesExposedImposter`, `doctorSuccessfulSaves` | Sẵn sàng 100% logic ngầm, chỉ cần chuyển sang `DEFAULT_ROLES` |
 | **Hộp công cụ năng lực bí mật (Toolbox)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js#L3822-L4020) | `openSpecialAbilityToolbox` | `#modal-toolbox`, `#btn-toolbox`, `#toolbox-actions-container` |
-| **Modal Ủng hộ qua Techcombank QR** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js#L4038-L4140) | `openDonateModal`, `updateDonateQr`, `applySelectedDonateOption` | `#modal-donate`, `#donate-qr-img`, `#btn-apply-group-split` |
-| **Sao chép số tài khoản (Copy STK)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js#L4120-L4148) | `copyToClipboard`, `fallbackCopyText` | `#btn-copy-stk`, `#donate-stk-text` (`9964823876`) |
 | **Cài đặt hệ thống (Giao diện & Âm thanh)** | [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js#L304-L354) | `openSettingsModal`, `setTheme`, `updateSoundSettingsUI` | `#modal-settings`, `#btn-open-settings`, `#btn-toggle-sound` |
 | **Bảng tra cứu luật chơi & Điểm số (Rules)** | [`index.html`](file:///c:/Users/Windows/Documents/APP%20code/vuive/index.html#L1669-L1834) | Mở `#modal-deep-rules` qua nút `btn-open-deep-rules` | `#modal-deep-rules`, `.rules-score-table` |
 
@@ -232,8 +227,7 @@ Tất cả modal được thiết kế dưới dạng Bottom Sheet hoặc Center
 | STT | ID Modal Selector | Tên / Chức Năng | Nút / Thao Tác Kích Hoạt | Hàm Mở Trong [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js) |
 | :---: | :--- | :--- | :--- | :--- |
 | **1** | `#modal-settings` | Cài đặt hệ thống (Theme Obsidian, Âm thanh Web Audio, Rung Haptic, Phiên bản) | Nút bánh răng `⚙️` góc trên bên phải header | `openSettingsModal()` (dòng 304) |
-| **2** | `#modal-donate` | Ủng hộ nhà phát triển qua mã QR Techcombank (VietQR chuẩn không logo) | Nút trái tim `☕ Ủng hộ` trên header / kết quả | `openDonateModal()` (dòng 4038) |
-| **3** | `#modal-deep-rules` | Tra cứu chi tiết toàn bộ luật chơi & hệ thống điểm số từng vai trò | Nút `📖 Luật chơi chi tiết` trên header / setup | Event listener mở trực tiếp modal |
+| **2** | `#modal-deep-rules` | Tra cứu chi tiết toàn bộ luật chơi & hệ thống điểm số từng vai trò | Nút `📖 Luật chơi chi tiết` trên header / setup | Event listener mở trực tiếp modal |
 | **4** | `#modal-fixed-roles` | Cấu hình vai trò cố định chắc chắn xuất hiện trong ván kèm số lượng | Nút `⚙️ Cấu hình` trên `#card-fixed-roles` | `openFixedRolesModal()` (dòng 5167) |
 | **5** | `#modal-word-pairs` | Quản lý, tìm kiếm, thêm, sửa, xóa các cặp từ vựng & chủ đề tùy chỉnh | Nút `✏️ Quản lý cặp từ` trong mục chủ đề | `openWordPairsModal()` (dòng 5364) |
 | **6** | `#modal-categories` | Chọn chủ đề từ vựng quen thuộc cho ván chơi | Nút `Đổi chủ đề ›` trên `#opt-topic-specific` | `openCategoriesPicker()` (dòng 5913) |
@@ -418,23 +412,4 @@ Triển khai trong [`styles.css`](file:///c:/Users/Windows/Documents/APP%20code/
 - **Tự động cuộn đỉnh trang (`scrollTop = 0`)**: Phương thức `switchScreen()` tự động đưa màn hình về vị trí 0px khi chuyển màn, đảm bảo người chơi nhìn thấy thông báo Kẻ Giả Mạo ngay khi ván kết thúc.
 - **Thẻ vạch mặt Kẻ Giả Mạo (`.unmask-reveal-box`)**: Tích hợp `overflow: hidden` và header mờ `0.95` loại bỏ hoàn toàn viền đỏ lem nhem khi cuộn trang.
 
----
 
-## ☕ 11. Hệ Thống Ủng Hộ QR Tự Động Techcombank (VietQR & Clean QR)
-
-Triển khai tại `openDonateModal` và `updateDonateQr` trong [`app.js`](file:///c:/Users/Windows/Documents/APP%20code/vuive/app.js#L4038-L4118):
-
-### Cơ Chế Tạo Mã QR Sạch 100% (Không Logo Ở Giữa)
-1. **Gọi API VietQR** (`https://api.vietqr.io/v2/generate`) với tham số `format: 'text', template: 'qr_only'` để lấy chuỗi dữ liệu EMVCo thanh toán ngân hàng thuần túy.
-2. **Render qua QRServer** (`https://api.qrserver.com/v1/create-qr-code/?data=...`): Chuyển chuỗi EMVCo thành hình ảnh QR rõ nét, **hoàn toàn sạch không chứa logo ngân hàng hay watermark ở tâm**, đảm bảo mọi app ngân hàng (Techcombank, Vietcombank, MB, Momo) quét thanh toán thành công 100%.
-3. **Các Mức Chọn Nhanh Đã Chuẩn Hóa**:
-   - `Tùy tâm 💝`: Tải ảnh tĩnh gốc `vietqr_donate.png`.
-   - `10.000đ` (Cốc trà đá 🧊).
-   - `20.000đ` (Bánh mì 🥖).
-   - `50.000đ` (Cà phê ☕).
-   - `100.000đ` (Bữa trưa 🍱).
-4. **Đồng Bộ Tiêu Đề Phụ & Toast**: Khi bấm chọn bất kỳ mức nào, tiêu đề phụ `#donate-active-amount-label` đổi ngay lập tức, nút cam cập nhật số tiền `Tạo QR (50.000đ)` và hiển thị Toast trang nhã không lặp từ.
-5. **Thông Tin Tài Khoản Mặc Định**:
-   - Ngân hàng: **Techcombank** (Ngân hàng Kỹ thương Việt Nam).
-   - Số tài khoản: **`9964823876`** (Nút sao chép 1 chạm hỗ trợ `navigator.clipboard` & fallback `execCommand`).
-   - Tên chủ tài khoản: **VU BAO NGUYEN**.

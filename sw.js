@@ -3,7 +3,7 @@
 // Network-First with Offline Cache Fallback
 // ==========================================
 
-const CACHE_NAME = 'faker-cache-v1.5';
+const CACHE_NAME = 'faker-cache-v1.6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -17,8 +17,6 @@ const ASSETS_TO_CACHE = [
   './assets/icons/icon-512.png',
   './assets/icons/icon-192.png',
   './assets/icons/favicon.png',
-  './assets/images/techcombank_logo.png',
-  './assets/images/vietqr_donate.png',
   './manifest.json'
 ];
 

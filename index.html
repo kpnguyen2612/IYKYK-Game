@@ -23,7 +23,7 @@
   <!-- Canvas Confetti CDN with Local Fallback -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
-  <link rel="stylesheet" href="css/styles.css?v=1.5" />
+  <link rel="stylesheet" href="css/styles.css?v=1.6" />
 </head>
 <body>
 
@@ -2849,103 +2849,6 @@
     </div>
   </div>
 
-  <!-- Modal: Donate & Support Project (Clean QR Without Any Logo) -->
-  <div id="modal-donate" class="modal-overlay" style="z-index: 280;">
-    <div class="bottom-sheet-content donate-sheet-content">
-      <div class="sheet-drag-handle"></div>
-      <div class="sheet-header">
-        <h3 class="sheet-title" style="display: flex; align-items: center; gap: 8px;">
-          <span>🎁</span> <span>Ủng Hộ Dự Án (Mời Cà Phê ☕)</span>
-        </h3>
-        <button class="close-sheet-btn" id="btn-close-donate">✕</button>
-      </div>
-
-      <div class="donate-scroll-body" style="max-height: 72vh; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 14px;">
-        
-        <!-- Intro Banner -->
-        <div class="donate-intro-box">
-          <p style="margin: 0; font-size: 12px; line-height: 1.45; color: var(--text-secondary); text-align: center;">
-            Cảm ơn bạn đã ủng hộ tách cà phê để tiếp thêm năng lượng duy trì và phát triển trò chơi! ☕❤️
-          </p>
-        </div>
-
-        <!-- Clean QR Code Display Box: Techcombank Logo Only -->
-        <div class="donate-qr-container">
-          <div class="donate-qr-card">
-            <div class="donate-qr-header-logo">
-              <img src="assets/images/techcombank_logo.png" alt="Techcombank" class="tcb-brand-logo" />
-            </div>
-            <div class="donate-qr-img-wrapper">
-              <img src="assets/images/vietqr_donate.png" alt="Mã QR Chuyển Khoản Techcombank" id="donate-qr-img" class="donate-qr-image" />
-            </div>
-          </div>
-        </div>
-
-
-
-        <!-- Bank Details Card -->
-        <div class="donate-account-card">
-          <div class="donate-account-row">
-            <span class="acc-label">Ngân hàng</span>
-            <span class="acc-val highlight-bank">Techcombank (TCB)</span>
-          </div>
-          <div class="donate-account-row">
-            <span class="acc-label">Chủ tài khoản</span>
-            <span class="acc-val" style="font-weight: 800; color: #fff;">VU BAO NGUYEN</span>
-          </div>
-          <div class="donate-account-row stk-row">
-            <div>
-              <span class="acc-label">Số tài khoản</span>
-              <div class="acc-stk-number" id="donate-stk-display">9964823876</div>
-            </div>
-            <button type="button" id="btn-copy-donate-stk" class="donate-copy-pill" title="Sao chép số tài khoản">
-              <span id="copy-stk-icon">📋</span>
-              <span id="copy-stk-text">Sao chép STK</span>
-            </button>
-          </div>
-          <div class="donate-account-row memo-row">
-            <div>
-              <span class="acc-label">Nội dung CK</span>
-              <div class="acc-memo-text" id="donate-memo-display">Faker Party</div>
-            </div>
-            <button type="button" id="btn-copy-donate-memo" class="donate-copy-pill secondary" title="Sao chép nội dung chuyển khoản">
-              <span id="copy-memo-icon">📋</span>
-              <span id="copy-memo-text">Sao chép</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Quick Amount & Split Options -->
-        <div class="donate-options-card">
-          <div class="donate-options-title">
-            <span>✨ Chọn nhanh mức ủng hộ:</span>
-            <span id="donate-active-amount-label" style="font-size: 11px; color: #f59e0b; font-weight: 700;">Tùy tâm 💝</span>
-          </div>
-          <div class="donate-amount-chips" id="donate-amount-chips-group">
-            <button type="button" class="amount-chip active" data-amount="0">Tùy tâm 💝</button>
-            <button type="button" class="amount-chip" data-amount="10000">10k (Trà đá 🥤)</button>
-            <button type="button" class="amount-chip" data-amount="20000">20k (Bánh mì 🥖)</button>
-            <button type="button" class="amount-chip" data-amount="50000">50k (Cà phê ☕)</button>
-            <button type="button" class="amount-chip" data-amount="100000">100k (Bữa trưa 🍱)</button>
-          </div>
-
-          <!-- Button Tạo QR -->
-          <button type="button" id="btn-apply-group-split" class="donate-split-btn" style="margin-top: 10px;">
-            Tạo QR
-          </button>
-        </div>
-
-        <!-- Thank you Footer Note -->
-        <div class="donate-footer-note">
-          <p style="margin: 0; font-size: 11px; color: var(--text-muted); text-align: center; line-height: 1.45;">
-            Trò chơi hoàn toàn miễn phí và không có quảng cáo gây phiền toái. Sự đồng hành của bạn chính là món quà ý nghĩa nhất! Chúc bạn và nhóm có những ván chơi thật nhiều niềm vui! 🎉
-          </p>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
   <!-- Modal: High-End In-App Action Result Notice (Replaces native browser alert) -->
   <div id="modal-action-notice" class="modal-overlay" style="z-index: 300;">
     <div class="bottom-sheet-content action-notice-sheet">
@@ -2984,13 +2887,13 @@
   <!-- Online Multiplayer Controller -->
   <script src="js/online_controller.js?v=1.5"></script>
   <!-- App Main Controller -->
-  <script src="js/app.js?v=1.5"></script>
+  <script src="js/app.js?v=1.6"></script>
 
   <!-- Service Worker Registration for Offline Native Play -->
   <script>
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.5').then((reg) => { reg.update(); }).catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=1.6').then((reg) => { reg.update(); }).catch(() => {});
       });
     }
   </script>
